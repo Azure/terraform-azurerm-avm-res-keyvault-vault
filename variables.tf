@@ -17,6 +17,10 @@ variable "resource_group_name" {
 variable "name" {
   type        = string
   description = "The name of the Key Vault."
+  validation {
+    condition     = can(regex("^[a-z0-9-]{3,24}$", var.name))
+    error_message = "The name must be between 3 and 24 characters long and can only contain lowercase letters, numbers and dashes."
+  }
 }
 
 variable "location" {
@@ -84,31 +88,60 @@ variable "contacts" {
 }
 
 variable "network_acls" {
-  type = optional(object({
+  type = object({
     bypass                     = optional(string, "None")
     default_action             = optional(string, "Deny")
     ip_rules                   = optional(list(string), [])
     virtual_network_subnet_ids = optional(list(string), [])
-  }), {})
-  default = {}
+  })
+  default  = null
+  nullable = true
 
   validation {
-    condition     = can(regex("^AzureServices$|^None$", var.network_acls.bypass))
+    condition     = var.network_acls == null || can(regex("^AzureServices$|^None$", var.network_acls.bypass))
     error_message = "The bypass value must be either `AzureServices` or `None`."
   }
 
   validation {
-    condition     = can(regex("^Allow$|^Deny$", var.network_acls.default_action))
+    condition     = var.network_acls == null || can(regex("^Allow$|^Deny$", var.network_acls.default_action))
     error_message = "The default_action value must be either `Allow` or `Deny`."
   }
 }
 
 variable "lock" {
-  type        = string
+  type = object({
+    name = optional(string, null)
+    kind = optional(string, "None")
+  })
   description = "The lock level to apply to the Key Vault. Possible values are `CanNotDelete` and `ReadOnly`. Leave blank to not apply a lock."
-  default     = ""
+  default     = {}
   validation {
-    condition     = can(regex("^CanNotDelete$|^ReadOnly$|^$", var.lock))
-    error_message = "The lock level must be either `\"\"`, `\"CanNotDelete\"` or `\"ReadOnly\"`."
+    condition     = can(regex("^CanNotDelete$|^ReadOnly$|^None$", var.lock.kind))
+    error_message = "The lock level must be either `\"None\"`, `\"CanNotDelete\"` or `\"ReadOnly\"`."
   }
+}
+
+variable "role_assignments" {
+  type = map(object({
+    role_definition_id_or_name             = string
+    principal_id                           = string
+    description                            = optional(string, null)
+    skip_service_principal_aad_check       = optional(bool, false)
+    condition                              = optional(string, null)
+    condition_version                      = optional(string, null)
+    delegated_managed_identity_resource_id = optional(string, null)
+  }))
+  default     = {}
+  description = <<DESCRIPTION
+A map of role assignments to create on the Key Vault. The map key is deliberately arbitrary to avoid issues where may keys maybe unknown at plan time.
+
+- `role_definition_id_or_name` - The ID or name of the role definition to assign to the principal.
+- `principal_id` - The ID of the principal to assign the role to.
+- `description` - The description of the role assignment.
+- `skip_service_principal_aad_check` - If set to true, skips the Azure Active Directory check for the service principal in the tenant. Defaults to false.
+- `condition` - The condition which will be used to scope the role assignment.
+- `condition_version` - The version of the condition syntax. Valid values are '2.0.
+
+> Note: only set `skip_service_principal_aad_check` to true if you are assigning a role to a service principal.
+DESCRIPTION
 }
