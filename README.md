@@ -1,9 +1,85 @@
 <!-- BEGIN_TF_DOCS -->
 # terraform-azurerm-avm-res-keyvault-vault
 
-Module to deploy key vaults in Azure.
+Module to deploy key vaults, keys and secrets in Azure.
 
-> Note this module does not support access policies and requires authorization by Azure role assignment.
+```hcl
+terraform {
+  required_version = ">= 1.0.0"
+  required_providers {
+    azurerm = {
+      source  = "hashicorp/azurerm"
+      version = ">= 3.7.0, < 4.0.0"
+    }
+    random = {
+      source  = "hashicorp/random"
+      version = ">= 3.5.0, < 4.0.0"
+    }
+  }
+}
+
+# We pick a random region from this list.
+locals {
+  azure_regions = [
+    "westeurope",
+    "northeurope",
+    "eastus",
+    "eastus2",
+    "westus",
+    "westus2",
+    "southcentralus",
+    "northcentralus",
+    "centralus",
+    "eastasia",
+    "southeastasia",
+  ]
+}
+
+resource "random_integer" "region_index" {
+  min = 0
+  max = length(local.azure_regions) - 1
+}
+
+variable "enable_telemetry" {
+  type        = bool
+  default     = true
+  description = <<DESCRIPTION
+This variable controls whether or not telemetry is enabled for the module.
+For more information see https://aka.ms/avm/telemetry.
+If it is set to false, then no telemetry will be collected.
+DESCRIPTION
+}
+
+provider "azurerm" {
+  features {}
+}
+
+# We need the tenant id for the key vault.
+data "azurerm_client_config" "this" {}
+
+# This ensures we have unique CAF compliant names for our resources.
+module "naming" {
+  source  = "Azure/naming/azurerm"
+  version = "0.3.0"
+}
+
+# This is required for resource modules
+resource "azurerm_resource_group" "this" {
+  name     = module.naming.resource_group.name_unique
+  location = local.azure_regions[random_integer.region_index.result]
+}
+
+# This is the module call
+module "keyvault" {
+  source = "../../"
+  # source             = "Azure/avm-res-keyvault-vault/azurerm"
+  name                = module.naming.key_vault.name_unique
+  enable_telemetry    = var.enable_telemetry
+  location            = azurerm_resource_group.this.location
+  resource_group_name = azurerm_resource_group.this.name
+  tenant_id           = data.azurerm_client_config.this.tenant_id
+}
+```
 
 <!-- markdownlint-disable MD033 -->
 ## Requirements
@@ -154,13 +230,13 @@ Type:
 map(object({
     name     = string
     key_type = string
-    key_opts = list(string)
+    key_opts = optional(list(string), ["sign", "verify"])
 
     key_size        = optional(number, null)
     curve           = optional(string, null)
     not_before_date = optional(string, null)
     expiration_date = optional(string, null)
-    tags            = optional(map(any), {})
+    tags            = optional(map(any), null)
 
     role_assignments = optional(map(object({
       role_definition_id_or_name             = string
@@ -274,7 +350,7 @@ Type:
 map(object({
     name            = string
     content_type    = optional(string, null)
-    tags            = optional(map(any), {})
+    tags            = optional(map(any), null)
     not_before_date = optional(string, null)
     expiration_date = optional(string, null)
 
@@ -318,7 +394,7 @@ Description: Map of tags to assign to the Key Vault resource.
 
 Type: `map(any)`
 
-Default: `{}`
+Default: `null`
 
 ### <a name="input_wait_for_rbac_before_key_operations"></a> [wait\_for\_rbac\_before\_key\_operations](#input\_wait\_for\_rbac\_before\_key\_operations)
 

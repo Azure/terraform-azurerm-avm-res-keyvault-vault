@@ -5,7 +5,33 @@ terraform {
       source  = "hashicorp/azurerm"
       version = ">= 3.7.0, < 4.0.0"
     }
+    random = {
+      source  = "hashicorp/random"
+      version = ">= 3.5.0, < 4.0.0"
+    }
   }
+}
+
+# We pick a random region from this list.
+locals {
+  azure_regions = [
+    "westeurope",
+    "northeurope",
+    "eastus",
+    "eastus2",
+    "westus",
+    "westus2",
+    "southcentralus",
+    "northcentralus",
+    "centralus",
+    "eastasia",
+    "southeastasia",
+  ]
+}
+
+resource "random_integer" "region_index" {
+  min = 0
+  max = length(local.azure_regions) - 1
 }
 
 variable "enable_telemetry" {
@@ -34,51 +60,16 @@ module "naming" {
 # This is required for resource modules
 resource "azurerm_resource_group" "this" {
   name     = module.naming.resource_group.name_unique
-  location = "northeurope"
+  location = local.azure_regions[random_integer.region_index.result]
 }
 
-# This is the module call itself
+# This is the module call
 module "keyvault" {
-  source              = "../../"
+  source = "../../"
+  # source             = "Azure/avm-res-keyvault-vault/azurerm"
   name                = module.naming.key_vault.name_unique
   enable_telemetry    = var.enable_telemetry
   location            = azurerm_resource_group.this.location
   resource_group_name = azurerm_resource_group.this.name
   tenant_id           = data.azurerm_client_config.this.tenant_id
-  role_assignments = {
-    test = {
-      principal_id               = data.azurerm_client_config.this.object_id
-      role_definition_id_or_name = "Key Vault Administrator"
-    }
-  }
-
-  keys = {
-    mykey = {
-      name     = "sdlfhs"
-      curve    = "P-256"
-      key_type = "EC"
-      key_opts = []
-      role_assignments = {
-        me = {
-          principal_id               = data.azurerm_client_config.this.object_id
-          role_definition_id_or_name = "Key Vault Crypto Officer"
-        }
-    } }
-  }
-}
-
-
-output "this" {
-  value       = module.keyvault.resource
-  description = "The Key Vault resource."
-}
-
-output "keys" {
-  value       = module.keyvault.resource_keys
-  description = "The keys created by this module."
-}
-
-output "secrets" {
-  value       = module.keyvault.resource_secrets
-  description = "The keys created by this module."
 }
