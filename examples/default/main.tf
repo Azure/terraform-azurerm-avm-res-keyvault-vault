@@ -48,17 +48,37 @@ module "keyvault" {
   role_assignments = {
     test = {
       principal_id               = data.azurerm_client_config.this.object_id
-      role_definition_id_or_name = "Key Vault Secrets Officer"
+      role_definition_id_or_name = "Key Vault Administrator"
     }
+  }
+
+  keys = {
+    mykey = {
+      name     = "sdlfhs"
+      curve    = "P-256"
+      key_type = "EC"
+      key_opts = []
+      role_assignments = {
+        me = {
+          principal_id               = data.azurerm_client_config.this.object_id
+          role_definition_id_or_name = "Key Vault Crypto Officer"
+        }
+    } }
   }
 }
 
-output "resource_id" {
-  value       = module.keyvault.resource_id
-  description = "The Azure resource id of the Key Vault."
+
+output "this" {
+  value       = module.keyvault.resource
+  description = "The Key Vault resource."
 }
 
-output "uri" {
-  value       = module.keyvault.uri
-  description = "The URI of the Key Vault, used for performing operations on keys and secrets."
+output "keys" {
+  value       = module.keyvault.resource_keys
+  description = "The keys created by this module."
+}
+
+output "secrets" {
+  value       = module.keyvault.resource_secrets
+  description = "The keys created by this module."
 }

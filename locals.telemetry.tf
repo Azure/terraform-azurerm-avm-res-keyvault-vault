@@ -38,7 +38,7 @@ locals {
   "outputs": {
     "telemetry": {
       "type": "String",
-      "value": "For more information, see https://aka.ms/avm/telemetry"
+      "value": "Azure Verified Modules. For more information, see https://aka.ms/avm/telemetryinfo"
     }
   }
 }
