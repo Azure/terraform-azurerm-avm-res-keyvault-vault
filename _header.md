@@ -1,5 +1,3 @@
-# terraform-azurerm-avm-template
+# terraform-azurerm-avm-res-keyvault-vault
 
-This is a template repo for Terraform Azure Verified Modules.
-
-TODO: Provide instructions or links to spec to explain how to use this template.
+Module to deploy key vaults, keys and secrets in Azure.

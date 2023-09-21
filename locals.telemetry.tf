@@ -4,13 +4,13 @@ locals {
   telem_puid = "46d3xgtf"
 
   # TODO: change this to the name of the module. See https://azure.github.io/Azure-Verified-Modules/specs/shared/#id-sfr3---category-telemetry---deploymentusage-telemetry
-  module_name = "CHANGEME"
+  module_name = "keyvault-vault"
 
   # TODO: Change this. Should be either `res` or `ptn`
   module_type = "res"
 
   # This ensures we don't get errors if telemetry is disabled.
-  telem_random_hex = can(random_id.telem[0].hex) ? random_id.telem[0].hex : ""
+  telem_random_hex = can(random_id.telemetry[0].hex) ? random_id.telemetry[0].hex : ""
 
   # This constructs the ARM deployment name that is used for the telemetry.
   # We shouldn't ever hit the 64 character limit but use substr just in case.
@@ -38,7 +38,7 @@ locals {
   "outputs": {
     "telemetry": {
       "type": "String",
-      "value": "For more information, see https://aka.ms/avm/telemetry"
+      "value": "Azure Verified Modules. For more information, see https://aka.ms/avm/telemetryinfo"
     }
   }
 }
