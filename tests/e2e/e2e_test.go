@@ -1,4 +1,4 @@
-package main
+package e2e
 
 import (
 	"fmt"
@@ -14,21 +14,10 @@ const (
 	rootDir     = "../../"
 )
 
-func main() {
-	// ...
-	err := rune2e()
-	if err != nil {
-		fmt.Fprint(os.Stderr, err.Error())
-		os.Exit(1)
-	}
-	os.Exit(0)
-}
-
-func rune2e() error {
-
+func TestE2E(t *testing.T) {
 	ds, err := os.ReadDir(filepath.Join(rootDir, examplesDir))
 	if err != nil {
-		return err
+		t.Fatal(err.Error())
 	}
 	for _, d := range ds {
 		if !d.IsDir() {
@@ -36,17 +25,12 @@ func rune2e() error {
 		}
 		testdir := filepath.Join(examplesDir, d.Name())
 		fmt.Printf("Running %s\n", testdir)
-		fakeT := new(testing.T)
-		test, err := setuptest.Dirs(rootDir, testdir).WithVars(nil).InitPlanShow(fakeT)
+		test, err := setuptest.Dirs(rootDir, testdir).WithVars(nil).InitPlanShow(t)
 		if err != nil {
-			return err
+			t.Fatal(err.Error())
 		}
 		defer test.Cleanup()
-		defer test.Destroy()
-		err = test.ApplyIdempotent().AsError()
-		if err != nil {
-			return err
-		}
+		test.ApplyIdempotent().ErrorIsNil(t)
+		test.Destroy().ErrorIsNil(t)
 	}
-	return nil
 }
