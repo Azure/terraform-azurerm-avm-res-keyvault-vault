@@ -51,13 +51,20 @@ jobs:
       - name: terraform init, apply, idempotency check, destroy
         run: |
           set -euxo pipefail
+          EXIT=0
           cd examples/${{ matrix.example }}
           terraform init
           terraform apply -auto-approve
-          PLANEXIT=$(terraform plan -detailed-exitcode)
-          if [ $PLANEXIT -eq 2 ]; then
+          set +e
+          terraform plan -detailed-exitcode
+          set -e
+          if [ $? -eq 2 ]; then
             echo "Example not idempotent"
-            terraform destroy -auto-approve
-            exit 1
+            EXIT=1
+          fi
+          if [ $? -eq 1 ]; then
+            echo "Plan failed"
+            EXIT=1
           fi
           terraform destroy -auto-approve
+          exit $EXIT
