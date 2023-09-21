@@ -26,7 +26,7 @@ jobs:
         id: getexamples
         run: |
           go install github.com/matt-FFFFFF/jsonls@v0.1.0
-          echo "examples=$(jsonls -d)" >> "$GITHUB_OUTPUT"
+          echo examples="$(jsonls -d)" >> "$GITHUB_OUTPUT"
         working-directory: examples
   testexamples:
     runs-on: ubuntu-latest
