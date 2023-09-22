@@ -40,31 +40,41 @@ jobs:
         example: ${{ fromJson(needs.getexamples.outputs.examples) }}
     steps:
       - uses: actions/checkout@v4
+
       - uses: hashicorp/setup-terraform@v2
         with:
           terraform_version: '>=1.5.0'
+
       - uses: Azure/login@v1
         with:
           client-id: ${{ secrets.AZURE_CLIENT_ID }}
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-      - name: terraform init, apply, idempotency check, destroy
+
+      - name: terraform init
+        run: terraform init
+        working-directory: examples/${{ matrix.example }}
+
+      - name: terraform apply
+        run: terraform apply -auto-approve
+        working-directory: examples/${{ matrix.example }}
+
+      - name: terraform plan
+        id: plan
         run: |
-          set -euxo pipefail
-          EXIT=0
-          cd examples/${{ matrix.example }}
-          terraform init
-          terraform apply -auto-approve
-          set +e
           terraform plan -detailed-exitcode
-          set -e
-          if [ $? -eq 2 ]; then
-            echo "Example not idempotent"
-            EXIT=1
-          fi
-          if [ $? -eq 1 ]; then
-            echo "Plan failed"
-            EXIT=1
-          fi
-          terraform destroy -auto-approve
-          exit $EXIT
+          echo PLANCODE="$?" >> "$GITHUB_OUTPUT"
+        continue-on-error: true
+        working-directory: examples/${{ matrix.example }}
+
+      - name: check idempotent
+        run: |
+          echo Error: terraform plan code is ${{ steps.plan.outputs.PLANCODE }}
+          exit 1
+        working-directory: examples/${{ matrix.example }}
+        if: steps.plan.outputs.PLANCODE != 0
+
+      - name: terraform destroy
+        run: terraform destroy -auto-approve
+        working-directory: examples/${{ matrix.example }}
+        if: always()
