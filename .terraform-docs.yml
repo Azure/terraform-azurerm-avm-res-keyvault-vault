@@ -20,10 +20,6 @@ sections:
 content: |-
   {{ .Header }}
 
-  ```hcl
-  {{ include "examples/default/main.tf" }}
-  ```
-
   <!-- markdownlint-disable MD033 -->
   {{ .Requirements }}
 

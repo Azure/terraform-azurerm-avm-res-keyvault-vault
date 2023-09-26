@@ -3,84 +3,6 @@
 
 Module to deploy key vaults, keys and secrets in Azure.
 
-```hcl
-terraform {
-  required_version = ">= 1.0.0"
-  required_providers {
-    azurerm = {
-      source  = "hashicorp/azurerm"
-      version = ">= 3.7.0, < 4.0.0"
-    }
-    random = {
-      source  = "hashicorp/random"
-      version = ">= 3.5.0, < 4.0.0"
-    }
-  }
-}
-
-# We pick a random region from this list.
-locals {
-  azure_regions = [
-    "westeurope",
-    "northeurope",
-    "eastus",
-    "eastus2",
-    "westus",
-    "westus2",
-    "southcentralus",
-    "northcentralus",
-    "centralus",
-    "eastasia",
-    "southeastasia",
-  ]
-}
-
-resource "random_integer" "region_index" {
-  min = 0
-  max = length(local.azure_regions) - 1
-}
-
-variable "enable_telemetry" {
-  type        = bool
-  default     = true
-  description = <<DESCRIPTION
-This variable controls whether or not telemetry is enabled for the module.
-For more information see https://aka.ms/avm/telemetry.
-If it is set to false, then no telemetry will be collected.
-DESCRIPTION
-}
-
-provider "azurerm" {
-  features {}
-}
-
-# We need the tenant id for the key vault.
-data "azurerm_client_config" "this" {}
-
-# This ensures we have unique CAF compliant names for our resources.
-module "naming" {
-  source  = "Azure/naming/azurerm"
-  version = "0.3.0"
-}
-
-# This is required for resource modules
-resource "azurerm_resource_group" "this" {
-  name     = module.naming.resource_group.name_unique
-  location = local.azure_regions[random_integer.region_index.result]
-}
-
-# This is the module call
-module "keyvault" {
-  source = "../../"
-  # source             = "Azure/avm-res-keyvault-vault/azurerm"
-  name                = module.naming.key_vault.name_unique
-  enable_telemetry    = var.enable_telemetry
-  location            = azurerm_resource_group.this.location
-  resource_group_name = azurerm_resource_group.this.name
-  tenant_id           = data.azurerm_client_config.this.tenant_id
-}
-```
-
 <!-- markdownlint-disable MD033 -->
 ## Requirements
 
@@ -102,7 +24,7 @@ The following providers are used by this module:
 
 - <a name="provider_random"></a> [random](#provider\_random) (3.5.1)
 
-- <a name="provider_time"></a> [time](#provider\_time) (>= 0.9.1)
+- <a name="provider_time"></a> [time](#provider\_time) (0.9.1)
 
 ## Resources
 
@@ -112,6 +34,7 @@ The following resources are used by this module:
 - [azurerm_key_vault_key.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_key) (resource)
 - [azurerm_key_vault_secret.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_secret) (resource)
 - [azurerm_management_lock.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/management_lock) (resource)
+- [azurerm_private_endpoint.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_endpoint) (resource)
 - [azurerm_resource_group_template_deployment.telemetry](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/resource_group_template_deployment) (resource)
 - [azurerm_role_assignment.keys](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/role_assignment) (resource)
 - [azurerm_role_assignment.secrets](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/role_assignment) (resource)
@@ -292,6 +215,48 @@ object({
 ```
 
 Default: `null`
+
+### <a name="input_private_endpoints"></a> [private\_endpoints](#input\_private\_endpoints)
+
+Description: n/a
+
+Type:
+
+```hcl
+map(object({
+    role_assignments = optional(map(object({
+      role_definition_id_or_name             = string
+      principal_id                           = string
+      description                            = optional(string, null)
+      skip_service_principal_aad_check       = optional(bool, false)
+      condition                              = optional(string, null)
+      condition_version                      = optional(string, null)
+      delegated_managed_identity_resource_id = optional(string, null)
+    })), {})
+    lock = object({
+      name = optional(string, null)
+      kind = optional(string, "None")
+    })
+    tags                                    = optional(map(any), null)
+    service                                 = string
+    subnet_resource_id                      = string
+    private_dns_zone_group_name             = optional(string, null)
+    private_dns_zone_resource_ids           = optional(set(string), [])
+    application_security_group_resource_ids = optional(set(string), [])
+    private_service_connection_name         = optional(string, null)
+    network_interface_name                  = optional(string, null)
+    location                                = optional(string, null)
+    resource_group_name                     = optional(string, null)
+    ip_configurations = optional(map(object({
+      name               = string
+      subresource_name   = optional(string, "vault")
+      member_name        = optional(string, "vault")
+      private_ip_address = string
+    })), {})
+  }))
+```
+
+Default: `{}`
 
 ### <a name="input_purge_protection_enabled"></a> [purge\_protection\_enabled](#input\_purge\_protection\_enabled)
 

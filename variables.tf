@@ -198,7 +198,6 @@ A map of keys to create on the Key Vault. The map key is deliberately arbitrary 
   - `notify_before_expiry` - The time before expiry of the key when notification emails will be sent.
 
 Supply role assignments in the same way as for `var.role_assignments`.
-
 DESCRIPTION
 }
 
@@ -276,4 +275,39 @@ The map value is the secret value.
 
 This is a separate variable to var.secrets because it is sensitive and therefore cannot be used in a for_each loop.
 DESCRIPTION
+}
+
+variable "private_endpoints" {
+  type = map(object({
+    role_assignments = optional(map(object({
+      role_definition_id_or_name             = string
+      principal_id                           = string
+      description                            = optional(string, null)
+      skip_service_principal_aad_check       = optional(bool, false)
+      condition                              = optional(string, null)
+      condition_version                      = optional(string, null)
+      delegated_managed_identity_resource_id = optional(string, null)
+    })), {})
+    lock = object({
+      name = optional(string, null)
+      kind = optional(string, "None")
+    })
+    tags                                    = optional(map(any), null)
+    service                                 = string
+    subnet_resource_id                      = string
+    private_dns_zone_group_name             = optional(string, null)
+    private_dns_zone_resource_ids           = optional(set(string), [])
+    application_security_group_resource_ids = optional(set(string), [])
+    private_service_connection_name         = optional(string, null)
+    network_interface_name                  = optional(string, null)
+    location                                = optional(string, null)
+    resource_group_name                     = optional(string, null)
+    ip_configurations = optional(map(object({
+      name               = string
+      subresource_name   = optional(string, "vault")
+      member_name        = optional(string, "vault")
+      private_ip_address = string
+    })), {})
+  }))
+  default = {}
 }
