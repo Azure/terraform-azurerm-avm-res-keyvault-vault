@@ -18,23 +18,7 @@ terraform {
   }
 }
 
-# We pick a random region from this list.
-locals {
-  azure_regions = [
-    "westeurope",
-    "northeurope",
-    "eastus",
-    "eastus2",
-    "westus",
-    "westus2",
-    "southcentralus",
-    "northcentralus",
-    "centralus",
-    "eastasia",
-    "southeastasia",
-  ]
-}
-
+# This picks a random region from the list of regions.
 resource "random_integer" "region_index" {
   min = 0
   max = length(local.azure_regions) - 1
@@ -112,6 +96,7 @@ The following resources are used by this module:
 - [azurerm_key_vault_key.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_key) (resource)
 - [azurerm_key_vault_secret.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_secret) (resource)
 - [azurerm_management_lock.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/management_lock) (resource)
+- [azurerm_private_endpoint.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_endpoint) (resource)
 - [azurerm_resource_group_template_deployment.telemetry](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/resource_group_template_deployment) (resource)
 - [azurerm_role_assignment.keys](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/role_assignment) (resource)
 - [azurerm_role_assignment.secrets](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/role_assignment) (resource)
@@ -292,6 +277,48 @@ object({
 ```
 
 Default: `null`
+
+### <a name="input_private_endpoints"></a> [private\_endpoints](#input\_private\_endpoints)
+
+Description: n/a
+
+Type:
+
+```hcl
+map(object({
+    role_assignments = optional(map(object({
+      role_definition_id_or_name             = string
+      principal_id                           = string
+      description                            = optional(string, null)
+      skip_service_principal_aad_check       = optional(bool, false)
+      condition                              = optional(string, null)
+      condition_version                      = optional(string, null)
+      delegated_managed_identity_resource_id = optional(string, null)
+    })), {})
+    lock = object({
+      name = optional(string, null)
+      kind = optional(string, "None")
+    })
+    tags                                    = optional(map(any), null)
+    service                                 = string
+    subnet_resource_id                      = string
+    private_dns_zone_group_name             = optional(string, null)
+    private_dns_zone_resource_ids           = optional(set(string), [])
+    application_security_group_resource_ids = optional(set(string), [])
+    private_service_connection_name         = optional(string, null)
+    network_interface_name                  = optional(string, null)
+    location                                = optional(string, null)
+    resource_group_name                     = optional(string, null)
+    ip_configurations = optional(map(object({
+      name               = string
+      group_id           = optional(string, "vault")
+      member_name        = optional(string, "vault")
+      private_ip_address = string
+    })), {})
+  }))
+```
+
+Default: `{}`
 
 ### <a name="input_purge_protection_enabled"></a> [purge\_protection\_enabled](#input\_purge\_protection\_enabled)
 
