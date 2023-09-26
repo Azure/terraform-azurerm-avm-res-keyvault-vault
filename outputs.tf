@@ -12,3 +12,8 @@ output "resource_secrets" {
   value       = azurerm_key_vault_secret.this
   description = "A map of secret objects. The map key is the supplied input to var.secrets. The map value is the entire azurerm_key_vault_secret resource."
 }
+
+output "private_endpoints" {
+  value       = azurerm_private_endpoint.this
+  description = "A map of private endpoints. The map key is the supplied input to var.private_endpoints. The map value is the entire azurerm_private_endpoint resource."
+}
