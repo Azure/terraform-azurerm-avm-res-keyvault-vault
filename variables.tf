@@ -279,6 +279,7 @@ DESCRIPTION
 
 variable "private_endpoints" {
   type = map(object({
+    name = optional(string, null)
     role_assignments = optional(map(object({
       role_definition_id_or_name             = string
       principal_id                           = string
@@ -288,13 +289,13 @@ variable "private_endpoints" {
       condition_version                      = optional(string, null)
       delegated_managed_identity_resource_id = optional(string, null)
     })), {})
-    lock = object({
+    lock = optional(object({
       name = optional(string, null)
       kind = optional(string, "None")
-    })
+    }), {})
     tags                                    = optional(map(any), null)
-    service                                 = string
     subnet_resource_id                      = string
+    private_dns_zone_group_enabled          = optional(bool, false)
     private_dns_zone_group_name             = optional(string, null)
     private_dns_zone_resource_ids           = optional(set(string), [])
     application_security_group_resource_ids = optional(set(string), [])
@@ -304,8 +305,6 @@ variable "private_endpoints" {
     resource_group_name                     = optional(string, null)
     ip_configurations = optional(map(object({
       name               = string
-      subresource_name   = optional(string, "vault")
-      member_name        = optional(string, "vault")
       private_ip_address = string
     })), {})
   }))

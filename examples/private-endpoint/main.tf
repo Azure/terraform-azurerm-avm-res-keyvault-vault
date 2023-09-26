@@ -47,6 +47,26 @@ resource "azurerm_resource_group" "this" {
   location = local.azure_regions[random_integer.region_index.result]
 }
 
+# A vnet is required for the private endpoint.
+resource "azurerm_virtual_network" "this" {
+  name                = module.naming.virtual_network.name_unique
+  location            = azurerm_resource_group.this.location
+  resource_group_name = azurerm_resource_group.this.name
+  address_space       = ["192.168.0.0/24"]
+}
+
+resource "azurerm_subnet" "this" {
+  name                 = module.naming.subnet.name_unique
+  resource_group_name  = azurerm_resource_group.this.name
+  virtual_network_name = azurerm_virtual_network.this.name
+  address_prefixes     = ["192.168.0.0/24"]
+}
+
+resource "azurerm_private_dns_zone" "this" {
+  name                = "privatelink.vaultcore.azure.net"
+  resource_group_name = azurerm_resource_group.this.name
+}
+
 # This is the module call
 module "keyvault" {
   source = "../../"
@@ -56,4 +76,24 @@ module "keyvault" {
   location            = azurerm_resource_group.this.location
   resource_group_name = azurerm_resource_group.this.name
   tenant_id           = data.azurerm_client_config.this.tenant_id
+  private_endpoints = {
+    primary = {
+      private_dns_zone_group_enabled = true
+      private_dns_zone_resource_ids  = [azurerm_private_dns_zone.this.id]
+      subnet_resource_id             = azurerm_subnet.this.id
+    }
+  }
+}
+
+check "dns" {
+  data "azurerm_private_dns_a_record" "assertion" {
+    name                = module.naming.key_vault.name_unique
+    zone_name           = "privatelink.vaultcore.azure.net"
+    resource_group_name = azurerm_resource_group.this.name
+  }
+  assert {
+    condition     = one(data.azurerm_private_dns_a_record.assertion.records) == "192.168.0.4"
+    error_message = "The private DNS A record for the private endpoint is not correct."
+  }
+
 }
