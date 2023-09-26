@@ -15,8 +15,8 @@
     cancel-in-progress: true
 
   jobs:
-    docsfmttest:
-      name: docs-check
+    linting:
+      name: linting
       runs-on: ubuntu-latest
       steps:
         - name: checkout repository
