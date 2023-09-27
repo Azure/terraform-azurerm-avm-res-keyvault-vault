@@ -38,7 +38,6 @@ content: |-
   {{ .Modules }}
 
   {{ .Footer }}
-
 output:
   file: README.md
   mode: replace
