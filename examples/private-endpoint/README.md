@@ -103,7 +103,7 @@ check "dns" {
     error_message = "The private DNS A record for the private endpoint is not correct."
   }
 }
-```hcl
+```
 
 <!-- markdownlint-disable MD033 -->
 ## Requirements
