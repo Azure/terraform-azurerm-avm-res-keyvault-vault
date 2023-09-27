@@ -78,9 +78,8 @@ module "keyvault" {
   tenant_id           = data.azurerm_client_config.this.tenant_id
   private_endpoints = {
     primary = {
-      private_dns_zone_group_enabled = true
-      private_dns_zone_resource_ids  = [azurerm_private_dns_zone.this.id]
-      subnet_resource_id             = azurerm_subnet.this.id
+      private_dns_zone_resource_ids = [azurerm_private_dns_zone.this.id]
+      subnet_resource_id            = azurerm_subnet.this.id
     }
   }
 }
