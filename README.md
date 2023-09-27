@@ -224,6 +224,7 @@ Type:
 
 ```hcl
 map(object({
+    name = optional(string, null)
     role_assignments = optional(map(object({
       role_definition_id_or_name             = string
       principal_id                           = string
@@ -233,13 +234,13 @@ map(object({
       condition_version                      = optional(string, null)
       delegated_managed_identity_resource_id = optional(string, null)
     })), {})
-    lock = object({
+    lock = optional(object({
       name = optional(string, null)
       kind = optional(string, "None")
-    })
+    }), {})
     tags                                    = optional(map(any), null)
-    service                                 = string
     subnet_resource_id                      = string
+    private_dns_zone_group_enabled          = optional(bool, false)
     private_dns_zone_group_name             = optional(string, null)
     private_dns_zone_resource_ids           = optional(set(string), [])
     application_security_group_resource_ids = optional(set(string), [])
@@ -249,8 +250,6 @@ map(object({
     resource_group_name                     = optional(string, null)
     ip_configurations = optional(map(object({
       name               = string
-      subresource_name   = optional(string, "vault")
-      member_name        = optional(string, "vault")
       private_ip_address = string
     })), {})
   }))
@@ -400,6 +399,10 @@ Default: `{}`
 ## Outputs
 
 The following outputs are exported:
+
+### <a name="output_private_endpoints"></a> [private\_endpoints](#output\_private\_endpoints)
+
+Description: A map of private endpoints. The map key is the supplied input to var.private\_endpoints. The map value is the entire azurerm\_private\_endpoint resource.
 
 ### <a name="output_resource"></a> [resource](#output\_resource)
 
