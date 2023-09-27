@@ -240,7 +240,6 @@ map(object({
     }), {})
     tags                                    = optional(map(any), null)
     subnet_resource_id                      = string
-    private_dns_zone_group_enabled          = optional(bool, false)
     private_dns_zone_group_name             = optional(string, null)
     private_dns_zone_resource_ids           = optional(set(string), [])
     application_security_group_resource_ids = optional(set(string), [])

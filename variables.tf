@@ -113,7 +113,7 @@ variable "lock" {
     name = optional(string, null)
     kind = optional(string, "None")
   })
-  description = "The lock level to apply to the Key Vault. Possible values are `None`, `CanNotDelete`, and `ReadOnly`."
+  description = "The lock level to apply to the Key Vault. Default is `None`. Possible values are `None`, `CanNotDelete`, and `ReadOnly`."
   default     = {}
   nullable    = false
   validation {
@@ -295,8 +295,7 @@ variable "private_endpoints" {
     }), {})
     tags                                    = optional(map(any), null)
     subnet_resource_id                      = string
-    private_dns_zone_group_enabled          = optional(bool, false)
-    private_dns_zone_group_name             = optional(string, null)
+    private_dns_zone_group_name             = optional(string, "default")
     private_dns_zone_resource_ids           = optional(set(string), [])
     application_security_group_resource_ids = optional(set(string), [])
     private_service_connection_name         = optional(string, null)
@@ -308,5 +307,16 @@ variable "private_endpoints" {
       private_ip_address = string
     })), {})
   }))
-  default = {}
+  default     = {}
+  description = <<DESCRIPTION
+A map of private endpoints to create on the Key Vault. The map key is deliberately arbitrary to avoid issues where may keys maybe unknown at plan time.
+
+- `name` - (Optional) The name of the private endpoint. One will be generated if not set.
+- `role_assignments` - (Optional) A map of role assignments to create on the private endpoint. The map key is deliberately arbitrary to avoid issues where may keys maybe unknown at plan time.
+- `lock` - (Optional) The lock level to apply to the private endpoint. Default is `None`. Possible values are `None`, `CanNotDelete`, and `ReadOnly`.
+- `tags` - (Optional) A mapping of tags to assign to the private endpoint.
+- `subnet_resource_id` - The resource ID of the subnet to deploy the private endpoint in.
+- `private_dns_zone_group_name` - (Optional) The name of the private DNS zone group. One will be generated if not set.
+- `private_dns_zone_resource_ids` - (Optional) A set of resource IDs of private DNS zones to associate with the private endpoint. If not set, no zone groups will be created and the private endpoint will not be associated with any private DNS zones. DNS recored.
+DESCRIPTION
 }

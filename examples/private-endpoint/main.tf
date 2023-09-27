@@ -92,7 +92,7 @@ check "dns" {
     resource_group_name = azurerm_resource_group.this.name
   }
   assert {
-    condition     = one(data.azurerm_private_dns_a_record.assertion.records) != one(module.keyvault.private_endpoints["primary"].private_service_connection).private_ip_address
+    condition     = one(data.azurerm_private_dns_a_record.assertion.records) == one(module.keyvault.private_endpoints["primary"].private_service_connection).private_ip_address
     error_message = "The private DNS A record for the private endpoint is not correct."
   }
 }
