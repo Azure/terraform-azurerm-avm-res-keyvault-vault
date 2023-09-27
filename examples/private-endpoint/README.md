@@ -1,7 +1,8 @@
 <!-- BEGIN_TF_DOCS -->
-# Default example
+# Example with Private Endpoint
 
-This example shows how to deploy the module in its simplest configuration.
+This example shows how to deploy the module with a private endpoint connection.
+We have also included the Key Vault firewall to restrict access to the Key Vault only via the private endpoint.
 
 ## Requirements
 
@@ -17,9 +18,9 @@ The following requirements are needed by this module:
 
 The following providers are used by this module:
 
-- <a name="provider_azurerm"></a> [azurerm](#provider\_azurerm) (>= 3.7.0, < 4.0.0)
+- <a name="provider_azurerm"></a> [azurerm](#provider\_azurerm) (3.74.0)
 
-- <a name="provider_random"></a> [random](#provider\_random) (>= 3.5.0, < 4.0.0)
+- <a name="provider_random"></a> [random](#provider\_random) (3.5.1)
 
 ## Modules
 
@@ -41,7 +42,10 @@ Version: 0.3.0
 
 The following resources are used by this module:
 
+- [azurerm_private_dns_zone.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_dns_zone) (resource)
 - [azurerm_resource_group.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/resource_group) (resource)
+- [azurerm_subnet.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/subnet) (resource)
+- [azurerm_virtual_network.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/virtual_network) (resource)
 - [random_integer.region_index](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/integer) (resource)
 - [azurerm_client_config.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/client_config) (data source)
 

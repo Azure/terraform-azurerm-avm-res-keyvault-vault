@@ -34,6 +34,7 @@ jobs:
     environment: test
     env:
       TF_IN_AUTOMATION: 1
+      TF_VAR_enable_telemetry: false
     strategy:
       matrix:
         example: ${{ fromJson(needs.getexamples.outputs.examples) }}
