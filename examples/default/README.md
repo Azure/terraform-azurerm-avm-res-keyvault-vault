@@ -63,7 +63,7 @@ module "keyvault" {
   resource_group_name = azurerm_resource_group.this.name
   tenant_id           = data.azurerm_client_config.this.tenant_id
 }
-```hcl
+```
 
 <!-- markdownlint-disable MD033 -->
 ## Requirements
