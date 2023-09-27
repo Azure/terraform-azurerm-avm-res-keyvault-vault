@@ -19,6 +19,10 @@ sections:
 content: |-
   {{ .Header }}
 
+  ```hcl
+  {{ include "main.tf" }}
+  ```hcl
+
   <!-- markdownlint-disable MD033 -->
   {{ .Requirements }}
 
