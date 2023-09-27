@@ -366,10 +366,10 @@ Default: `{}`
 ### <a name="input_secrets_value"></a> [secrets\_value](#input\_secrets\_value)
 
 Description: A map of secret keys to values.  
-The map key is the supplied input to var.secrets.  
+The map key is the supplied input to `var.secrets`.  
 The map value is the secret value.
 
-This is a separate variable to var.secrets because it is sensitive and therefore cannot be used in a for\_each loop.
+This is a separate variable to `var.secrets` because it is sensitive and therefore cannot be used in a `for_each` loop.
 
 Type: `map(string)`
 
@@ -377,11 +377,11 @@ Default: `{}`
 
 ### <a name="input_sku_name"></a> [sku\_name](#input\_sku\_name)
 
-Description: The SKU name of the Key Vault. Possible values are `standard` and `premium`.
+Description: The SKU name of the Key Vault. Default is `premium`. `Possible values are `standard` and `premium`.`
 
 Type: `string`
 
-Default: `"standard"`
+Default: `"premium"`
 
 ### <a name="input_tags"></a> [tags](#input\_tags)
 

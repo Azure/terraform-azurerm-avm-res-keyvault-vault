@@ -30,8 +30,8 @@ variable "location" {
 
 variable "sku_name" {
   type        = string
-  description = "The SKU name of the Key Vault. Possible values are `standard` and `premium`."
-  default     = "standard"
+  description = "The SKU name of the Key Vault. Default is `premium`. `Possible values are `standard` and `premium`."
+  default     = "premium"
   validation {
     condition     = contains(["standard", "premium"], var.sku_name)
     error_message = "The SKU name must be either `standard` or `premium`."
@@ -285,10 +285,10 @@ variable "secrets_value" {
   default     = {}
   description = <<DESCRIPTION
 A map of secret keys to values.
-The map key is the supplied input to var.secrets.
+The map key is the supplied input to `var.secrets`.
 The map value is the secret value.
 
-This is a separate variable to var.secrets because it is sensitive and therefore cannot be used in a for_each loop.
+This is a separate variable to `var.secrets` because it is sensitive and therefore cannot be used in a `for_each` loop.
 DESCRIPTION
 }
 
