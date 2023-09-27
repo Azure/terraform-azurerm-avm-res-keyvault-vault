@@ -11,10 +11,6 @@ permissions:
   contents: read
   id-token: write
 
-concurrency:
-  cancel-in-progress: false
-  group: ${{ github.workflow }}
-
 jobs:
   getexamples:
     runs-on: ubuntu-latest
@@ -34,6 +30,7 @@ jobs:
     environment: test
     env:
       TF_IN_AUTOMATION: 1
+      TF_VAR_enable_telemetry: false
     strategy:
       matrix:
         example: ${{ fromJson(needs.getexamples.outputs.examples) }}

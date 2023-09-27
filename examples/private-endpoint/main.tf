@@ -71,11 +71,12 @@ resource "azurerm_private_dns_zone" "this" {
 module "keyvault" {
   source = "../../"
   # source             = "Azure/avm-res-keyvault-vault/azurerm"
-  name                = module.naming.key_vault.name_unique
-  enable_telemetry    = var.enable_telemetry
-  location            = azurerm_resource_group.this.location
-  resource_group_name = azurerm_resource_group.this.name
-  tenant_id           = data.azurerm_client_config.this.tenant_id
+  name                          = module.naming.key_vault.name_unique
+  enable_telemetry              = var.enable_telemetry
+  location                      = azurerm_resource_group.this.location
+  resource_group_name           = azurerm_resource_group.this.name
+  tenant_id                     = data.azurerm_client_config.this.tenant_id
+  public_network_access_enabled = false
   private_endpoints = {
     primary = {
       private_dns_zone_resource_ids = [azurerm_private_dns_zone.this.id]

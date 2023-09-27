@@ -38,6 +38,12 @@ variable "sku_name" {
   }
 }
 
+variable "public_network_access_enabled" {
+  type        = bool
+  description = "Specifies whether public access is permitted."
+  default     = true
+}
+
 variable "enabled_for_disk_encryption" {
   type        = bool
   description = "Specifies whether Azure Disk Encryption is permitted to retrieve secrets from the vault and unwrap keys."
@@ -94,9 +100,18 @@ variable "network_acls" {
     ip_rules                   = optional(list(string), [])
     virtual_network_subnet_ids = optional(list(string), [])
   })
-  default  = null
-  nullable = true
+  default     = {}
+  nullable    = true
+  description = <<DESCRIPTION
+The network ACL configuration for the Key Vault.
+If not specified then the Key Vault will be created with a firewall that blocks access.
+Specify `null` to create the Key Vault with no firewall.
 
+- `bypass` - (Optional) Should Azure Services bypass the ACL. Possible values are `AzureServices` and `None`. Defaults to `None`.
+- `default_action` - (Optional) The default action when no rule matches. Possible values are `Allow` and `Deny`. Defaults to `Deny`.
+- `ip_rules` - (Optional) A list of IP rules in CIDR format. Defaults to `[]`.
+- `virtual_network_subnet_ids` - (Optional) When using with Service Endpoints, a list of subnet IDs to associate with the Key Vault. Defaults to `[]`.
+DESCRIPTION
   validation {
     condition     = var.network_acls == null ? true : contains(["AzureServices", "None"], var.network_acls.bypass)
     error_message = "The bypass value must be either `AzureServices` or `None`."

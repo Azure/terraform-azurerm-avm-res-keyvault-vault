@@ -10,6 +10,7 @@ resource "azurerm_key_vault" "this" {
   purge_protection_enabled        = var.purge_protection_enabled
   tags                            = var.tags
   tenant_id                       = var.tenant_id
+  public_network_access_enabled   = var.public_network_access_enabled
 
   dynamic "contact" {
     for_each = var.contacts

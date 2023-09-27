@@ -202,7 +202,14 @@ Default: `{}`
 
 ### <a name="input_network_acls"></a> [network\_acls](#input\_network\_acls)
 
-Description: n/a
+Description: The network ACL configuration for the Key Vault.  
+If not specified then the Key Vault will be created with a firewall that blocks access.  
+Specify `null` to create the Key Vault with no firewall.
+
+- `bypass` - (Optional) Should Azure Services bypass the ACL. Possible values are `AzureServices` and `None`. Defaults to `None`.
+- `default_action` - (Optional) The default action when no rule matches. Possible values are `Allow` and `Deny`. Defaults to `Deny`.
+- `ip_rules` - (Optional) A list of IP rules in CIDR format. Defaults to `[]`.
+- `virtual_network_subnet_ids` - (Optional) When using with Service Endpoints, a list of subnet IDs to associate with the Key Vault. Defaults to `[]`.
 
 Type:
 
@@ -215,7 +222,7 @@ object({
   })
 ```
 
-Default: `null`
+Default: `{}`
 
 ### <a name="input_private_endpoints"></a> [private\_endpoints](#input\_private\_endpoints)
 
@@ -272,6 +279,14 @@ map(object({
 ```
 
 Default: `{}`
+
+### <a name="input_public_network_access_enabled"></a> [public\_network\_access\_enabled](#input\_public\_network\_access\_enabled)
+
+Description: Specifies whether public access is permitted.
+
+Type: `bool`
+
+Default: `true`
 
 ### <a name="input_purge_protection_enabled"></a> [purge\_protection\_enabled](#input\_purge\_protection\_enabled)
 
