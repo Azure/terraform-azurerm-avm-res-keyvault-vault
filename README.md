@@ -305,7 +305,7 @@ Description: A map of role assignments to create on the Key Vault. The map key i
 - `description` - The description of the role assignment.
 - `skip_service_principal_aad_check` - If set to true, skips the Azure Active Directory check for the service principal in the tenant. Defaults to false.
 - `condition` - The condition which will be used to scope the role assignment.
-- `condition_version` - The version of the condition syntax. Valid values are '2.0'.
+- `condition_version` - The version of the condition syntax. If you are using a condition, valid values are '2.0'.
 
 > Note: only set `skip_service_principal_aad_check` to true if you are assigning a role to a service principal.
 
