@@ -12,18 +12,24 @@ terraform {
   }
 }
 
-# This picks a random region from the list of regions.
-resource "random_integer" "region_index" {
-  min = 0
-  max = length(local.azure_regions) - 1
-}
-
 provider "azurerm" {
   features {}
 }
 
 # We need the tenant id for the key vault.
 data "azurerm_client_config" "this" {}
+
+# This allows us to randomize the region for the resource group.
+module "regions" {
+  source  = "Azure/regions/azurerm"
+  version = ">= 0.3.0"
+}
+
+# This allows us to randomize the region for the resource group.
+resource "random_integer" "region_index" {
+  min = 0
+  max = length(module.regions.regions) - 1
+}
 
 # This ensures we have unique CAF compliant names for our resources.
 module "naming" {
@@ -34,7 +40,7 @@ module "naming" {
 # This is required for resource modules
 resource "azurerm_resource_group" "this" {
   name     = module.naming.resource_group.name_unique
-  location = local.azure_regions[random_integer.region_index.result]
+  location = module.regions.regions[random_integer.region_index.result].name
 }
 
 # This is the module call
