@@ -25,11 +25,13 @@ provider "azurerm" {
 # We need the tenant id for the key vault.
 data "azurerm_client_config" "this" {}
 
+# This allows us to randomize the region for the resource group.
 module "regions" {
   source  = "Azure/regions/azurerm"
-  version = ">= 0.2.0"
+  version = ">= 0.3.0"
 }
 
+# This allows us to randomize the region for the resource group.
 resource "random_integer" "region_index" {
   min = 0
   max = length(module.regions.regions) - 1
@@ -142,7 +144,7 @@ Version: 0.3.0
 
 Source: Azure/regions/azurerm
 
-Version: >= 0.2.0
+Version: >= 0.3.0
 
 <!-- markdownlint-disable-next-line MD041 -->
 ## Data Collection
