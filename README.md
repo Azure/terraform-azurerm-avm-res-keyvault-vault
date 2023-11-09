@@ -418,6 +418,14 @@ Type: `string`
 
 Default: `"premium"`
 
+### <a name="input_soft_delete_retention_days"></a> [soft\_delete\_retention\_days](#input\_soft\_delete\_retention\_days)
+
+Description: The number of days that items should be retained for once soft-deleted. This value can be between 7 and 90 (the default) days.
+
+Type: `number`
+
+Default: `null`
+
 ### <a name="input_tags"></a> [tags](#input\_tags)
 
 Description: Map of tags to assign to the Key Vault resource.

@@ -38,6 +38,24 @@ variable "sku_name" {
   }
 }
 
+variable "soft_delete_retention_days" {
+  type        = number
+  description = <<DESCRIPTION
+The number of days that items should be retained for once soft-deleted. This value can be between 7 and 90 (the default) days.
+DESCRIPTION
+  default     = null
+
+  validation {
+    condition     = var.soft_delete_retention_days == null ? true : var.soft_delete_retention_days >= 7 && var.soft_delete_retention_days <= 90
+    error_message = "Value must be between 7 and 90."
+  }
+
+  validation {
+    condition     = var.soft_delete_retention_days == null ? true : ceil(var.soft_delete_retention_days) == var.soft_delete_retention_days
+    error_message = "Value must be an integer."
+  }
+}
+
 variable "public_network_access_enabled" {
   type        = bool
   description = "Specifies whether public access is permitted."
