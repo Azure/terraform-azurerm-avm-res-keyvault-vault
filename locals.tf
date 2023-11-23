@@ -29,6 +29,19 @@ locals {
   ]) : "${ra.secret_key}-${ra.ra_key}" => ra }
 }
 
+# Role assignments for certificates
+locals {
+  certificates_role_assignments = { for ra in flatten([
+    for ck, cv in var.secrets : [
+      for rk, rv in sv.role_assignments : {
+        certificate_key = ck
+        ra_key          = rk
+        role_assignment = rv
+      }
+    ]
+  ]) : "${ra.certificate_key}-${ra.ra_key}" => ra }
+}
+
 # Private endpoint application security group associations
 locals {
   private_endpoint_application_security_group_associations = { for assoc in flatten([
