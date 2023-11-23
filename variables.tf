@@ -159,7 +159,7 @@ variable "keys" {
   }))
   default     = {}
   description = <<DESCRIPTION
-A map of keys to create on the Key Vault. The map key is deliberately arbitrary to avoid issues where map keys maybe unknown at plan time.
+A map of keys to create in the Key Vault. The map key is deliberately arbitrary to avoid issues where map keys maybe unknown at plan time.
 
 - `name` - The name of the key.
 - `key_type` - The type of the key. Possible values are `EC` and `RSA`.
@@ -178,10 +178,139 @@ A map of keys to create on the Key Vault. The map key is deliberately arbitrary 
 
 Supply role assignments in the same way as for `var.role_assignments`.
 DESCRIPTION
-  nullable    = false
 }
 
-variable "legacy_access_policies" {
+variable "wait_for_rbac_before_certificate_operations" {
+  type = object({
+    create  = optional(string, "30s")
+    destroy = optional(string, "0s")
+  })
+  default     = {}
+  nullable    = false
+  description = <<DESCRIPTION
+This variable controls the amount of time to wait before performing certificate operations.
+It only applies when `var.role_assignments` and `var.certificates` are both set.
+This is useful when you are creating role assignments on the key vault and immediately creating certificates in it.
+The default is 30 seconds for create and 0 seconds for destroy.
+DESCRIPTION
+}
+
+variable "wait_for_rbac_before_key_operations" {
+  type = object({
+    create  = optional(string, "30s")
+    destroy = optional(string, "0s")
+  })
+  default     = {}
+  description = <<DESCRIPTION
+This variable controls the amount of time to wait before performing key operations.
+It only applies when `var.role_assignments` and `var.keys` are both set.
+This is useful when you are creating role assignments on the key vault and immediately creating keys in it.
+The default is 30 seconds for create and 0 seconds for destroy.
+DESCRIPTION
+}
+
+variable "wait_for_rbac_before_secret_operations" {
+  type = object({
+    create  = optional(string, "30s")
+    destroy = optional(string, "0s")
+  })
+  default  = {}
+  nullable = false
+}
+
+variable "certificates" {
+  type = map(object({
+    name = string
+    certificate = optional(object({
+      contents = string
+    }), null)
+    policy = optional(object({
+      issuer_parameters = object({
+        name = string
+      })
+      key_properties = object({
+        curve      = optional(string, null)
+        exportable = bool
+        key_size   = optional(number, null)
+        key_type   = string
+        reuse_key  = bool
+      })
+      secret_properties = object({
+        content_type = string
+      })
+      lifetime_action = optional(object({
+        action = optional(object({
+          action_type = string
+        }), null)
+        trigger = optional(object({
+          days_before_expiry  = optional(number, null)
+          lifetime_percentage = optional(number, null)
+        }), null)
+      }), null)
+      x509_certificate_properties = optional(object({
+        subject            = string
+        validity_in_months = number
+        key_usage          = list(string)
+        extended_key_usage = optional(list(string), null)
+        subject_alternative_names = optional(object({
+          dns_names = optional(list(string), null)
+          emails    = optional(list(string), null)
+          upns      = optional(list(string), null)
+        }), null)
+      }), null)
+    }), null)
+  }))
+  default     = {}
+  description = <<DESCRIPTION
+A map of certificates to create in the Key Vault. The map key is deliberately arbitrary to avoid issues where map keys maybe unknown at plan time.
+
+- `name` - (Required) The name of the certificate.
+- `certificate` - Use when you want to import an existing certificate. Conflicts with `policy`.
+  - `contents` - (Required) The base64-encoded certificate contents (note that PEM certificates are already base64-encoded). Use 'var.certificates_passwords' to supply the password.
+- `policy' - Use when you want to generate a new certificate. Conflicts with `certificate`. Changing ths will create a new version of the certificate.
+  - `issuer_parameters` - (Required) The issuer parameters.
+    - `name` - (Required) The name of the issuer. Either `Self` or `Unknown`.
+  - `key_properties` - (Required) The key properties.
+    - `exportable` - (Required) Specifies whether the private key can be exported.
+    - `key_type` - (Required) The type of key to use. Possible values are `EC`, `EC-HSM`, `RSA`, `RSA-HSM`, and 'oct'.
+    - `reuse_key` - (Required) Specifies whether the same key pair will be used on certificate renewal. When this value is true and a certificate is renewed, the certificate will be updated with a new validity period but the same asymmetric key pair will be used. When this value is false, the same key pair will not be used on certificate renewal.
+    - `curve` - Specifies the curve to use when creating an EC key. Possible values are `P-256`, `P-256K`, `P-384`, and `P-521`. This field will be required in a future release if `key_type` is `EC` or `EC-HSM`.
+    - `key_size` - The size of the key used in the certificate. Possible values include `2048`, `3072`, and `4096` for RSA keys, or `256`, `384`, and `521` for EC keys. This property is required when using RSA keys.
+  - `lifetime_action` - Certificate lifetime actions.
+    - `action` - (Required) The action to perform when the trigger occurs.
+      - `action_type` - (Required) The type of action. Possible values are `EmailContacts` and `AutoRenew`.
+    - `trigger` - (Required) The trigger for the lifetime action.
+      - `days_before_expiry` - The number of days before expiry when the lifetime action is triggered. Conflicts with `lifetime_percentage`.
+      - `lifetime_percentage` - The percentage of the lifetime when the lifetime action is triggered. Conflicts with `days_before_expiry`.
+  - `secret_properties` - (Required) The secret properties.
+    - `content_type` - (Required) The content type of the secret, such as `application/x-pkcs12` for a PFX or `application/x-pem-file` for a PEM.
+  - `x509_certificate_properties` - The X509 certificate properties.
+    - `subject` - (Required) The subject name. Should be a valid X509 distinguished Name.
+    - `validity_in_months` - (Required) The duration that the certificate is valid in months.
+    - `key_usage` - (Required) The enhanced key usage. Possible values include `cRLSign`, `dataEncipherment`, `decipherOnly`, `digitalSignature`, `encipherOnly`, `keyAgreement`, `keyCertSign`, `keyEncipherment` and `nonRepudiation` and are case-sensitive.
+    - `extended_key_usage` - A list of enhanced key usages.
+    - `subject_alternative_names` - A list of subject alternative names.
+      - `dns_names` - A list of DNS names.
+      - `emails` - A list of email addresses.
+      - `upns` - A list of user principal names.
+DESCRIPTION
+}
+
+variable "certificates_passwords" {
+  type        = map(string)
+  sensitive   = true
+  default     = {}
+  description = <<DESCRIPTION
+A map of certificate keys to passwords.
+Use when you want to import a certificate from a file using the `contents` value of `var.certificates`.
+The map key is the supplied input to `var.certificates`.
+The map value is the certificate password.
+
+This is a separate variable to `var.certificates` because it is sensitive and therefore cannot be used in a `for_each` loop.
+DESCRIPTION
+}
+
+variable "secrets" {
   type = map(object({
     object_id               = string
     application_id          = optional(string, null)
@@ -192,7 +321,7 @@ variable "legacy_access_policies" {
   }))
   default     = {}
   description = <<DESCRIPTION
-A map of legacy access policies to create on the Key Vault. The map key is deliberately arbitrary to avoid issues where map keys maybe unknown at plan time.
+A map of secrets to create in the Key Vault. The map key is deliberately arbitrary to avoid issues where map keys maybe unknown at plan time.
 
 Requires `var.legacy_access_policies_enabled` to be `true`.
 
@@ -318,7 +447,7 @@ variable "private_endpoints" {
   }))
   default     = {}
   description = <<DESCRIPTION
-A map of private endpoints to create on the Key Vault. The map key is deliberately arbitrary to avoid issues where map keys maybe unknown at plan time.
+A map of private endpoints to create for the Key Vault. The map key is deliberately arbitrary to avoid issues where map keys maybe unknown at plan time.
 
 - `name` - (Optional) The name of the private endpoint. One will be generated if not set.
 - `role_assignments` - (Optional) A map of role assignments to create on the private endpoint. The map key is deliberately arbitrary to avoid issues where map keys maybe unknown at plan time. See `var.role_assignments` for more information.
