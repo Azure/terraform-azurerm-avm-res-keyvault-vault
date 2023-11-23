@@ -31,6 +31,8 @@ The following providers are used by this module:
 The following resources are used by this module:
 
 - [azurerm_key_vault.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault) (resource)
+- [azurerm_key_vault_certificate.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_certificate) (resource)
+- [azurerm_key_vault_certificate_contacts.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_certificate_contacts) (resource)
 - [azurerm_key_vault_key.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_key) (resource)
 - [azurerm_key_vault_secret.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_secret) (resource)
 - [azurerm_management_lock.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/management_lock) (resource)
@@ -38,10 +40,13 @@ The following resources are used by this module:
 - [azurerm_private_endpoint.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_endpoint) (resource)
 - [azurerm_private_endpoint_application_security_group_association.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_endpoint_application_security_group_association) (resource)
 - [azurerm_resource_group_template_deployment.telemetry](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/resource_group_template_deployment) (resource)
+- [azurerm_role_assignment.certificates](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/role_assignment) (resource)
 - [azurerm_role_assignment.keys](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/role_assignment) (resource)
 - [azurerm_role_assignment.secrets](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/role_assignment) (resource)
 - [azurerm_role_assignment.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/role_assignment) (resource)
 - [random_id.telemetry](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/id) (resource)
+- [time_sleep.wait_for_rbac_before_certificate_operations](https://registry.terraform.io/providers/hashicorp/time/latest/docs/resources/sleep) (resource)
+- [time_sleep.wait_for_rbac_before_contact_operations](https://registry.terraform.io/providers/hashicorp/time/latest/docs/resources/sleep) (resource)
 - [time_sleep.wait_for_rbac_before_key_operations](https://registry.terraform.io/providers/hashicorp/time/latest/docs/resources/sleep) (resource)
 - [time_sleep.wait_for_rbac_before_secret_operations](https://registry.terraform.io/providers/hashicorp/time/latest/docs/resources/sleep) (resource)
 
@@ -77,6 +82,102 @@ Type: `string`
 ## Optional Inputs
 
 The following input variables are optional (have default values):
+
+### <a name="input_certificates"></a> [certificates](#input\_certificates)
+
+Description: A map of certificates to create in the Key Vault. The map key is deliberately arbitrary to avoid issues where map keys maybe unknown at plan time.
+
+- `name` - (Required) The name of the certificate.
+- `certificate` - Use when you want to import an existing certificate. Conflicts with `policy`.
+  - `contents` - (Required) The base64-encoded certificate contents (note that PEM certificates are already base64-encoded). Use 'var.certificates\_passwords' to supply the password.
+- `policy' - Use when you want to generate a new certificate. Conflicts with `certificate`. Changing ths will create a new version of the certificate.
+  - `issuer\_parameters` - (Required) The issuer parameters.
+    - `name` - (Required) The name of the issuer. Either `Self` or `Unknown`.
+  - `key\_properties` - (Required) The key properties.
+    - `exportable` - (Required) Specifies whether the private key can be exported.
+    - `key\_type` - (Required) The type of key to use. Possible values are `EC`, `EC-HSM`, `RSA`, `RSA-HSM`, and 'oct'.
+    - `reuse\_key` - (Required) Specifies whether the same key pair will be used on certificate renewal. When this value is true and a certificate is renewed, the certificate will be updated with a new validity period but the same asymmetric key pair will be used. When this value is false, the same key pair will not be used on certificate renewal.
+    - `curve` - Specifies the curve to use when creating an EC key. Possible values are `P-256`, `P-256K`, `P-384`, and `P-521`. This field will be required in a future release if `key\_type` is `EC` or `EC-HSM`.
+    - `key\_size` - The size of the key used in the certificate. Possible values include `2048`, `3072`, and `4096` for RSA keys, or `256`, `384`, and `521` for EC keys. This property is required when using RSA keys.
+  - `lifetime\_action` - Certificate lifetime actions.
+    - `action` - (Required) The action to perform when the trigger occurs.
+      - `action\_type` - (Required) The type of action. Possible values are `EmailContacts` and `AutoRenew`.
+    - `trigger` - (Required) The trigger for the lifetime action.
+      - `days\_before\_expiry` - The number of days before expiry when the lifetime action is triggered. Conflicts with `lifetime\_percentage`.
+      - `lifetime\_percentage` - The percentage of the lifetime when the lifetime action is triggered. Conflicts with `days\_before\_expiry`.
+  - `secret\_properties` - (Required) The secret properties.
+    - `content\_type` - (Required) The content type of the secret, such as `application/x-pkcs12` for a PFX or `application/x-pem-file` for a PEM.
+  - `x509\_certificate\_properties` - The X509 certificate properties.
+    - `subject` - (Required) The subject name. Should be a valid X509 distinguished Name.
+    - `validity\_in\_months` - (Required) The duration that the certificate is valid in months.
+    - `key\_usage` - (Required) The enhanced key usage. Possible values include `cRLSign`, `dataEncipherment`, `decipherOnly`, `digitalSignature`, `encipherOnly`, `keyAgreement`, `keyCertSign`, `keyEncipherment` and `nonRepudiation` and are case-sensitive.
+    - `extended\_key\_usage` - A list of enhanced key usages.
+    - `subject\_alternative\_names` - A list of subject alternative names.
+      - `dns\_names` - A list of DNS names.
+      - `emails` - A list of email addresses.
+      - `upns` - A list of user principal names.
+`
+
+Type:
+
+```hcl
+map(object({
+    name = string
+    certificate = optional(object({
+      contents = string
+    }), null)
+    policy = optional(object({
+      issuer_parameters = object({
+        name = string
+      })
+      key_properties = object({
+        curve      = optional(string, null)
+        exportable = bool
+        key_size   = optional(number, null)
+        key_type   = string
+        reuse_key  = bool
+      })
+      secret_properties = object({
+        content_type = string
+      })
+      lifetime_action = optional(object({
+        action = optional(object({
+          action_type = string
+        }), null)
+        trigger = optional(object({
+          days_before_expiry  = optional(number, null)
+          lifetime_percentage = optional(number, null)
+        }), null)
+      }), null)
+      x509_certificate_properties = optional(object({
+        subject            = string
+        validity_in_months = number
+        key_usage          = list(string)
+        extended_key_usage = optional(list(string), null)
+        subject_alternative_names = optional(object({
+          dns_names = optional(list(string), null)
+          emails    = optional(list(string), null)
+          upns      = optional(list(string), null)
+        }), null)
+      }), null)
+    }), null)
+  }))
+```
+
+Default: `{}`
+
+### <a name="input_certificates_passwords"></a> [certificates\_passwords](#input\_certificates\_passwords)
+
+Description: A map of certificate keys to passwords.  
+Use when you want to import a certificate from a file using the `contents` value of `var.certificates`.  
+The map key is the supplied input to `var.certificates`.  
+The map value is the certificate password.
+
+This is a separate variable to `var.certificates` because it is sensitive and therefore cannot be used in a `for_each` loop.
+
+Type: `map(string)`
+
+Default: `{}`
 
 ### <a name="input_contacts"></a> [contacts](#input\_contacts)
 
@@ -164,7 +265,7 @@ Default: `false`
 
 ### <a name="input_keys"></a> [keys](#input\_keys)
 
-Description: A map of keys to create on the Key Vault. The map key is deliberately arbitrary to avoid issues where map keys maybe unknown at plan time.
+Description: A map of keys to create in the Key Vault. The map key is deliberately arbitrary to avoid issues where map keys maybe unknown at plan time.
 
 - `name` - The name of the key.
 - `key_type` - The type of the key. Possible values are `EC` and `RSA`.
@@ -261,7 +362,7 @@ Default: `{}`
 
 ### <a name="input_private_endpoints"></a> [private\_endpoints](#input\_private\_endpoints)
 
-Description: A map of private endpoints to create on the Key Vault. The map key is deliberately arbitrary to avoid issues where map keys maybe unknown at plan time.
+Description: A map of private endpoints to create for the Key Vault. The map key is deliberately arbitrary to avoid issues where map keys maybe unknown at plan time.
 
 - `name` - (Optional) The name of the private endpoint. One will be generated if not set.
 - `role_assignments` - (Optional) A map of role assignments to create on the private endpoint. The map key is deliberately arbitrary to avoid issues where map keys maybe unknown at plan time. See `var.role_assignments` for more information.
@@ -362,7 +463,7 @@ Default: `{}`
 
 ### <a name="input_secrets"></a> [secrets](#input\_secrets)
 
-Description: A map of secrets to create on the Key Vault. The map key is deliberately arbitrary to avoid issues where map keys maybe unknown at plan time.
+Description: A map of secrets to create in the Key Vault. The map key is deliberately arbitrary to avoid issues where map keys maybe unknown at plan time.
 
 - `name` - The name of the secret.
 - `content_type` - The content type of the secret.
@@ -433,6 +534,24 @@ Description: Map of tags to assign to the Key Vault resource.
 Type: `map(any)`
 
 Default: `null`
+
+### <a name="input_wait_for_rbac_before_certificate_operations"></a> [wait\_for\_rbac\_before\_certificate\_operations](#input\_wait\_for\_rbac\_before\_certificate\_operations)
+
+Description: This variable controls the amount of time to wait before performing certificate operations.  
+It only applies when `var.role_assignments` and `var.certificates` are both set.  
+This is useful when you are creating role assignments on the key vault and immediately creating certificates in it.  
+The default is 30 seconds for create and 0 seconds for destroy.
+
+Type:
+
+```hcl
+object({
+    create  = optional(string, "30s")
+    destroy = optional(string, "0s")
+  })
+```
+
+Default: `{}`
 
 ### <a name="input_wait_for_rbac_before_key_operations"></a> [wait\_for\_rbac\_before\_key\_operations](#input\_wait\_for\_rbac\_before\_key\_operations)
 
