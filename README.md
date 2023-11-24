@@ -111,6 +111,8 @@ Description: A map of certificates to create in the Key Vault. The map key is de
       - `dns\_names` - A list of DNS names.
       - `emails` - A list of email addresses.
       - `upns` - A list of user principal names.
+
+Supply role assignments in the same way as for `var.role\_assignments`.
 `
 
 Type:
@@ -156,6 +158,15 @@ map(object({
         }), null)
       }), null)
     }), null)
+    role_assignments = optional(map(object({
+      role_definition_id_or_name             = string
+      principal_id                           = string
+      description                            = optional(string, null)
+      skip_service_principal_aad_check       = optional(bool, false)
+      condition                              = optional(string, null)
+      condition_version                      = optional(string, null)
+      delegated_managed_identity_resource_id = optional(string, null)
+    })), {})
   }))
 ```
 
@@ -583,6 +594,24 @@ Default: `null`
 Description: This variable controls the amount of time to wait before performing certificate operations.
 It only applies when `var.role_assignments` and `var.certificates` are both set.
 This is useful when you are creating role assignments on the key vault and immediately creating certificates in it.
+The default is 30 seconds for create and 0 seconds for destroy.
+
+Type:
+
+```hcl
+object({
+    create  = optional(string, "30s")
+    destroy = optional(string, "0s")
+  })
+```
+
+Default: `{}`
+
+### <a name="input_wait_for_rbac_before_contact_operations"></a> [wait\_for\_rbac\_before\_contact\_operations](#input\_wait\_for\_rbac\_before\_contact\_operations)
+
+Description: This variable controls the amount of time to wait before performing contact operations.  
+It only applies when `var.role_assignments` and `var.contacts` are both set.  
+This is useful when you are creating role assignments on the key vault and immediately creating contacts in it.  
 The default is 30 seconds for create and 0 seconds for destroy.
 
 Type:
