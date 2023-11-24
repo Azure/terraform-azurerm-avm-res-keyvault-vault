@@ -32,8 +32,8 @@ locals {
 # Role assignments for certificates
 locals {
   certificates_role_assignments = { for ra in flatten([
-    for ck, cv in var.secrets : [
-      for rk, rv in sv.role_assignments : {
+    for ck, cv in var.certificates : [
+      for rk, rv in cv.role_assignments : {
         certificate_key = ck
         ra_key          = rk
         role_assignment = rv

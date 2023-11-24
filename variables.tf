@@ -21,6 +21,18 @@ variable "name" {
     condition     = can(regex("^[a-z0-9-]{3,24}$", var.name))
     error_message = "The name must be between 3 and 24 characters long and can only contain lowercase letters, numbers and dashes."
   }
+  validation {
+    error_message = "The name must not contain two consecutive dashes"
+    condition     = !can(regex("--", var.name))
+  }
+  validation {
+    error_message = "The name must start with a letter"
+    condition     = can(regex("^[a-zA-Z]", var.name))
+  }
+  validation {
+    error_message = "The name must end with a letter or number"
+    condition     = can(regex("[a-zA-Z0-9]$", var.name))
+  }
 }
 
 variable "location" {
@@ -234,50 +246,6 @@ Supply role assignments in the same way as for `var.role_assignments`.
 DESCRIPTION
 }
 
-variable "wait_for_rbac_before_certificate_operations" {
-  type = object({
-    create  = optional(string, "30s")
-    destroy = optional(string, "0s")
-  })
-  default     = {}
-  nullable    = false
-  description = <<DESCRIPTION
-This variable controls the amount of time to wait before performing certificate operations.
-It only applies when `var.role_assignments` and `var.certificates` are both set.
-This is useful when you are creating role assignments on the key vault and immediately creating certificates in it.
-The default is 30 seconds for create and 0 seconds for destroy.
-DESCRIPTION
-}
-
-variable "wait_for_rbac_before_key_operations" {
-  type = object({
-    create  = optional(string, "30s")
-    destroy = optional(string, "0s")
-  })
-  default     = {}
-  description = <<DESCRIPTION
-This variable controls the amount of time to wait before performing key operations.
-It only applies when `var.role_assignments` and `var.keys` are both set.
-This is useful when you are creating role assignments on the key vault and immediately creating keys in it.
-The default is 30 seconds for create and 0 seconds for destroy.
-DESCRIPTION
-}
-
-variable "wait_for_rbac_before_secret_operations" {
-  type = object({
-    create  = optional(string, "30s")
-    destroy = optional(string, "0s")
-  })
-  default     = {}
-  nullable    = false
-  description = <<DESCRIPTION
-This variable controls the amount of time to wait before performing secret operations.
-It only applies when `var.role_assignments` and `var.secrets` are both set.
-This is useful when you are creating role assignments on the key vault and immediately creating secrets in it.
-The default is 30 seconds for create and 0 seconds for destroy.
-DESCRIPTION
-}
-
 variable "certificates" {
   type = map(object({
     name = string
@@ -319,6 +287,15 @@ variable "certificates" {
         }), null)
       }), null)
     }), null)
+    role_assignments = optional(map(object({
+      role_definition_id_or_name             = string
+      principal_id                           = string
+      description                            = optional(string, null)
+      skip_service_principal_aad_check       = optional(bool, false)
+      condition                              = optional(string, null)
+      condition_version                      = optional(string, null)
+      delegated_managed_identity_resource_id = optional(string, null)
+    })), {})
   }))
   default     = {}
   description = <<DESCRIPTION
@@ -353,7 +330,13 @@ A map of certificates to create in the Key Vault. The map key is deliberately ar
       - `dns_names` - A list of DNS names.
       - `emails` - A list of email addresses.
       - `upns` - A list of user principal names.
+
+Supply role assignments in the same way as for `var.role_assignments`.
 DESCRIPTION
+  validation {
+    condition     = alltrue([for _, v in var.certificates : (v.certificate == null) != (v.policy == null)])
+    error_message = "Either `certificate` or `policy` must be set, but not both."
+  }
 }
 
 variable "certificates_passwords" {
@@ -511,5 +494,65 @@ A map of diagnostic settings to create on the Key Vault. The map key is delibera
 - `event_hub_authorization_rule_resource_id` - (Optional) The resource ID of the event hub authorization rule to send logs and metrics to.
 - `event_hub_name` - (Optional) The name of the event hub. If none is specified, the default event hub will be selected.
 - `marketplace_partner_resource_id` - (Optional) The full ARM resource ID of the Marketplace resource to which you would like to send Diagnostic LogsLogs.
+DESCRIPTION
+}
+
+
+variable "wait_for_rbac_before_certificate_operations" {
+  type = object({
+    create  = optional(string, "30s")
+    destroy = optional(string, "0s")
+  })
+  default     = {}
+  nullable    = false
+  description = <<DESCRIPTION
+This variable controls the amount of time to wait before performing certificate operations.
+It only applies when `var.role_assignments` and `var.certificates` are both set.
+This is useful when you are creating role assignments on the key vault and immediately creating certificates in it.
+The default is 30 seconds for create and 0 seconds for destroy.
+DESCRIPTION
+}
+
+variable "wait_for_rbac_before_key_operations" {
+  type = object({
+    create  = optional(string, "30s")
+    destroy = optional(string, "0s")
+  })
+  default     = {}
+  description = <<DESCRIPTION
+This variable controls the amount of time to wait before performing key operations.
+It only applies when `var.role_assignments` and `var.keys` are both set.
+This is useful when you are creating role assignments on the key vault and immediately creating keys in it.
+The default is 30 seconds for create and 0 seconds for destroy.
+DESCRIPTION
+}
+
+variable "wait_for_rbac_before_secret_operations" {
+  type = object({
+    create  = optional(string, "30s")
+    destroy = optional(string, "0s")
+  })
+  default     = {}
+  nullable    = false
+  description = <<DESCRIPTION
+This variable controls the amount of time to wait before performing secret operations.
+It only applies when `var.role_assignments` and `var.secrets` are both set.
+This is useful when you are creating role assignments on the key vault and immediately creating secrets in it.
+The default is 30 seconds for create and 0 seconds for destroy.
+DESCRIPTION
+}
+
+variable "wait_for_rbac_before_contact_operations" {
+  type = object({
+    create  = optional(string, "30s")
+    destroy = optional(string, "0s")
+  })
+  default     = {}
+  nullable    = false
+  description = <<DESCRIPTION
+This variable controls the amount of time to wait before performing contact operations.
+It only applies when `var.role_assignments` and `var.contacts` are both set.
+This is useful when you are creating role assignments on the key vault and immediately creating contacts in it.
+The default is 30 seconds for create and 0 seconds for destroy.
 DESCRIPTION
 }
