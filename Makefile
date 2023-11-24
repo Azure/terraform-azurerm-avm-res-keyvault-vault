@@ -16,3 +16,9 @@ fmt:
 tools:
 	go install github.com/katbyte/terrafmt@latest
 	go install github.com/terraform-docs/terraform-docs@latest
+
+.PHONY: test
+test:
+	@echo "==> Running unit tests..."
+	terraform init -test-directory='./tests/unit'
+	terraform test -test-directory='./tests/unit'

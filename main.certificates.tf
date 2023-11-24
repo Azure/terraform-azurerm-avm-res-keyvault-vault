@@ -7,7 +7,7 @@ resource "azurerm_key_vault_certificate" "this" {
     for_each = each.value.certificate != null ? [1] : []
     content {
       contents = each.value.certificate.contents
-      password = var.certificates_passwords[each.key]
+      password = lookup(var.certificates_passwords[each.key], null)
     }
   }
 
