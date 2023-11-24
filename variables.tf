@@ -18,7 +18,7 @@ variable "name" {
   type        = string
   description = "The name of the Key Vault."
   validation {
-    condition     = can(regex("^(?=.{3,24}$)(?!.*--)[a-zA-Z][a-zA-Z0-9-]+[a-zA-Z0-9]$", var.name))
+    condition     = can(regex("^[a-zA-Z][a-zA-Z0-9-]{1,22}[a-zA-Z0-9]$", var.name)) && !strcontains(var.name, "--")
     error_message = "The name must be between 3 and 24 characters long.  Valid characters are alphanumerics and hyphens.  The name must start with a letter, end with a letter or digit, and can't contain consecutive hyphens."
   }
 }
