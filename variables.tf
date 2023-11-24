@@ -107,7 +107,67 @@ If it is set to false, then no telemetry will be collected.
 DESCRIPTION
 }
 
-variable "enabled_for_deployment" {
+# This is required for most resource modules
+variable "resource_group_name" {
+  type        = string
+  description = "The resource group where the resources will be deployed."
+}
+
+variable "name" {
+  type        = string
+  description = "The name of the Key Vault."
+  validation {
+    condition     = can(regex("^[a-z0-9-]{3,24}$", var.name))
+    error_message = "The name must be between 3 and 24 characters long and can only contain lowercase letters, numbers and dashes."
+  }
+  validation {
+    error_message = "The name must not contain two consecutive dashes"
+    condition     = !can(regex("--", var.name))
+  }
+  validation {
+    error_message = "The name must start with a letter"
+    condition     = can(regex("^[a-zA-Z]", var.name))
+  }
+  validation {
+    error_message = "The name must end with a letter or number"
+    condition     = can(regex("[a-zA-Z0-9]$", var.name))
+  }
+}
+
+variable "location" {
+  type        = string
+  description = "The Azure location where the resources will be deployed."
+}
+
+variable "sku_name" {
+  type        = string
+  description = "The SKU name of the Key Vault. Default is `premium`. `Possible values are `standard` and `premium`."
+  default     = "premium"
+  validation {
+    condition     = contains(["standard", "premium"], var.sku_name)
+    error_message = "The SKU name must be either `standard` or `premium`."
+  }
+}
+
+variable "soft_delete_retention_days" {
+  type        = number
+  description = <<DESCRIPTION
+The number of days that items should be retained for once soft-deleted. This value can be between 7 and 90 (the default) days.
+DESCRIPTION
+  default     = null
+
+  validation {
+    condition     = var.soft_delete_retention_days == null ? true : var.soft_delete_retention_days >= 7 && var.soft_delete_retention_days <= 90
+    error_message = "Value must be between 7 and 90."
+  }
+
+  validation {
+    condition     = var.soft_delete_retention_days == null ? true : ceil(var.soft_delete_retention_days) == var.soft_delete_retention_days
+    error_message = "Value must be an integer."
+  }
+}
+
+variable "public_network_access_enabled" {
   type        = bool
   default     = false
   description = "Specifies whether Azure Virtual Machines are permitted to retrieve certificates stored as secrets from the vault."
@@ -180,44 +240,6 @@ Supply role assignments in the same way as for `var.role_assignments`.
 DESCRIPTION
 }
 
-variable "wait_for_rbac_before_certificate_operations" {
-  type = object({
-    create  = optional(string, "30s")
-    destroy = optional(string, "0s")
-  })
-  default     = {}
-  nullable    = false
-  description = <<DESCRIPTION
-This variable controls the amount of time to wait before performing certificate operations.
-It only applies when `var.role_assignments` and `var.certificates` are both set.
-This is useful when you are creating role assignments on the key vault and immediately creating certificates in it.
-The default is 30 seconds for create and 0 seconds for destroy.
-DESCRIPTION
-}
-
-variable "wait_for_rbac_before_key_operations" {
-  type = object({
-    create  = optional(string, "30s")
-    destroy = optional(string, "0s")
-  })
-  default     = {}
-  description = <<DESCRIPTION
-This variable controls the amount of time to wait before performing key operations.
-It only applies when `var.role_assignments` and `var.keys` are both set.
-This is useful when you are creating role assignments on the key vault and immediately creating keys in it.
-The default is 30 seconds for create and 0 seconds for destroy.
-DESCRIPTION
-}
-
-variable "wait_for_rbac_before_secret_operations" {
-  type = object({
-    create  = optional(string, "30s")
-    destroy = optional(string, "0s")
-  })
-  default  = {}
-  nullable = false
-}
-
 variable "certificates" {
   type = map(object({
     name = string
@@ -259,6 +281,15 @@ variable "certificates" {
         }), null)
       }), null)
     }), null)
+    role_assignments = optional(map(object({
+      role_definition_id_or_name             = string
+      principal_id                           = string
+      description                            = optional(string, null)
+      skip_service_principal_aad_check       = optional(bool, false)
+      condition                              = optional(string, null)
+      condition_version                      = optional(string, null)
+      delegated_managed_identity_resource_id = optional(string, null)
+    })), {})
   }))
   default     = {}
   description = <<DESCRIPTION
@@ -293,7 +324,13 @@ A map of certificates to create in the Key Vault. The map key is deliberately ar
       - `dns_names` - A list of DNS names.
       - `emails` - A list of email addresses.
       - `upns` - A list of user principal names.
+
+Supply role assignments in the same way as for `var.role_assignments`.
 DESCRIPTION
+  validation {
+    condition     = alltrue([for _, v in var.certificates : (v.certificate == null) != (v.policy == null)])
+    error_message = "Either `certificate` or `policy` must be set, but not both."
+  }
 }
 
 variable "certificates_passwords" {
@@ -611,6 +648,22 @@ The default is 30 seconds for create and 0 seconds for destroy.
 DESCRIPTION
 }
 
+
+variable "wait_for_rbac_before_certificate_operations" {
+  type = object({
+    create  = optional(string, "30s")
+    destroy = optional(string, "0s")
+  })
+  default     = {}
+  nullable    = false
+  description = <<DESCRIPTION
+This variable controls the amount of time to wait before performing certificate operations.
+It only applies when `var.role_assignments` and `var.certificates` are both set.
+This is useful when you are creating role assignments on the key vault and immediately creating certificates in it.
+The default is 30 seconds for create and 0 seconds for destroy.
+DESCRIPTION
+}
+
 variable "wait_for_rbac_before_key_operations" {
   type = object({
     create  = optional(string, "30s")
@@ -631,11 +684,26 @@ variable "wait_for_rbac_before_secret_operations" {
     destroy = optional(string, "0s")
   })
   default     = {}
+  nullable    = false
   description = <<DESCRIPTION
 This variable controls the amount of time to wait before performing secret operations.
 It only applies when `var.role_assignments` and `var.secrets` are both set.
 This is useful when you are creating role assignments on the key vault and immediately creating secrets in it.
 The default is 30 seconds for create and 0 seconds for destroy.
 DESCRIPTION
+}
+
+variable "wait_for_rbac_before_contact_operations" {
+  type = object({
+    create  = optional(string, "30s")
+    destroy = optional(string, "0s")
+  })
+  default     = {}
   nullable    = false
+  description = <<DESCRIPTION
+This variable controls the amount of time to wait before performing contact operations.
+It only applies when `var.role_assignments` and `var.contacts` are both set.
+This is useful when you are creating role assignments on the key vault and immediately creating contacts in it.
+The default is 30 seconds for create and 0 seconds for destroy.
+DESCRIPTION
 }
