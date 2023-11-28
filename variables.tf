@@ -25,7 +25,11 @@ variable "name" {
 
 variable "location" {
   type        = string
-  description = "The Azure location where the resources will be deployed."
+  default     = null
+  description = <<DESCRIPTION
+Azure region where the resource should be deployed.  
+If null, the location will be inferred from the resource group location.
+DESCRIPTION
 }
 
 variable "sku_name" {
@@ -82,9 +86,13 @@ variable "enabled_for_template_deployment" {
 
 variable "tenant_id" {
   type        = string
-  description = "The Azure tenant ID used for authenticating requests to Key Vault. You can use the `azurerm_client_config` data source to retrieve it."
+  description = <<DESCRIPTION
+The Azure tenant ID used for authenticating requests to Key Vault.
+By default this value is null, in which case the current tenant is used.
+DESCRIPTION
+  default     = null
   validation {
-    condition     = can(regex("^[0-9a-f]{8}-([0-9a-f]{4}-){3}[0-9a-f]{12}$", var.tenant_id))
+    condition     = var.tenant_id == null ? true : can(regex("^[0-9a-f]{8}-([0-9a-f]{4}-){3}[0-9a-f]{12}$", var.tenant_id))
     error_message = "The tenant ID must be a valid GUID. Letters must be lowercase."
   }
 }

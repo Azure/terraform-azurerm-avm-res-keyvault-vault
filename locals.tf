@@ -1,6 +1,12 @@
-# TODO: insert locals here.
+data "azurerm_resource_group" "parent" {
+  name = var.resource_group_name
+}
+data "azurerm_client_config" "this" {}
+
 locals {
   role_definition_resource_substring = "/providers/Microsoft.Authorization/roleDefinitions"
+  location                           = var.location != null ? var.location : data.azurerm_resource_group.parent.location
+  tenant_id                          = var.tenant_id != null ? var.tenant_id : data.azurerm_client_config.this.tenant_id
 }
 
 # Role assignments for keys
