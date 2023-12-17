@@ -24,6 +24,10 @@ resource "azurerm_key_vault" "this" {
       virtual_network_subnet_ids = network_acls.value.virtual_network_subnet_ids
     }
   }
+
+  lifecycle {
+    ignore_changes = [contact] // handled with separate resource to avoid ACL-problems
+  }
 }
 
 resource "azurerm_key_vault_certificate_contacts" "this" {
