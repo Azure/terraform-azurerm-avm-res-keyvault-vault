@@ -13,15 +13,6 @@ resource "azurerm_key_vault" "this" {
   tenant_id                       = var.tenant_id
   public_network_access_enabled   = var.public_network_access_enabled
 
-  dynamic "contact" {
-    for_each = var.contacts
-    content {
-      name  = contact.value.name
-      email = contact.value.email
-      phone = contact.value.phone
-    }
-  }
-
   # Only one network_acls block is allowed.
   # Create it if the variable is not null.
   dynamic "network_acls" {
@@ -33,6 +24,23 @@ resource "azurerm_key_vault" "this" {
       virtual_network_subnet_ids = network_acls.value.virtual_network_subnet_ids
     }
   }
+}
+
+resource "azurerm_key_vault_certificate_contacts" "this" {
+  count = length(keys(var.contacts)) > 0 ? 1 : 0
+
+  key_vault_id = azurerm_key_vault.this.id
+
+  dynamic "contact" {
+    for_each = var.contacts
+    content {
+      name  = contact.value.name
+      email = contact.value.email
+      phone = contact.value.phone
+    }
+  }
+
+  depends_on = [azurerm_role_assignment.this]
 }
 
 resource "azurerm_management_lock" "this" {
