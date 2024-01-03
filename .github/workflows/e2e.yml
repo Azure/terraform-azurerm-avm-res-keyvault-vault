@@ -27,7 +27,7 @@ jobs:
 
   testexamples:
     if: github.event.repository.name != 'terraform-azurerm-avm-template'
-    runs-on: [ self-hosted, 1ES.Pool=Azure-Verified-Modules-Grept ]
+    runs-on: [ self-hosted, 1ES.Pool=Azure/terraform-azurerm-avm-res-keyvault-vault ]
     needs: getexamples
     environment: test
     env:
