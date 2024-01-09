@@ -18,14 +18,18 @@ variable "name" {
   type        = string
   description = "The name of the Key Vault."
   validation {
-    condition     = can(regex("^[a-z0-9-]{3,24}$", var.name))
-    error_message = "The name must be between 3 and 24 characters long and can only contain lowercase letters, numbers and dashes."
+    condition     = can(regex("^[a-zA-Z][a-zA-Z0-9-]{1,22}[a-zA-Z0-9]$", var.name)) && !strcontains(var.name, "--")
+    error_message = "The name must be between 3 and 24 characters long.  Valid characters are alphanumerics and hyphens.  The name must start with a letter, end with a letter or digit, and can't contain consecutive hyphens."
   }
 }
 
 variable "location" {
   type        = string
-  description = "The Azure location where the resources will be deployed."
+  default     = null
+  description = <<DESCRIPTION
+Azure region where the resource should be deployed.  
+If null, the location will be inferred from the resource group location.
+DESCRIPTION
 }
 
 variable "sku_name" {
@@ -82,9 +86,13 @@ variable "enabled_for_template_deployment" {
 
 variable "tenant_id" {
   type        = string
-  description = "The Azure tenant ID used for authenticating requests to Key Vault. You can use the `azurerm_client_config` data source to retrieve it."
+  description = <<DESCRIPTION
+The Azure tenant ID used for authenticating requests to Key Vault.
+By default this value is null, in which case the current tenant is used.
+DESCRIPTION
+  default     = null
   validation {
-    condition     = can(regex("^[0-9a-f]{8}-([0-9a-f]{4}-){3}[0-9a-f]{12}$", var.tenant_id))
+    condition     = var.tenant_id == null ? true : can(regex("^[0-9a-f]{8}-([0-9a-f]{4}-){3}[0-9a-f]{12}$", var.tenant_id))
     error_message = "The tenant ID must be a valid GUID. Letters must be lowercase."
   }
 }

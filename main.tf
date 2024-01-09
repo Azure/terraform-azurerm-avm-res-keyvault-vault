@@ -2,7 +2,7 @@ resource "azurerm_key_vault" "this" {
   name                            = var.name
   resource_group_name             = var.resource_group_name
   sku_name                        = var.sku_name
-  location                        = var.location
+  location                        = local.location
   enable_rbac_authorization       = true
   enabled_for_deployment          = var.enabled_for_deployment
   enabled_for_disk_encryption     = var.enabled_for_disk_encryption
@@ -10,7 +10,7 @@ resource "azurerm_key_vault" "this" {
   purge_protection_enabled        = var.purge_protection_enabled
   soft_delete_retention_days      = var.soft_delete_retention_days
   tags                            = var.tags
-  tenant_id                       = var.tenant_id
+  tenant_id                       = local.tenant_id
   public_network_access_enabled   = var.public_network_access_enabled
 
   dynamic "contact" {
