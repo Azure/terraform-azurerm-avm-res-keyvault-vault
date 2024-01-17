@@ -34,7 +34,7 @@ resource "azurerm_private_endpoint" "this" {
   }
 }
 
-resource "azurerm_private_endpoint" "this_unmanaged_private_dns_zone_group" {
+resource "azurerm_private_endpoint" "this_unmanaged_private_dns_zone_groups" {
   for_each                      = { for k, v in var.private_endpoints : k => v if !var.private_endpoints_manage_dns_zone_group }
   name                          = each.value.name != null ? each.value.name : "pe-${var.name}"
   location                      = each.value.location != null ? each.value.location : var.location
