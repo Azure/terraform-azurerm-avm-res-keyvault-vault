@@ -11,6 +11,18 @@ variable "name" {
     condition     = can(regex("^[a-z0-9-]{3,24}$", var.name))
     error_message = "The name must be between 3 and 24 characters long and can only contain lowercase letters, numbers and dashes."
   }
+  validation {
+    error_message = "The name must not contain two consecutive dashes"
+    condition     = !can(regex("--", var.name))
+  }
+  validation {
+    error_message = "The name must start with a letter"
+    condition     = can(regex("^[a-zA-Z]", var.name))
+  }
+  validation {
+    error_message = "The name must end with a letter or number"
+    condition     = can(regex("[a-zA-Z0-9]$", var.name))
+  }
 }
 
 # This is required for most resource modules
@@ -36,8 +48,8 @@ variable "contacts" {
     phone = optional(string, null)
   }))
   default     = {}
-  nullable    = false
   description = "A map of contacts for the Key Vault. The map key is deliberately arbitrary to avoid issues where map keys maybe unknown at plan time."
+  nullable    = false
 }
 
 variable "diagnostic_settings" {
@@ -54,7 +66,6 @@ variable "diagnostic_settings" {
     marketplace_partner_resource_id          = optional(string, null)
   }))
   default     = {}
-  nullable    = false
   description = <<DESCRIPTION
 A map of diagnostic settings to create on the Key Vault. The map key is deliberately arbitrary to avoid issues where map keys maybe unknown at plan time.
 
@@ -69,6 +80,7 @@ A map of diagnostic settings to create on the Key Vault. The map key is delibera
 - `event_hub_name` - (Optional) The name of the event hub. If none is specified, the default event hub will be selected.
 - `marketplace_partner_resource_id` - (Optional) The full ARM resource ID of the Marketplace resource to which you would like to send Diagnostic LogsLogs.
 DESCRIPTION
+  nullable    = false
 
   validation {
     condition     = alltrue([for _, v in var.diagnostic_settings : contains(["Dedicated", "AzureDiagnostics"], v.log_analytics_destination_type)])
@@ -145,7 +157,6 @@ variable "keys" {
     }), null)
   }))
   default     = {}
-  nullable    = false
   description = <<DESCRIPTION
 A map of keys to create on the Key Vault. The map key is deliberately arbitrary to avoid issues where map keys maybe unknown at plan time.
 
@@ -166,6 +177,7 @@ A map of keys to create on the Key Vault. The map key is deliberately arbitrary 
 
 Supply role assignments in the same way as for `var.role_assignments`.
 DESCRIPTION
+  nullable    = false
 }
 
 variable "lock" {
@@ -242,7 +254,6 @@ variable "private_endpoints" {
     })), {})
   }))
   default     = {}
-  nullable    = false
   description = <<DESCRIPTION
 A map of private endpoints to create on the Key Vault. The map key is deliberately arbitrary to avoid issues where map keys maybe unknown at plan time.
 
@@ -262,6 +273,7 @@ A map of private endpoints to create on the Key Vault. The map key is deliberate
   - `name` - The name of the IP configuration.
   - `private_ip_address` - The private IP address of the IP configuration.
 DESCRIPTION
+  nullable    = false
 }
 
 variable "private_endpoints_manage_dns_zone_group" {
@@ -294,7 +306,6 @@ variable "role_assignments" {
     delegated_managed_identity_resource_id = optional(string, null)
   }))
   default     = {}
-  nullable    = false
   description = <<DESCRIPTION
 A map of role assignments to create on the Key Vault. The map key is deliberately arbitrary to avoid issues where map keys maybe unknown at plan time.
 
@@ -307,6 +318,7 @@ A map of role assignments to create on the Key Vault. The map key is deliberatel
 
 > Note: only set `skip_service_principal_aad_check` to true if you are assigning a role to a service principal.
 DESCRIPTION
+  nullable    = false
 }
 
 variable "secrets" {
@@ -328,7 +340,6 @@ variable "secrets" {
     })), {})
   }))
   default     = {}
-  nullable    = false
   description = <<DESCRIPTION
 A map of secrets to create on the Key Vault. The map key is deliberately arbitrary to avoid issues where map keys maybe unknown at plan time.
 
@@ -342,6 +353,7 @@ Supply role assignments in the same way as for `var.role_assignments`.
 
 > Note: the `value` of the secret is supplied via the `var.secrets_value` variable. Make sure to use the same map key.
 DESCRIPTION
+  nullable    = false
 }
 
 variable "secrets_value" {
@@ -354,8 +366,8 @@ The map value is the secret value.
 
 This is a separate variable to `var.secrets` because it is sensitive and therefore cannot be used in a `for_each` loop.
 DESCRIPTION
-  sensitive   = true
   nullable    = false
+  sensitive   = true
 }
 
 variable "sku_name" {
