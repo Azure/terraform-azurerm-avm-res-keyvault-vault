@@ -14,6 +14,6 @@ output "resource_secrets" {
 }
 
 output "private_endpoints" {
-  value       = azurerm_private_endpoint.this
+  value       = var.private_endpoints_manage_dns_zone_group ? azurerm_private_endpoint.this : azurerm_private_endpoint.this_unmanaged_dns_zone_groups
   description = "A map of private endpoints. The map key is the supplied input to var.private_endpoints. The map value is the entire azurerm_private_endpoint resource."
 }

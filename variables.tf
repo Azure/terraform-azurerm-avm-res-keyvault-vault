@@ -406,3 +406,10 @@ A map of diagnostic settings to create on the Key Vault. The map key is delibera
 - `marketplace_partner_resource_id` - (Optional) The full ARM resource ID of the Marketplace resource to which you would like to send Diagnostic LogsLogs.
 DESCRIPTION
 }
+
+variable "private_endpoints_manage_dns_zone_group" {
+  type        = bool
+  default     = true
+  nullable    = false
+  description = "Whether to manage private DNS zone groups with this module. If set to false, you must manage private DNS zone groups externally, e.g. using Azure Policy."
+}
