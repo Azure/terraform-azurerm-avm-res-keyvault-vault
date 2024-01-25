@@ -44,17 +44,13 @@ The following resources are used by this module:
 - [random_id.telemetry](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/id) (resource)
 - [time_sleep.wait_for_rbac_before_key_operations](https://registry.terraform.io/providers/hashicorp/time/latest/docs/resources/sleep) (resource)
 - [time_sleep.wait_for_rbac_before_secret_operations](https://registry.terraform.io/providers/hashicorp/time/latest/docs/resources/sleep) (resource)
+- [azurerm_client_config.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/client_config) (data source)
+- [azurerm_resource_group.parent](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/resource_group) (data source)
 
 <!-- markdownlint-disable MD013 -->
 ## Required Inputs
 
 The following input variables are required:
-
-### <a name="input_location"></a> [location](#input\_location)
-
-Description: The Azure location where the resources will be deployed.
-
-Type: `string`
 
 ### <a name="input_name"></a> [name](#input\_name)
 
@@ -65,12 +61,6 @@ Type: `string`
 ### <a name="input_resource_group_name"></a> [resource\_group\_name](#input\_resource\_group\_name)
 
 Description: The resource group where the resources will be deployed.
-
-Type: `string`
-
-### <a name="input_tenant_id"></a> [tenant\_id](#input\_tenant\_id)
-
-Description: The Azure tenant ID used for authenticating requests to Key Vault. You can use the `azurerm_client_config` data source to retrieve it.
 
 Type: `string`
 
@@ -219,6 +209,15 @@ map(object({
 ```
 
 Default: `{}`
+
+### <a name="input_location"></a> [location](#input\_location)
+
+Description: Azure region where the resource should be deployed.  
+If null, the location will be inferred from the resource group location.
+
+Type: `string`
+
+Default: `null`
 
 ### <a name="input_lock"></a> [lock](#input\_lock)
 
@@ -431,6 +430,15 @@ Default: `null`
 Description: Map of tags to assign to the Key Vault resource.
 
 Type: `map(any)`
+
+Default: `null`
+
+### <a name="input_tenant_id"></a> [tenant\_id](#input\_tenant\_id)
+
+Description: The Azure tenant ID used for authenticating requests to Key Vault.  
+By default this value is null, in which case the current tenant is used.
+
+Type: `string`
 
 Default: `null`
 
