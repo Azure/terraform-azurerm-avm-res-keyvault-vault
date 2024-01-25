@@ -40,3 +40,5 @@ README-generated.md
 avm.tflint.hcl
 avm.tflint_example.hcl
 avmmakefile
+avm.tflint.merged.hcl
+avm.tflint_example.merged.hcl
