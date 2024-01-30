@@ -229,12 +229,12 @@ Type:
 
 ```hcl
 object({
-    name = optional(string, null)
+    name = string
     kind = optional(string, "None")
   })
 ```
 
-Default: `{}`
+Default: `null`
 
 ### <a name="input_network_acls"></a> [network\_acls](#input\_network\_acls)
 
