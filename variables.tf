@@ -59,7 +59,7 @@ DESCRIPTION
 variable "public_network_access_enabled" {
   type        = bool
   description = "Specifies whether public access is permitted."
-  default     = true
+  default     = false
 }
 
 variable "enabled_for_disk_encryption" {
