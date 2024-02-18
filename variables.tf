@@ -30,7 +30,7 @@ variable "location" {
 
 variable "sku_name" {
   type        = string
-  description = "The SKU name of the Key Vault. Default is `premium`. `Possible values are `standard` and `premium`."
+  description = "The SKU name of the Key Vault. Default is `premium`. Possible values are `standard` and `premium`."
   default     = "premium"
   validation {
     condition     = contains(["standard", "premium"], var.sku_name)
