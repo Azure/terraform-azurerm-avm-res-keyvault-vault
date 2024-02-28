@@ -35,3 +35,12 @@ terraform.rc
 
 # Ignore the lock file, as this is a module
 .terraform.lock.hcl
+*tfplan*
+README-generated.md
+avm.tflint.hcl
+avm.tflint_example.hcl
+avmmakefile
+avm.tflint.merged.hcl
+avm.tflint_example.merged.hcl
+*.md.tmp
+.DS_Store
