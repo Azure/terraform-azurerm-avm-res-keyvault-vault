@@ -1,6 +1,11 @@
 output "resource" {
   value       = azurerm_key_vault.this
   description = "The Key Vault resource."
+
+  depends_on = [
+    azurerm_key_vault_key.this,
+    azurerm_key_vault_secret.this
+  ]
 }
 
 output "resource_keys" {

@@ -44,7 +44,7 @@ resource "azurerm_role_assignment" "keys" {
 }
 
 resource "time_sleep" "wait_for_rbac_before_key_operations" {
-  count = length(var.role_assignments) > 0 && length(var.keys) > 0 ? 1 : 0
+  count = var.role_assignments != {} && var.keys != {} ? 1 : 0
   depends_on = [
     azurerm_role_assignment.this
   ]

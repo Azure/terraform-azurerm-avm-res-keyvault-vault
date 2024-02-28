@@ -26,7 +26,7 @@ resource "azurerm_role_assignment" "secrets" {
 }
 
 resource "time_sleep" "wait_for_rbac_before_secret_operations" {
-  count = length(var.role_assignments) > 0 && length(var.secrets) > 0 ? 1 : 0
+  count = var.role_assignments != {} && var.secrets != {} ? 1 : 0
   depends_on = [
     azurerm_role_assignment.this
   ]
