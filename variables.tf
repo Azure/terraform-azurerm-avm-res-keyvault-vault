@@ -335,7 +335,7 @@ DESCRIPTION
 
 variable "secrets_value" {
   type        = map(string)
-  default     = {}
+  default     = null
   description = <<DESCRIPTION
 A map of secret keys to values.
 The map key is the supplied input to `var.secrets`.

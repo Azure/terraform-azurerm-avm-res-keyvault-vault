@@ -408,7 +408,7 @@ This is a separate variable to `var.secrets` because it is sensitive and therefo
 
 Type: `map(string)`
 
-Default: `{}`
+Default: `null`
 
 ### <a name="input_sku_name"></a> [sku\_name](#input\_sku\_name)
 
