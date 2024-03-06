@@ -18,6 +18,7 @@ resource "azurerm_role_assignment" "secrets" {
   for_each = local.secrets_role_assignments
 
   principal_id                           = each.value.role_assignment.principal_id
+  principal_type                         = each.value.role_assignment.principal_type
   scope                                  = azurerm_key_vault_secret.this[each.value.secret_key].resource_versionless_id
   condition                              = each.value.role_assignment.condition
   condition_version                      = each.value.role_assignment.condition_version
