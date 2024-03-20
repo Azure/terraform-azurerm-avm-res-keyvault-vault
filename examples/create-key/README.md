@@ -26,6 +26,16 @@ resource "azurerm_resource_group" "this" {
   name     = module.naming.resource_group.name_unique
 }
 
+# Get current IP address for use in KV firewall rules
+data "http" "ip" {
+  url = "https://api.ipify.org/"
+  retry {
+    attempts     = 5
+    max_delay_ms = 1000
+    min_delay_ms = 500
+  }
+}
+
 data "azurerm_client_config" "current" {}
 
 module "key_vault" {
@@ -64,7 +74,7 @@ module "key_vault" {
   }
   network_acls = {
     bypass   = "AzureServices"
-    ip_rules = ["0.0.0.0/0"]
+    ip_rules = ["${data.http.ip.response_body}/32"]
   }
 }
 ```
@@ -86,6 +96,8 @@ The following providers are used by this module:
 
 - <a name="provider_azurerm"></a> [azurerm](#provider\_azurerm) (~> 3.7)
 
+- <a name="provider_http"></a> [http](#provider\_http)
+
 - <a name="provider_random"></a> [random](#provider\_random) (~> 3.5)
 
 ## Resources
@@ -95,6 +107,7 @@ The following resources are used by this module:
 - [azurerm_resource_group.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/resource_group) (resource)
 - [random_integer.region_index](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/integer) (resource)
 - [azurerm_client_config.current](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/client_config) (data source)
+- [http_http.ip](https://registry.terraform.io/providers/hashicorp/http/latest/docs/data-sources/http) (data source)
 
 <!-- markdownlint-disable MD013 -->
 ## Required Inputs
