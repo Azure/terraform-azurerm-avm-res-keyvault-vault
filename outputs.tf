@@ -4,10 +4,10 @@ output "private_endpoints" {
 }
 
 output "resource" {
-  depends_on = [
-    azurerm_key_vault_key.this,
-    azurerm_key_vault_secret.this
-  ]
+  # depends_on = [
+  #   azurerm_key_vault_key.this,
+  #   azurerm_key_vault_secret.this
+  # ]
   description = "The Key Vault resource."
   value       = azurerm_key_vault.this
 }

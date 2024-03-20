@@ -164,6 +164,7 @@ A map of keys to create on the Key Vault. The map key is deliberately arbitrary 
 
 Supply role assignments in the same way as for `var.role_assignments`.
 DESCRIPTION
+  nullable    = false
 }
 
 variable "lock" {
@@ -331,6 +332,7 @@ Supply role assignments in the same way as for `var.role_assignments`.
 
 > Note: the `value` of the secret is supplied via the `var.secrets_value` variable. Make sure to use the same map key.
 DESCRIPTION
+  nullable    = false
 }
 
 variable "secrets_value" {
