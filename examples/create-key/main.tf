@@ -20,6 +20,16 @@ resource "azurerm_resource_group" "this" {
   name     = module.naming.resource_group.name_unique
 }
 
+# Get current IP address for use in KV firewall rules
+data "http" "ip" {
+  url = "https://api.ipify.org/"
+  retry {
+    attempts     = 5
+    max_delay_ms = 1000
+    min_delay_ms = 500
+  }
+}
+
 data "azurerm_client_config" "current" {}
 
 module "key_vault" {
@@ -58,6 +68,6 @@ module "key_vault" {
   }
   network_acls = {
     bypass   = "AzureServices"
-    ip_rules = ["0.0.0.0/0"]
+    ip_rules = ["${data.http.ip.response_body}/32"]
   }
 }
