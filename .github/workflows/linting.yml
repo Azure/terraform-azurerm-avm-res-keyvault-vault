@@ -53,3 +53,6 @@ jobs:
   lint-complete:
     needs: [docs, terraform, avmfix]
     runs-on: ubuntu-latest
+    steps:
+      - name: lint complete
+        run: echo "linting complete"
