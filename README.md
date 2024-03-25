@@ -162,6 +162,14 @@ Type: `bool`
 
 Default: `false`
 
+### <a name="input_existing_resource_id"></a> [existing\_resource\_id](#input\_existing\_resource\_id)
+
+Description: The Azure resource id of an existing key vault to import. Use this when you only want to create child resources in an existing parent.
+
+Type: `string`
+
+Default: `null`
+
 ### <a name="input_keys"></a> [keys](#input\_keys)
 
 Description: A map of keys to create on the Key Vault. The map key is deliberately arbitrary to avoid issues where map keys maybe unknown at plan time.

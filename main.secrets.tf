@@ -1,7 +1,7 @@
 resource "azurerm_key_vault_secret" "this" {
   for_each = var.secrets
 
-  key_vault_id    = azurerm_key_vault.this.id
+  key_vault_id    = local.key_vault_resource_id
   name            = each.value.name
   value           = var.secrets_value[each.key]
   content_type    = each.value.content_type

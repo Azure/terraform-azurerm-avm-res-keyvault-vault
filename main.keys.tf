@@ -3,7 +3,7 @@ resource "azurerm_key_vault_key" "this" {
 
   key_opts        = each.value.key_opts
   key_type        = each.value.key_type
-  key_vault_id    = azurerm_key_vault.this.id
+  key_vault_id    = local.key_vault_resource_id
   name            = each.value.name
   curve           = each.value.curve
   expiration_date = each.value.expiration_date
