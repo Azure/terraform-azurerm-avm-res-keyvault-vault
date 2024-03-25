@@ -1,4 +1,10 @@
+moved {
+  from = azurerm_key_vault.this
+  to   = azurerm_key_vault.this[0]
+}
+
 resource "azurerm_key_vault" "this" {
+  count                           = var.existing_resource_id == null ? 1 : 0
   location                        = var.location
   name                            = var.name
   resource_group_name             = var.resource_group_name
@@ -39,14 +45,14 @@ resource "azurerm_management_lock" "this" {
 
   lock_level = var.lock.kind
   name       = coalesce(var.lock.name, "lock-${var.name}")
-  scope      = azurerm_key_vault.this.id
+  scope      = local.key_vault_resource_id
 }
 
 resource "azurerm_role_assignment" "this" {
   for_each = var.role_assignments
 
   principal_id                           = each.value.principal_id
-  scope                                  = azurerm_key_vault.this.id
+  scope                                  = local.key_vault_resource_id
   condition                              = each.value.condition
   condition_version                      = each.value.condition_version
   delegated_managed_identity_resource_id = each.value.delegated_managed_identity_resource_id
@@ -59,7 +65,7 @@ resource "azurerm_monitor_diagnostic_setting" "this" {
   for_each = var.diagnostic_settings
 
   name                           = each.value.name != null ? each.value.name : "diag-${var.name}"
-  target_resource_id             = azurerm_key_vault.this.id
+  target_resource_id             = local.key_vault_resource_id
   eventhub_authorization_rule_id = each.value.event_hub_authorization_rule_resource_id
   eventhub_name                  = each.value.event_hub_name
   log_analytics_destination_type = each.value.log_analytics_destination_type

@@ -1,4 +1,3 @@
-# TODO: insert locals here.
 locals {
   role_definition_resource_substring = "/providers/Microsoft.Authorization/roleDefinitions"
 }
@@ -40,4 +39,12 @@ locals {
       }
     ]
   ]) : "${assoc.pe_key}-${assoc.asg_key}" => assoc }
+}
+
+# Determine resource id for child resources
+locals {
+  key_vault_resource_id = coalesce(
+    var.existing_resource_id,
+    azurerm_key_vault.this[0].id
+  )
 }

@@ -410,3 +410,14 @@ The default is 30 seconds for create and 0 seconds for destroy.
 DESCRIPTION
   nullable    = false
 }
+
+variable "existing_resource_id" {
+  type        = string
+  description = "The Azure resource id of an existing key vault to import. Use this when you only want to create child resources in an existing parent."
+  default     = null
+
+  validation {
+    condition     = var.existing_resource_id == null || can(regex("^/subscriptions/[^/]+/resourceGroups/[^/]+/providers/Microsoft.KeyVault/vaults/[^/]+$", var.existing_resource_id))
+    error_message = "The existing resource id must be a valid Azure Key Vault resource ID."
+  }
+}
