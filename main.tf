@@ -4,7 +4,8 @@ moved {
 }
 
 resource "azurerm_key_vault" "this" {
-  count                           = var.existing_resource_id == null ? 1 : 0
+  count = var.existing_resource_id == null ? 1 : 0
+
   location                        = var.location
   name                            = var.name
   resource_group_name             = var.resource_group_name
