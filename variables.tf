@@ -333,6 +333,13 @@ Supply role assignments in the same way as for `var.role_assignments`.
 > Note: the `value` of the secret is supplied via the `var.secrets_value` variable. Make sure to use the same map key.
 DESCRIPTION
   nullable    = false
+
+  validation {
+    condition = alltrue([
+      for key, secret in var.secrets : can(regex("^[A-Za-z0-9-]{1,127}$", secret.name))
+    ])
+    error_message = "Secret names may only contain alphanumerics and hyphens, and be between 1 and 127 characters in length."
+  }
 }
 
 variable "secrets_value" {
