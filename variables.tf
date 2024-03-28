@@ -340,6 +340,16 @@ DESCRIPTION
     ])
     error_message = "Secret names may only contain alphanumerics and hyphens, and be between 1 and 127 characters in length."
   }
+
+  validation {
+    condition = alltrue([
+      for key, secret in var.secrets : (
+        (secret.not_before_date == null || can(regex("^([0-9]+)-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01])[Tt]([01][0-9]|2[0-3]):([0-5][0-9]):([0-5][0-9]|60)(\\.[0-9]+)?(([Zz])|([\\+|\\-]([01][0-9]|2[0-3]):[0-5][0-9]))$", secret.not_before_date))) &&
+        (secret.expiration_date == null || can(regex("^([0-9]+)-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01])[Tt]([01][0-9]|2[0-3]):([0-5][0-9]):([0-5][0-9]|60)(\\.[0-9]+)?(([Zz])|([\\+|\\-]([01][0-9]|2[0-3]):[0-5][0-9]))$", secret.expiration_date)))
+      )
+    ])
+    error_message = "Secret `not_before_date` or `expiration_date` must be a valid RFC 3339 date format (YYYY-MM-DDThh:mm:ssZ)."
+  }
 }
 
 variable "secrets_value" {
