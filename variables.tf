@@ -340,7 +340,6 @@ DESCRIPTION
     ])
     error_message = "Secret names may only contain alphanumerics and hyphens, and be between 1 and 127 characters in length."
   }
-
   validation {
     condition = alltrue([
       for key, secret in var.secrets : (
