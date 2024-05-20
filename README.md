@@ -228,12 +228,12 @@ Type:
 
 ```hcl
 object({
+    kind = string
     name = optional(string, null)
-    kind = optional(string, "None")
   })
 ```
 
-Default: `{}`
+Default: `null`
 
 ### <a name="input_network_acls"></a> [network\_acls](#input\_network\_acls)
 
@@ -292,6 +292,7 @@ map(object({
       condition                              = optional(string, null)
       condition_version                      = optional(string, null)
       delegated_managed_identity_resource_id = optional(string, null)
+      principal_type                         = optional(string, null)
     })), {})
     lock = optional(object({
       name = optional(string, null)
@@ -355,6 +356,7 @@ map(object({
     condition                              = optional(string, null)
     condition_version                      = optional(string, null)
     delegated_managed_identity_resource_id = optional(string, null)
+    principal_type                         = optional(string, null)
   }))
 ```
 
@@ -430,7 +432,7 @@ Default: `null`
 
 Description: Map of tags to assign to the Key Vault resource.
 
-Type: `map(any)`
+Type: `map(string)`
 
 Default: `null`
 
@@ -474,21 +476,21 @@ Default: `{}`
 
 The following outputs are exported:
 
+### <a name="output_keys_resource_ids"></a> [keys\_resource\_ids](#output\_keys\_resource\_ids)
+
+Description: A map of key keys to resource ids.
+
 ### <a name="output_private_endpoints"></a> [private\_endpoints](#output\_private\_endpoints)
 
 Description: A map of private endpoints. The map key is the supplied input to var.private\_endpoints. The map value is the entire azurerm\_private\_endpoint resource.
 
-### <a name="output_resource"></a> [resource](#output\_resource)
+### <a name="output_resource_id"></a> [resource\_id](#output\_resource\_id)
 
-Description: The Key Vault resource.
+Description: The Key Vault resource id.
 
-### <a name="output_resource_keys"></a> [resource\_keys](#output\_resource\_keys)
+### <a name="output_secrets_resource_ids"></a> [secrets\_resource\_ids](#output\_secrets\_resource\_ids)
 
-Description: A map of key objects. The map key is the supplied input to var.keys. The map value is the entire azurerm\_key\_vault\_key resource.
-
-### <a name="output_resource_secrets"></a> [resource\_secrets](#output\_resource\_secrets)
-
-Description: A map of secret objects. The map key is the supplied input to var.secrets. The map value is the entire azurerm\_key\_vault\_secret resource.
+Description: A map of secret keys to resource ids.
 
 ## Modules
 
