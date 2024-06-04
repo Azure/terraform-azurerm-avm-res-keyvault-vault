@@ -133,6 +133,7 @@ variable "keys" {
       condition                              = optional(string, null)
       condition_version                      = optional(string, null)
       delegated_managed_identity_resource_id = optional(string, null)
+      principal_type                         = optional(string, null)
     })), {})
 
     rotation_policy = optional(object({
@@ -320,6 +321,7 @@ variable "secrets" {
       condition                              = optional(string, null)
       condition_version                      = optional(string, null)
       delegated_managed_identity_resource_id = optional(string, null)
+      principal_type                         = optional(string, null)
     })), {})
   }))
   default     = {}

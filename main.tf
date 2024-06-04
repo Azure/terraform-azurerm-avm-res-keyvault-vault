@@ -35,7 +35,7 @@ resource "azurerm_key_vault" "this" {
 }
 
 resource "azurerm_management_lock" "this" {
-  count = var.lock.kind != null ? 1 : 0
+  count = var.lock != null ? 1 : 0
 
   lock_level = var.lock.kind
   name       = coalesce(var.lock.name, "lock-${var.name}")
@@ -53,6 +53,7 @@ resource "azurerm_role_assignment" "this" {
   role_definition_id                     = strcontains(lower(each.value.role_definition_id_or_name), lower(local.role_definition_resource_substring)) ? each.value.role_definition_id_or_name : null
   role_definition_name                   = strcontains(lower(each.value.role_definition_id_or_name), lower(local.role_definition_resource_substring)) ? null : each.value.role_definition_id_or_name
   skip_service_principal_aad_check       = each.value.skip_service_principal_aad_check
+  principal_type                         = each.value.principal_type
 }
 
 resource "azurerm_monitor_diagnostic_setting" "this" {
