@@ -20,7 +20,7 @@ resource "azurerm_private_endpoint" "this" {
     content {
       name               = ip_configuration.value.name
       private_ip_address = ip_configuration.value.private_ip_address
-      member_name        = "vault"
+      member_name        = "default"
       subresource_name   = "vault"
     }
   }
