@@ -1,6 +1,7 @@
 variable "location" {
   type        = string
   description = "The Azure location where the resources will be deployed."
+  nullable    = false
 }
 
 variable "name" {
@@ -10,6 +11,18 @@ variable "name" {
   validation {
     condition     = can(regex("^[a-z0-9-]{3,24}$", var.name))
     error_message = "The name must be between 3 and 24 characters long and can only contain lowercase letters, numbers and dashes."
+  }
+  validation {
+    error_message = "The name must not contain two consecutive dashes"
+    condition     = !can(regex("--", var.name))
+  }
+  validation {
+    error_message = "The name must start with a letter"
+    condition     = can(regex("^[a-zA-Z]", var.name))
+  }
+  validation {
+    error_message = "The name must end with a letter or number"
+    condition     = can(regex("[a-zA-Z0-9]$", var.name))
   }
 }
 
@@ -132,6 +145,7 @@ variable "keys" {
       condition                              = optional(string, null)
       condition_version                      = optional(string, null)
       delegated_managed_identity_resource_id = optional(string, null)
+      principal_type                         = optional(string, null)
     })), {})
 
     rotation_policy = optional(object({
@@ -169,16 +183,15 @@ DESCRIPTION
 
 variable "lock" {
   type = object({
+    kind = string
     name = optional(string, null)
-    kind = optional(string, "None")
   })
-  default     = {}
+  default     = null
   description = "The lock level to apply to the Key Vault. Default is `None`. Possible values are `None`, `CanNotDelete`, and `ReadOnly`."
-  nullable    = false
 
   validation {
-    condition     = contains(["CanNotDelete", "ReadOnly", "None"], var.lock.kind)
-    error_message = "The lock level must be one of: 'None', 'CanNotDelete', or 'ReadOnly'."
+    condition     = var.lock != null ? contains(["CanNotDelete", "ReadOnly"], var.lock.kind) : true
+    error_message = "Lock kind must be either `\"CanNotDelete\"` or `\"ReadOnly\"`."
   }
 }
 
@@ -222,12 +235,13 @@ variable "private_endpoints" {
       condition                              = optional(string, null)
       condition_version                      = optional(string, null)
       delegated_managed_identity_resource_id = optional(string, null)
+      principal_type                         = optional(string, null)
     })), {})
     lock = optional(object({
+      kind = string
       name = optional(string, null)
-      kind = optional(string, "None")
-    }), {})
-    tags                                    = optional(map(any), null)
+    }), null)
+    tags                                    = optional(map(string), null)
     subnet_resource_id                      = string
     private_dns_zone_group_name             = optional(string, "default")
     private_dns_zone_resource_ids           = optional(set(string), [])
@@ -261,6 +275,14 @@ A map of private endpoints to create on the Key Vault. The map key is deliberate
   - `name` - The name of the IP configuration.
   - `private_ip_address` - The private IP address of the IP configuration.
 DESCRIPTION
+  nullable    = false
+}
+
+variable "private_endpoints_manage_dns_zone_group" {
+  type        = bool
+  default     = true
+  description = "Whether to manage private DNS zone groups with this module. If set to false, you must manage private DNS zone groups externally, e.g. using Azure Policy."
+  nullable    = false
 }
 
 variable "public_network_access_enabled" {
@@ -284,6 +306,7 @@ variable "role_assignments" {
     condition                              = optional(string, null)
     condition_version                      = optional(string, null)
     delegated_managed_identity_resource_id = optional(string, null)
+    principal_type                         = optional(string, null)
   }))
   default     = {}
   description = <<DESCRIPTION
@@ -298,6 +321,7 @@ A map of role assignments to create on the Key Vault. The map key is deliberatel
 
 > Note: only set `skip_service_principal_aad_check` to true if you are assigning a role to a service principal.
 DESCRIPTION
+  nullable    = false
 }
 
 variable "secrets" {
@@ -316,6 +340,7 @@ variable "secrets" {
       condition                              = optional(string, null)
       condition_version                      = optional(string, null)
       delegated_managed_identity_resource_id = optional(string, null)
+      principal_type                         = optional(string, null)
     })), {})
   }))
   default     = {}
@@ -351,7 +376,7 @@ DESCRIPTION
 variable "sku_name" {
   type        = string
   default     = "premium"
-  description = "The SKU name of the Key Vault. Default is `premium`. `Possible values are `standard` and `premium`."
+  description = "The SKU name of the Key Vault. Default is `premium`. Possible values are `standard` and `premium`."
 
   validation {
     condition     = contains(["standard", "premium"], var.sku_name)
@@ -377,9 +402,23 @@ DESCRIPTION
 }
 
 variable "tags" {
-  type        = map(any)
+  type        = map(string)
   default     = null
   description = "Map of tags to assign to the Key Vault resource."
+}
+
+variable "wait_for_rbac_before_contact_operations" {
+  type = object({
+    create  = optional(string, "30s")
+    destroy = optional(string, "0s")
+  })
+  default     = {}
+  description = <<DESCRIPTION
+This variable controls the amount of time to wait before performing contact operations.
+It only applies when `var.role_assignments` and `var.contacts` are both set.
+This is useful when you are creating role assignments on the key vault and immediately creating keys in it.
+The default is 30 seconds for create and 0 seconds for destroy.
+DESCRIPTION
 }
 
 variable "wait_for_rbac_before_key_operations" {

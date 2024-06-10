@@ -4,6 +4,28 @@
 This example shows how to deploy the module and create a key using Azure RBAC.
 
 ```hcl
+provider "azurerm" {
+  features {}
+}
+
+terraform {
+  required_version = "~> 1.6"
+  required_providers {
+    azurerm = {
+      source  = "hashicorp/azurerm"
+      version = "~> 3.71"
+    }
+    random = {
+      source  = "hashicorp/random"
+      version = "~> 3.5"
+    }
+    http = {
+      source  = "hashicorp/http"
+      version = "~> 3.4"
+    }
+  }
+}
+
 module "regions" {
   source  = "Azure/regions/azurerm"
   version = "0.4.0"
@@ -57,10 +79,9 @@ module "key_vault" {
         "verify",
         "wrapKey"
       ]
-      key_type     = "RSA"
-      key_vault_id = module.key_vault.resource.id
-      name         = "cmk-for-storage-account"
-      key_size     = 2048
+      key_type = "RSA"
+      name     = "cmk-for-storage-account"
+      key_size = 2048
     }
   }
   role_assignments = {
@@ -69,7 +90,7 @@ module "key_vault" {
       principal_id               = data.azurerm_client_config.current.object_id
     }
   }
-  wait_for_rbac_before_secret_operations = {
+  wait_for_rbac_before_key_operations = {
     create = "60s"
   }
   network_acls = {
@@ -86,7 +107,7 @@ The following requirements are needed by this module:
 
 - <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) (~> 1.6)
 
-- <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) (~> 3.7)
+- <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) (~> 3.71)
 
 - <a name="requirement_http"></a> [http](#requirement\_http) (~> 3.4)
 
@@ -96,7 +117,7 @@ The following requirements are needed by this module:
 
 The following providers are used by this module:
 
-- <a name="provider_azurerm"></a> [azurerm](#provider\_azurerm) (~> 3.7)
+- <a name="provider_azurerm"></a> [azurerm](#provider\_azurerm) (~> 3.71)
 
 - <a name="provider_http"></a> [http](#provider\_http) (~> 3.4)
 

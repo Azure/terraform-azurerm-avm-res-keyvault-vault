@@ -63,20 +63,13 @@ module "key_vault" {
   resource_group_name           = azurerm_resource_group.this.name
   tenant_id                     = data.azurerm_client_config.current.tenant_id
   public_network_access_enabled = true
-  keys = {
-    cmk_for_storage_account = {
-      key_opts = [
-        "decrypt",
-        "encrypt",
-        "sign",
-        "unwrapKey",
-        "verify",
-        "wrapKey"
-      ]
-      key_type = "RSA"
-      name     = "cmk-for-storage-account"
-      key_size = 2048
+  secrets = {
+    test_secret = {
+      name = "test-secret"
     }
+  }
+  secrets_value = {
+    test_secret = "secret-value"
   }
   role_assignments = {
     deployment_user_kv_admin = {
@@ -84,7 +77,7 @@ module "key_vault" {
       principal_id               = data.azurerm_client_config.current.object_id
     }
   }
-  wait_for_rbac_before_key_operations = {
+  wait_for_rbac_before_secret_operations = {
     create = "60s"
   }
   network_acls = {

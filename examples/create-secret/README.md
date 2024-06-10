@@ -1,7 +1,7 @@
 <!-- BEGIN_TF_DOCS -->
-# Default example
+# Create secret
 
-This example shows how to deploy the module in its simplest configuration.
+This example shows how to deploy the module and create a secret using Azure RBAC.
 
 ```hcl
 provider "azurerm" {
@@ -19,13 +19,13 @@ terraform {
       source  = "hashicorp/random"
       version = "~> 3.5"
     }
+    http = {
+      source  = "hashicorp/http"
+      version = "~> 3.4"
+    }
   }
 }
 
-# We need the tenant id for the key vault.
-data "azurerm_client_config" "this" {}
-
-# This allows us to randomize the region for the resource group.
 module "regions" {
   source  = "Azure/regions/azurerm"
   version = "0.4.0"
@@ -43,21 +43,53 @@ module "naming" {
   version = "0.3.0"
 }
 
-# This is required for resource modules
 resource "azurerm_resource_group" "this" {
   location = module.regions.regions[random_integer.region_index.result].name
   name     = module.naming.resource_group.name_unique
 }
 
-# This is the module call
-module "keyvault" {
+# Get current IP address for use in KV firewall rules
+data "http" "ip" {
+  url = "https://api.ipify.org/"
+  retry {
+    attempts     = 5
+    max_delay_ms = 1000
+    min_delay_ms = 500
+  }
+}
+
+data "azurerm_client_config" "current" {}
+
+module "key_vault" {
   source = "../../"
   # source             = "Azure/avm-res-keyvault-vault/azurerm"
-  name                = module.naming.key_vault.name_unique
-  enable_telemetry    = var.enable_telemetry
-  location            = azurerm_resource_group.this.location
-  resource_group_name = azurerm_resource_group.this.name
-  tenant_id           = data.azurerm_client_config.this.tenant_id
+  name                          = module.naming.key_vault.name_unique
+  location                      = azurerm_resource_group.this.location
+  enable_telemetry              = var.enable_telemetry
+  resource_group_name           = azurerm_resource_group.this.name
+  tenant_id                     = data.azurerm_client_config.current.tenant_id
+  public_network_access_enabled = true
+  secrets = {
+    test_secret = {
+      name = "test-secret"
+    }
+  }
+  secrets_value = {
+    test_secret = "secret-value"
+  }
+  role_assignments = {
+    deployment_user_kv_admin = {
+      role_definition_id_or_name = "Key Vault Administrator"
+      principal_id               = data.azurerm_client_config.current.object_id
+    }
+  }
+  wait_for_rbac_before_secret_operations = {
+    create = "60s"
+  }
+  network_acls = {
+    bypass   = "AzureServices"
+    ip_rules = ["${data.http.ip.response_body}/32"]
+  }
 }
 ```
 
@@ -70,6 +102,8 @@ The following requirements are needed by this module:
 
 - <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) (~> 3.71)
 
+- <a name="requirement_http"></a> [http](#requirement\_http) (~> 3.4)
+
 - <a name="requirement_random"></a> [random](#requirement\_random) (~> 3.5)
 
 ## Providers
@@ -77,6 +111,8 @@ The following requirements are needed by this module:
 The following providers are used by this module:
 
 - <a name="provider_azurerm"></a> [azurerm](#provider\_azurerm) (~> 3.71)
+
+- <a name="provider_http"></a> [http](#provider\_http) (~> 3.4)
 
 - <a name="provider_random"></a> [random](#provider\_random) (~> 3.5)
 
@@ -86,7 +122,8 @@ The following resources are used by this module:
 
 - [azurerm_resource_group.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/resource_group) (resource)
 - [random_integer.region_index](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/integer) (resource)
-- [azurerm_client_config.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/client_config) (data source)
+- [azurerm_client_config.current](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/client_config) (data source)
+- [http_http.ip](https://registry.terraform.io/providers/hashicorp/http/latest/docs/data-sources/http) (data source)
 
 <!-- markdownlint-disable MD013 -->
 ## Required Inputs
@@ -115,7 +152,7 @@ No outputs.
 
 The following Modules are called:
 
-### <a name="module_keyvault"></a> [keyvault](#module\_keyvault)
+### <a name="module_key_vault"></a> [key\_vault](#module\_key\_vault)
 
 Source: ../../
 

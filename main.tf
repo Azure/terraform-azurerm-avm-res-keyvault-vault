@@ -34,8 +34,35 @@ resource "azurerm_key_vault" "this" {
   }
 }
 
+resource "azurerm_key_vault_certificate_contacts" "this" {
+  count = length(var.contacts) > 0 ? 1 : 0
+
+  key_vault_id = azurerm_key_vault.this.id
+
+  dynamic "contact" {
+    for_each = var.contacts
+    content {
+      email = contact.value.email
+      name  = contact.value.name
+      phone = contact.value.phone
+    }
+  }
+
+  depends_on = [time_sleep.wait_for_rbac_before_contact_operations]
+}
+
+resource "time_sleep" "wait_for_rbac_before_contact_operations" {
+  count = length(var.contacts) != 0 ? 1 : 0
+
+  create_duration  = var.wait_for_rbac_before_contact_operations.create
+  destroy_duration = var.wait_for_rbac_before_contact_operations.destroy
+  triggers = {
+    contacts = jsonencode(var.contacts)
+  }
+}
+
 resource "azurerm_management_lock" "this" {
-  count = var.lock.kind != "None" ? 1 : 0
+  count = var.lock != null ? 1 : 0
 
   lock_level = var.lock.kind
   name       = coalesce(var.lock.name, "lock-${var.name}")
@@ -50,6 +77,7 @@ resource "azurerm_role_assignment" "this" {
   condition                              = each.value.condition
   condition_version                      = each.value.condition_version
   delegated_managed_identity_resource_id = each.value.delegated_managed_identity_resource_id
+  principal_type                         = each.value.principal_type
   role_definition_id                     = strcontains(lower(each.value.role_definition_id_or_name), lower(local.role_definition_resource_substring)) ? each.value.role_definition_id_or_name : null
   role_definition_name                   = strcontains(lower(each.value.role_definition_id_or_name), lower(local.role_definition_resource_substring)) ? null : each.value.role_definition_id_or_name
   skip_service_principal_aad_check       = each.value.skip_service_principal_aad_check

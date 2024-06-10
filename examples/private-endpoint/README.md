@@ -88,17 +88,19 @@ module "keyvault" {
   }
 }
 
-check "dns" {
-  data "azurerm_private_dns_a_record" "assertion" {
-    name                = module.naming.key_vault.name_unique
-    zone_name           = "privatelink.vaultcore.azure.net"
-    resource_group_name = azurerm_resource_group.this.name
-  }
-  assert {
-    condition     = one(data.azurerm_private_dns_a_record.assertion.records) == one(module.keyvault.private_endpoints["primary"].private_service_connection).private_ip_address
-    error_message = "The private DNS A record for the private endpoint is not correct."
-  }
-}
+# Removed as this causes the idempotent check to fail.
+#
+# check "dns" {
+#   data "azurerm_private_dns_a_record" "assertion" {
+#     name                = module.naming.key_vault.name_unique
+#     zone_name           = "privatelink.vaultcore.azure.net"
+#     resource_group_name = azurerm_resource_group.this.name
+#   }
+#   assert {
+#     condition     = one(data.azurerm_private_dns_a_record.assertion.records) == one(module.keyvault.private_endpoints["primary"].private_service_connection).private_ip_address
+#     error_message = "The private DNS A record for the private endpoint is not correct."
+#   }
+# }
 ```
 
 <!-- markdownlint-disable MD033 -->

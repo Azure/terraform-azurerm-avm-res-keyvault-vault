@@ -8,40 +8,39 @@ Module to deploy key vaults, keys and secrets in Azure.
 
 The following requirements are needed by this module:
 
-- <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) (>= 1.6.0)
+- <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) (~> 1.6)
 
-- <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) (>= 3.71.0)
+- <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) (~> 3.71)
 
-- <a name="requirement_random"></a> [random](#requirement\_random) (>= 3.5.0)
+- <a name="requirement_random"></a> [random](#requirement\_random) (~> 3.5)
 
-- <a name="requirement_time"></a> [time](#requirement\_time) (>= 0.9.1)
+- <a name="requirement_time"></a> [time](#requirement\_time) (~> 0.9)
 
 ## Providers
 
 The following providers are used by this module:
 
-- <a name="provider_azurerm"></a> [azurerm](#provider\_azurerm) (>= 3.71.0)
+- <a name="provider_azurerm"></a> [azurerm](#provider\_azurerm) (~> 3.71)
 
-- <a name="provider_random"></a> [random](#provider\_random) (>= 3.5.0)
+- <a name="provider_random"></a> [random](#provider\_random) (~> 3.5)
 
-- <a name="provider_time"></a> [time](#provider\_time) (>= 0.9.1)
+- <a name="provider_time"></a> [time](#provider\_time) (~> 0.9)
 
 ## Resources
 
 The following resources are used by this module:
 
 - [azurerm_key_vault.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault) (resource)
-- [azurerm_key_vault_key.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_key) (resource)
-- [azurerm_key_vault_secret.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_secret) (resource)
+- [azurerm_key_vault_certificate_contacts.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_certificate_contacts) (resource)
 - [azurerm_management_lock.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/management_lock) (resource)
 - [azurerm_monitor_diagnostic_setting.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/monitor_diagnostic_setting) (resource)
 - [azurerm_private_endpoint.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_endpoint) (resource)
+- [azurerm_private_endpoint.this_unmanaged_dns_zone_groups](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_endpoint) (resource)
 - [azurerm_private_endpoint_application_security_group_association.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_endpoint_application_security_group_association) (resource)
 - [azurerm_resource_group_template_deployment.telemetry](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/resource_group_template_deployment) (resource)
-- [azurerm_role_assignment.keys](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/role_assignment) (resource)
-- [azurerm_role_assignment.secrets](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/role_assignment) (resource)
 - [azurerm_role_assignment.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/role_assignment) (resource)
 - [random_id.telemetry](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/id) (resource)
+- [time_sleep.wait_for_rbac_before_contact_operations](https://registry.terraform.io/providers/hashicorp/time/latest/docs/resources/sleep) (resource)
 - [time_sleep.wait_for_rbac_before_key_operations](https://registry.terraform.io/providers/hashicorp/time/latest/docs/resources/sleep) (resource)
 - [time_sleep.wait_for_rbac_before_secret_operations](https://registry.terraform.io/providers/hashicorp/time/latest/docs/resources/sleep) (resource)
 
@@ -205,6 +204,7 @@ map(object({
       condition                              = optional(string, null)
       condition_version                      = optional(string, null)
       delegated_managed_identity_resource_id = optional(string, null)
+      principal_type                         = optional(string, null)
     })), {})
 
     rotation_policy = optional(object({
@@ -228,12 +228,12 @@ Type:
 
 ```hcl
 object({
+    kind = string
     name = optional(string, null)
-    kind = optional(string, "None")
   })
 ```
 
-Default: `{}`
+Default: `null`
 
 ### <a name="input_network_acls"></a> [network\_acls](#input\_network\_acls)
 
@@ -292,12 +292,13 @@ map(object({
       condition                              = optional(string, null)
       condition_version                      = optional(string, null)
       delegated_managed_identity_resource_id = optional(string, null)
+      principal_type                         = optional(string, null)
     })), {})
     lock = optional(object({
+      kind = string
       name = optional(string, null)
-      kind = optional(string, "None")
-    }), {})
-    tags                                    = optional(map(any), null)
+    }), null)
+    tags                                    = optional(map(string), null)
     subnet_resource_id                      = string
     private_dns_zone_group_name             = optional(string, "default")
     private_dns_zone_resource_ids           = optional(set(string), [])
@@ -314,6 +315,14 @@ map(object({
 ```
 
 Default: `{}`
+
+### <a name="input_private_endpoints_manage_dns_zone_group"></a> [private\_endpoints\_manage\_dns\_zone\_group](#input\_private\_endpoints\_manage\_dns\_zone\_group)
+
+Description: Whether to manage private DNS zone groups with this module. If set to false, you must manage private DNS zone groups externally, e.g. using Azure Policy.
+
+Type: `bool`
+
+Default: `true`
 
 ### <a name="input_public_network_access_enabled"></a> [public\_network\_access\_enabled](#input\_public\_network\_access\_enabled)
 
@@ -355,6 +364,7 @@ map(object({
     condition                              = optional(string, null)
     condition_version                      = optional(string, null)
     delegated_managed_identity_resource_id = optional(string, null)
+    principal_type                         = optional(string, null)
   }))
 ```
 
@@ -392,6 +402,7 @@ map(object({
       condition                              = optional(string, null)
       condition_version                      = optional(string, null)
       delegated_managed_identity_resource_id = optional(string, null)
+      principal_type                         = optional(string, null)
     })), {})
   }))
 ```
@@ -412,7 +423,7 @@ Default: `null`
 
 ### <a name="input_sku_name"></a> [sku\_name](#input\_sku\_name)
 
-Description: The SKU name of the Key Vault. Default is `premium`. `Possible values are `standard` and `premium`.`
+Description: The SKU name of the Key Vault. Default is `premium`. Possible values are `standard` and `premium`.
 
 Type: `string`
 
@@ -430,9 +441,27 @@ Default: `null`
 
 Description: Map of tags to assign to the Key Vault resource.
 
-Type: `map(any)`
+Type: `map(string)`
 
 Default: `null`
+
+### <a name="input_wait_for_rbac_before_contact_operations"></a> [wait\_for\_rbac\_before\_contact\_operations](#input\_wait\_for\_rbac\_before\_contact\_operations)
+
+Description: This variable controls the amount of time to wait before performing contact operations.  
+It only applies when `var.role_assignments` and `var.contacts` are both set.  
+This is useful when you are creating role assignments on the key vault and immediately creating keys in it.  
+The default is 30 seconds for create and 0 seconds for destroy.
+
+Type:
+
+```hcl
+object({
+    create  = optional(string, "30s")
+    destroy = optional(string, "0s")
+  })
+```
+
+Default: `{}`
 
 ### <a name="input_wait_for_rbac_before_key_operations"></a> [wait\_for\_rbac\_before\_key\_operations](#input\_wait\_for\_rbac\_before\_key\_operations)
 
@@ -474,25 +503,37 @@ Default: `{}`
 
 The following outputs are exported:
 
+### <a name="output_keys_resource_ids"></a> [keys\_resource\_ids](#output\_keys\_resource\_ids)
+
+Description: A map of key keys to resource ids.
+
 ### <a name="output_private_endpoints"></a> [private\_endpoints](#output\_private\_endpoints)
 
 Description: A map of private endpoints. The map key is the supplied input to var.private\_endpoints. The map value is the entire azurerm\_private\_endpoint resource.
 
-### <a name="output_resource"></a> [resource](#output\_resource)
+### <a name="output_resource_id"></a> [resource\_id](#output\_resource\_id)
 
-Description: The Key Vault resource.
+Description: The Azure resource id of the key vault.
 
-### <a name="output_resource_keys"></a> [resource\_keys](#output\_resource\_keys)
+### <a name="output_secrets_resource_ids"></a> [secrets\_resource\_ids](#output\_secrets\_resource\_ids)
 
-Description: A map of key objects. The map key is the supplied input to var.keys. The map value is the entire azurerm\_key\_vault\_key resource.
-
-### <a name="output_resource_secrets"></a> [resource\_secrets](#output\_resource\_secrets)
-
-Description: A map of secret objects. The map key is the supplied input to var.secrets. The map value is the entire azurerm\_key\_vault\_secret resource.
+Description: A map of secret keys to resource ids.
 
 ## Modules
 
-No modules.
+The following Modules are called:
+
+### <a name="module_keys"></a> [keys](#module\_keys)
+
+Source: ./modules/key
+
+Version:
+
+### <a name="module_secrets"></a> [secrets](#module\_secrets)
+
+Source: ./modules/secret
+
+Version:
 
 <!-- markdownlint-disable-next-line MD041 -->
 ## Data Collection
