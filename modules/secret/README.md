@@ -138,7 +138,7 @@ Description: The tags to assign to the secret.
 
 Type: `map(string)`
 
-Default: `{}`
+Default: `null`
 
 ## Outputs
 

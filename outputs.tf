@@ -13,6 +13,11 @@ output "private_endpoints" {
   value       = azurerm_private_endpoint.this
 }
 
+output "resource_id" {
+  description = "The Azure resource id of the key vault."
+  value       = azurerm_key_vault.this.id
+}
+
 output "secrets_resource_ids" {
   description = "A map of secret keys to resource ids."
   value = { for sk, sv in module.secrets : sk => {

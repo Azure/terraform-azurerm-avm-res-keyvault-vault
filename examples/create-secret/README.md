@@ -4,6 +4,28 @@
 This example shows how to deploy the module and create a secret using Azure RBAC.
 
 ```hcl
+provider "azurerm" {
+  features {}
+}
+
+terraform {
+  required_version = "~> 1.6"
+  required_providers {
+    azurerm = {
+      source  = "hashicorp/azurerm"
+      version = "~> 3.71"
+    }
+    random = {
+      source  = "hashicorp/random"
+      version = "~> 3.5"
+    }
+    http = {
+      source  = "hashicorp/http"
+      version = "~> 2.1"
+    }
+  }
+}
+
 module "regions" {
   source  = "Azure/regions/azurerm"
   version = "0.4.0"
@@ -74,17 +96,25 @@ module "key_vault" {
 <!-- markdownlint-disable MD033 -->
 ## Requirements
 
-No requirements.
+The following requirements are needed by this module:
+
+- <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) (~> 1.6)
+
+- <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) (~> 3.71)
+
+- <a name="requirement_http"></a> [http](#requirement\_http) (~> 2.1)
+
+- <a name="requirement_random"></a> [random](#requirement\_random) (~> 3.5)
 
 ## Providers
 
 The following providers are used by this module:
 
-- <a name="provider_azurerm"></a> [azurerm](#provider\_azurerm)
+- <a name="provider_azurerm"></a> [azurerm](#provider\_azurerm) (~> 3.71)
 
-- <a name="provider_http"></a> [http](#provider\_http)
+- <a name="provider_http"></a> [http](#provider\_http) (~> 2.1)
 
-- <a name="provider_random"></a> [random](#provider\_random)
+- <a name="provider_random"></a> [random](#provider\_random) (~> 3.5)
 
 ## Resources
 

@@ -78,7 +78,6 @@ DESCRIPTION
 
 variable "tags" {
   type        = map(string)
-  default     = {}
+  default     = null
   description = "The tags to assign to the secret."
-  nullable    = false
 }

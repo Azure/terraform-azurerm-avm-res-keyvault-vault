@@ -193,7 +193,7 @@ Description: The tags to assign to the key.
 
 Type: `map(string)`
 
-Default: `{}`
+Default: `null`
 
 ## Outputs
 
