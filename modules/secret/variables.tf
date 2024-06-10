@@ -13,6 +13,11 @@ variable "name" {
   type        = string
   description = "The name of the secret."
   nullable    = false
+
+  validation {
+    error_message = "Secret names may only contain alphanumerics and hyphens, and be between 1 and 127 characters in length."
+    condition     = can(regex("^[A-Za-z0-9-]{1,127}$", var.name))
+  }
 }
 
 variable "value" {
@@ -34,7 +39,7 @@ variable "expiration_date" {
 
   validation {
     error_message = "Value must be a UTC datetime (Y-m-d'T'H:M:S'Z')."
-    condition     = var.expiration_date == null ? true : can(regex("^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$", var.expiration_date))
+    condition     = var.expiration_date == null || can(regex("^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$", var.expiration_date))
   }
 }
 
@@ -45,7 +50,7 @@ variable "not_before_date" {
 
   validation {
     error_message = "Value must be a UTC datetime (Y-m-d'T'H:M:S'Z')."
-    condition     = var.not_before_date == null ? true : can(regex("^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$", var.not_before_date))
+    condition     = var.not_before_date == null || can(regex("^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$", var.not_before_date))
   }
 }
 

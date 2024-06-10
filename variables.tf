@@ -12,6 +12,18 @@ variable "name" {
     condition     = can(regex("^[a-z0-9-]{3,24}$", var.name))
     error_message = "The name must be between 3 and 24 characters long and can only contain lowercase letters, numbers and dashes."
   }
+  validation {
+    error_message = "The name must not contain two consecutive dashes"
+    condition     = !can(regex("--", var.name))
+  }
+  validation {
+    error_message = "The name must start with a letter"
+    condition     = can(regex("^[a-zA-Z]", var.name))
+  }
+  validation {
+    error_message = "The name must end with a letter or number"
+    condition     = can(regex("[a-zA-Z0-9]$", var.name))
+  }
 }
 
 # This is required for most resource modules
@@ -266,6 +278,13 @@ DESCRIPTION
   nullable    = false
 }
 
+variable "private_endpoints_manage_dns_zone_group" {
+  type        = bool
+  default     = true
+  description = "Whether to manage private DNS zone groups with this module. If set to false, you must manage private DNS zone groups externally, e.g. using Azure Policy."
+  nullable    = false
+}
+
 variable "public_network_access_enabled" {
   type        = bool
   default     = true
@@ -357,7 +376,7 @@ DESCRIPTION
 variable "sku_name" {
   type        = string
   default     = "premium"
-  description = "The SKU name of the Key Vault. Default is `premium`. `Possible values are `standard` and `premium`."
+  description = "The SKU name of the Key Vault. Default is `premium`. Possible values are `standard` and `premium`."
 
   validation {
     condition     = contains(["standard", "premium"], var.sku_name)
@@ -386,6 +405,20 @@ variable "tags" {
   type        = map(string)
   default     = null
   description = "Map of tags to assign to the Key Vault resource."
+}
+
+variable "wait_for_rbac_before_contact_operations" {
+  type = object({
+    create  = optional(string, "30s")
+    destroy = optional(string, "0s")
+  })
+  default     = {}
+  description = <<DESCRIPTION
+This variable controls the amount of time to wait before performing contact operations.
+It only applies when `var.role_assignments` and `var.contacts` are both set.
+This is useful when you are creating role assignments on the key vault and immediately creating keys in it.
+The default is 30 seconds for create and 0 seconds for destroy.
+DESCRIPTION
 }
 
 variable "wait_for_rbac_before_key_operations" {
