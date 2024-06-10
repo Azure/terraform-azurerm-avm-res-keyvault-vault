@@ -5,7 +5,7 @@ variable "key_vault_resource_id" {
 
   validation {
     error_message = "Value must be a valid Azure Key Vault resource ID."
-    condition     = can(regex("^[^/]+/resourceGroups/[^/]+/providers/Microsoft.KeyVault/vaults/[^/]+$", var.key_vault_resource_id))
+    condition     = can(regex("\\/subscriptions\\/[a-f\\d]{4}(?:[a-f\\d]{4}-){4}[a-f\\d]{12}\\/resourceGroups\\/[^\\/]+\\/providers\\/Microsoft.KeyVault\\/vaults\\/[^\\/]+$", var.key_vault_resource_id))
   }
 }
 
