@@ -1,7 +1,7 @@
 <!-- BEGIN_TF_DOCS -->
-# Create key
+# Create secret
 
-This example shows how to deploy the module and create a key using Azure RBAC.
+This example shows how to deploy the module and create a secret using Azure RBAC.
 
 ```hcl
 module "regions" {
@@ -47,20 +47,13 @@ module "key_vault" {
   resource_group_name           = azurerm_resource_group.this.name
   tenant_id                     = data.azurerm_client_config.current.tenant_id
   public_network_access_enabled = true
-  keys = {
-    cmk_for_storage_account = {
-      key_opts = [
-        "decrypt",
-        "encrypt",
-        "sign",
-        "unwrapKey",
-        "verify",
-        "wrapKey"
-      ]
-      key_type = "RSA"
-      name     = "cmk-for-storage-account"
-      key_size = 2048
+  secrets = {
+    test_secret = {
+      name = "test-secret"
     }
+  }
+  secrets_value = {
+    test_secret = "secret-value"
   }
   role_assignments = {
     deployment_user_kv_admin = {
@@ -68,7 +61,7 @@ module "key_vault" {
       principal_id               = data.azurerm_client_config.current.object_id
     }
   }
-  wait_for_rbac_before_key_operations = {
+  wait_for_rbac_before_secret_operations = {
     create = "60s"
   }
   network_acls = {
@@ -81,25 +74,17 @@ module "key_vault" {
 <!-- markdownlint-disable MD033 -->
 ## Requirements
 
-The following requirements are needed by this module:
-
-- <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) (~> 1.6)
-
-- <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) (~> 3.7)
-
-- <a name="requirement_http"></a> [http](#requirement\_http) (~> 3.4)
-
-- <a name="requirement_random"></a> [random](#requirement\_random) (~> 3.5)
+No requirements.
 
 ## Providers
 
 The following providers are used by this module:
 
-- <a name="provider_azurerm"></a> [azurerm](#provider\_azurerm) (~> 3.7)
+- <a name="provider_azurerm"></a> [azurerm](#provider\_azurerm)
 
-- <a name="provider_http"></a> [http](#provider\_http) (~> 3.4)
+- <a name="provider_http"></a> [http](#provider\_http)
 
-- <a name="provider_random"></a> [random](#provider\_random) (~> 3.5)
+- <a name="provider_random"></a> [random](#provider\_random)
 
 ## Resources
 

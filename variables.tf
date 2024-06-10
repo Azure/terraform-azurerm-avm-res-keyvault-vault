@@ -244,7 +244,6 @@ variable "private_endpoints" {
     })), {})
   }))
   default     = {}
-  nullable    = false
   description = <<DESCRIPTION
 A map of private endpoints to create on the Key Vault. The map key is deliberately arbitrary to avoid issues where map keys maybe unknown at plan time.
 
@@ -264,6 +263,7 @@ A map of private endpoints to create on the Key Vault. The map key is deliberate
   - `name` - The name of the IP configuration.
   - `private_ip_address` - The private IP address of the IP configuration.
 DESCRIPTION
+  nullable    = false
 }
 
 variable "public_network_access_enabled" {
@@ -290,7 +290,6 @@ variable "role_assignments" {
     principal_type                         = optional(string, null)
   }))
   default     = {}
-  nullable    = false
   description = <<DESCRIPTION
 A map of role assignments to create on the Key Vault. The map key is deliberately arbitrary to avoid issues where map keys maybe unknown at plan time.
 
@@ -303,6 +302,7 @@ A map of role assignments to create on the Key Vault. The map key is deliberatel
 
 > Note: only set `skip_service_principal_aad_check` to true if you are assigning a role to a service principal.
 DESCRIPTION
+  nullable    = false
 }
 
 variable "secrets" {
