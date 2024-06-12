@@ -3,7 +3,8 @@ output "keys_resource_ids" {
   value = { for kk, kv in module.keys : kk => {
     resource_id             = kv.resource_id
     resource_versionless_id = kv.resource_versionless_id
-
+    id                      = kv.id
+    versionless_id          = kv.versionless_id
     }
   }
 }
@@ -23,6 +24,8 @@ output "secrets_resource_ids" {
   value = { for sk, sv in module.secrets : sk => {
     resource_id             = sv.resource_id
     resource_versionless_id = sv.resource_versionless_id
+    id                      = sv.id
+    versionless_id          = sv.versionless_id
     }
   }
 }
