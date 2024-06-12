@@ -199,6 +199,10 @@ Default: `null`
 
 The following outputs are exported:
 
+### <a name="output_id"></a> [id](#output\_id)
+
+Description: The Key Vault Key ID
+
 ### <a name="output_resource_id"></a> [resource\_id](#output\_resource\_id)
 
 Description: The Azure resource id of the secret.
@@ -206,6 +210,10 @@ Description: The Azure resource id of the secret.
 ### <a name="output_resource_versionless_id"></a> [resource\_versionless\_id](#output\_resource\_versionless\_id)
 
 Description: The versionless Azure resource id of the secret.
+
+### <a name="output_versionless_id"></a> [versionless\_id](#output\_versionless\_id)
+
+Description: The Base ID of the Key Vault Key
 
 ## Modules
 
