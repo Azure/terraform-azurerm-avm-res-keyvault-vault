@@ -1,17 +1,20 @@
-resource "random_id" "telemetry" {
-  count = var.enable_telemetry ? 1 : 0
-
-  byte_length = 4
+data "azurerm_client_config" "telemetry" {
 }
 
-# This is the module telemetry deployment that is only created if telemetry is enabled.
-# It is deployed to the resource's resource group.
-resource "azurerm_resource_group_template_deployment" "telemetry" {
+resource "modtm_telemetry" "this" {
   count = var.enable_telemetry ? 1 : 0
+  tags = {
+    subscription_id = data.azurerm_client_config.telemetry.subscription_id
+    tenant_id       = data.azurerm_client_config.telemetry.tenant_id
+    module_name     = local.module_name
+    module_type     = local.module_type
+    module_version  = local.module_version
+  }
+}
 
-  deployment_mode     = "Incremental"
-  name                = local.telem_arm_deployment_name
-  resource_group_name = var.resource_group_name
-  tags                = var.tags
-  template_content    = local.telem_arm_template_content
+removed {
+  from = azurerm_resource_group_template_deployment.telemetry
+  lifecycle {
+    destroy = false
+  }
 }
