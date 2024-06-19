@@ -519,7 +519,7 @@ Description: The Azure resource id of the key vault.
 
 Description: A map of secret keys to resource ids.
 
-### <a name="output_vault_uri"></a> [vault\_uri](#output\_vault\_uri)
+### <a name="output_uri"></a> [uri](#output\_uri)
 
 Description: The URI of the vault for performing operations on keys and secrets
 
