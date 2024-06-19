@@ -30,7 +30,7 @@ output "secrets_resource_ids" {
   }
 }
 
-output "vault_uri" {
+output "uri" {
   description = "The URI of the vault for performing operations on keys and secrets"
   value       = azurerm_key_vault.this.vault_uri
 }
