@@ -9,8 +9,8 @@ variable "name" {
   description = "The name of the Key Vault."
 
   validation {
-    condition     = can(regex("^[a-z0-9-]{3,24}$", var.name))
-    error_message = "The name must be between 3 and 24 characters long and can only contain lowercase letters, numbers and dashes."
+    condition     = can(regex("^[a-zA-Z0-9-]{3,24}$", var.name))
+    error_message = "The name must be between 3 and 24 characters long and can only contain letters, numbers and dashes."
   }
   validation {
     error_message = "The name must not contain two consecutive dashes"
