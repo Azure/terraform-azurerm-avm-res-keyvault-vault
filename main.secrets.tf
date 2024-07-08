@@ -12,6 +12,7 @@ module "secrets" {
   role_assignments      = each.value.role_assignments
 
   depends_on = [
+    azurerm_private_endpoint.this,
     time_sleep.wait_for_rbac_before_secret_operations
   ]
 }
