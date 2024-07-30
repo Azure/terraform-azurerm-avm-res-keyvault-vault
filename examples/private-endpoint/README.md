@@ -114,14 +114,6 @@ The following requirements are needed by this module:
 
 - <a name="requirement_random"></a> [random](#requirement\_random) (>= 3.5.0, < 4.0.0)
 
-## Providers
-
-The following providers are used by this module:
-
-- <a name="provider_azurerm"></a> [azurerm](#provider\_azurerm) (>= 3.7.0, < 4.0.0)
-
-- <a name="provider_random"></a> [random](#provider\_random) (>= 3.5.0, < 4.0.0)
-
 ## Resources
 
 The following resources are used by this module:
