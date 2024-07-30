@@ -15,7 +15,8 @@ module "keys" {
   role_assignments      = each.value.role_assignments
 
   depends_on = [
-    time_sleep.wait_for_rbac_before_key_operations,
+    azurerm_private_endpoint.this,
+    time_sleep.wait_for_rbac_before_key_operations
   ]
 }
 
