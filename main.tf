@@ -13,14 +13,6 @@ resource "azurerm_key_vault" "this" {
   soft_delete_retention_days      = var.soft_delete_retention_days
   tags                            = var.tags
 
-  dynamic "contact" {
-    for_each = var.contacts
-    content {
-      email = contact.value.email
-      name  = contact.value.name
-      phone = contact.value.phone
-    }
-  }
   # Only one network_acls block is allowed.
   # Create it if the variable is not null.
   dynamic "network_acls" {
