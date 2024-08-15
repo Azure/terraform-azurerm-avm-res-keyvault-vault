@@ -1,25 +1,25 @@
 <!-- BEGIN_TF_DOCS -->
-# Example with Diagnostic Settings
+# Access policies example
 
-This example shows how to deploy the module with diagnostic settings.
+This example shows how to deploy the module with access policies instead of the preferred Azure RBAC.
 
 ```hcl
+provider "azurerm" {
+  features {}
+}
+
 terraform {
   required_version = "~> 1.6"
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = "~> 3.107"
+      version = "~> 3.71"
     }
     random = {
       source  = "hashicorp/random"
       version = "~> 3.5"
     }
   }
-}
-
-provider "azurerm" {
-  features {}
 }
 
 # We need the tenant id for the key vault.
@@ -49,25 +49,20 @@ resource "azurerm_resource_group" "this" {
   name     = module.naming.resource_group.name_unique
 }
 
-resource "azurerm_log_analytics_workspace" "this" {
-  location            = azurerm_resource_group.this.location
-  name                = module.naming.log_analytics_workspace.name_unique
-  resource_group_name = azurerm_resource_group.this.name
-}
-
 # This is the module call
 module "keyvault" {
   source = "../../"
-  # source             = "Azure/avm-res-keyvault-vault/azurerm"
-  name                = module.naming.key_vault.name_unique
-  enable_telemetry    = var.enable_telemetry
-  location            = azurerm_resource_group.this.location
-  resource_group_name = azurerm_resource_group.this.name
-  tenant_id           = data.azurerm_client_config.this.tenant_id
-  diagnostic_settings = {
-    to_la = {
-      name                  = "to-la"
-      workspace_resource_id = azurerm_log_analytics_workspace.this.id
+  # source              = "Azure/avm-res-keyvault-vault/azurerm"
+  name                           = module.naming.key_vault.name_unique
+  enable_telemetry               = var.enable_telemetry
+  location                       = azurerm_resource_group.this.location
+  resource_group_name            = azurerm_resource_group.this.name
+  tenant_id                      = data.azurerm_client_config.this.tenant_id
+  legacy_access_policies_enabled = true
+  legacy_access_policies = {
+    test = {
+      object_id               = data.azurerm_client_config.this.object_id
+      certificate_permissions = ["Get", "List"]
     }
   }
 }
@@ -80,7 +75,7 @@ The following requirements are needed by this module:
 
 - <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) (~> 1.6)
 
-- <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) (~> 3.107)
+- <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) (~> 3.71)
 
 - <a name="requirement_random"></a> [random](#requirement\_random) (~> 3.5)
 
@@ -88,7 +83,6 @@ The following requirements are needed by this module:
 
 The following resources are used by this module:
 
-- [azurerm_log_analytics_workspace.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/log_analytics_workspace) (resource)
 - [azurerm_resource_group.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/resource_group) (resource)
 - [random_integer.region_index](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/integer) (resource)
 - [azurerm_client_config.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/client_config) (data source)

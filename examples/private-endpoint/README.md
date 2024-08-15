@@ -6,15 +6,15 @@ We have also included the Key Vault firewall to restrict access to the Key Vault
 
 ```hcl
 terraform {
-  required_version = ">= 1.0.0"
+  required_version = "~> 1.6"
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = ">= 3.7.0, < 4.0.0"
+      version = "~> 3.107"
     }
     random = {
       source  = "hashicorp/random"
-      version = ">= 3.5.0, < 4.0.0"
+      version = "~> 3.5"
     }
   }
 }
@@ -28,8 +28,8 @@ data "azurerm_client_config" "this" {}
 
 # This allows us to randomize the region for the resource group.
 module "regions" {
-  source  = "Azure/regions/azurerm"
-  version = ">= 0.3.0"
+  source  = "Azure/avm-utl-regions/azurerm"
+  version = "0.1.0"
 }
 
 # This allows us to randomize the region for the resource group.
@@ -108,11 +108,11 @@ module "keyvault" {
 
 The following requirements are needed by this module:
 
-- <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) (>= 1.0.0)
+- <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) (~> 1.6)
 
-- <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) (>= 3.7.0, < 4.0.0)
+- <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) (~> 3.107)
 
-- <a name="requirement_random"></a> [random](#requirement\_random) (>= 3.5.0, < 4.0.0)
+- <a name="requirement_random"></a> [random](#requirement\_random) (~> 3.5)
 
 ## Resources
 
@@ -166,9 +166,9 @@ Version: 0.3.0
 
 ### <a name="module_regions"></a> [regions](#module\_regions)
 
-Source: Azure/regions/azurerm
+Source: Azure/avm-utl-regions/azurerm
 
-Version: >= 0.3.0
+Version: 0.1.0
 
 <!-- markdownlint-disable-next-line MD041 -->
 ## Data Collection

@@ -27,8 +27,8 @@ terraform {
 }
 
 module "regions" {
-  source  = "Azure/regions/azurerm"
-  version = "0.4.0"
+  source  = "Azure/avm-utl-regions/azurerm"
+  version = "0.1.0"
 }
 
 # This allows us to randomize the region for the resource group.
@@ -156,9 +156,9 @@ Version: 0.3.0
 
 ### <a name="module_regions"></a> [regions](#module\_regions)
 
-Source: Azure/regions/azurerm
+Source: Azure/avm-utl-regions/azurerm
 
-Version: 0.4.0
+Version: 0.1.0
 
 <!-- markdownlint-disable-next-line MD041 -->
 ## Data Collection

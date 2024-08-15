@@ -55,9 +55,8 @@ module "keyvault" {
   legacy_access_policies_enabled = true
   legacy_access_policies = {
     test = {
-      object_id          = data.azurerm_client_config.this.object_id
-      tenant_id          = data.azurerm_client_config.this.tenant_id
-      secret_permissions = ["Get", "List"]
+      object_id               = data.azurerm_client_config.this.object_id
+      certificate_permissions = ["Get", "List"]
     }
   }
 }
