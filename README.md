@@ -23,6 +23,7 @@ The following requirements are needed by this module:
 The following resources are used by this module:
 
 - [azurerm_key_vault.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault) (resource)
+- [azurerm_key_vault_access_policy.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_access_policy) (resource)
 - [azurerm_key_vault_certificate_contacts.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_certificate_contacts) (resource)
 - [azurerm_management_lock.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/management_lock) (resource)
 - [azurerm_monitor_diagnostic_setting.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/monitor_diagnostic_setting) (resource)
@@ -213,6 +214,42 @@ map(object({
 ```
 
 Default: `{}`
+
+### <a name="input_legacy_access_policies"></a> [legacy\_access\_policies](#input\_legacy\_access\_policies)
+
+Description: A map of legacy access policies to create on the Key Vault. The map key is deliberately arbitrary to avoid issues where map keys maybe unknown at plan time.
+
+Requires `var.legacy_access_policies_enabled` to be `true`.
+
+- `object_id` - (Required) The object ID of the principal to assign the access policy to.
+- `application_id` - (Optional) The object ID of an Application in Azure Active Directory. Changing this forces a new resource to be created.
+- `certifiate_permissions` - (Optional) A list of certificate permissions. Possible values are: `Backup`, `Create`, `Delete`, `DeleteIssuers`, `Get`, `GetIssuers`, `Import`, `List`, `ListIssuers`, `ManageContacts`, `ManageIssuers`, `Purge`, `Recover`, `Restore`, `SetIssuers`, and `Update`.
+- `key_permissions` - (Optional) A list of key permissions. Possible value are: `Backup`, `Create`, `Decrypt`, `Delete`, `Encrypt`, `Get`, `Import`, `List`, `Purge`, `Recover`, `Restore`, `Sign`, `UnwrapKey`, `Update`, `Verify`, `WrapKey`, `Release`, `Rotate`, `GetRotationPolicy`, and `SetRotationPolicy`.
+- `secret_permissions` - (Optional) A list of secret permissions. Possible values are: `Backup`, `Delete`, `Get`, `List`, `Purge`, `Recover`, `Restore`, and `Set`.
+- `storage_permissions` - (Optional) A list of storage permissions. Possible values are: `Backup`, `Delete`, `DeleteSAS`, `Get`, `GetSAS`, `List`, `ListSas`, `Purge`, `Recover`, `RegenerateKey`, `Restore`, `Set`, `SetSAS`, and `Update`.
+
+Type:
+
+```hcl
+map(object({
+    object_id               = string
+    application_id          = optional(string, null)
+    certificate_permissions = optional(set(string), [])
+    key_permissions         = optional(set(string), [])
+    secret_permissions      = optional(set(string), [])
+    storage_permissions     = optional(set(string), [])
+  }))
+```
+
+Default: `{}`
+
+### <a name="input_legacy_access_policies_enabled"></a> [legacy\_access\_policies\_enabled](#input\_legacy\_access\_policies\_enabled)
+
+Description: Specifies whether legacy access policies are enabled for this Key Vault. Prevents use of Azure RBAC for data plane.
+
+Type: `bool`
+
+Default: `false`
 
 ### <a name="input_lock"></a> [lock](#input\_lock)
 
