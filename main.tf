@@ -26,33 +26,6 @@ resource "azurerm_key_vault" "this" {
   }
 }
 
-resource "azurerm_key_vault_certificate_contacts" "this" {
-  count = length(var.contacts) > 0 ? 1 : 0
-
-  key_vault_id = azurerm_key_vault.this.id
-
-  dynamic "contact" {
-    for_each = var.contacts
-    content {
-      email = contact.value.email
-      name  = contact.value.name
-      phone = contact.value.phone
-    }
-  }
-
-  depends_on = [time_sleep.wait_for_rbac_before_contact_operations]
-}
-
-resource "time_sleep" "wait_for_rbac_before_contact_operations" {
-  count = length(var.contacts) != 0 ? 1 : 0
-
-  create_duration  = var.wait_for_rbac_before_contact_operations.create
-  destroy_duration = var.wait_for_rbac_before_contact_operations.destroy
-  triggers = {
-    contacts = jsonencode(var.contacts)
-  }
-}
-
 resource "azurerm_management_lock" "this" {
   count = var.lock != null ? 1 : 0
 
@@ -104,5 +77,32 @@ resource "azurerm_monitor_diagnostic_setting" "this" {
     content {
       category = metric.value
     }
+  }
+}
+
+resource "azurerm_key_vault_certificate_contacts" "this" {
+  count = length(var.contacts) > 0 ? 1 : 0
+
+  key_vault_id = azurerm_key_vault.this.id
+
+  dynamic "contact" {
+    for_each = var.contacts
+    content {
+      email = contact.value.email
+      name  = contact.value.name
+      phone = contact.value.phone
+    }
+  }
+
+  depends_on = [time_sleep.wait_for_rbac_before_contact_operations]
+}
+
+resource "time_sleep" "wait_for_rbac_before_contact_operations" {
+  count = length(var.contacts) != 0 ? 1 : 0
+
+  create_duration  = var.wait_for_rbac_before_contact_operations.create
+  destroy_duration = var.wait_for_rbac_before_contact_operations.destroy
+  triggers = {
+    contacts = jsonencode(var.contacts)
   }
 }
