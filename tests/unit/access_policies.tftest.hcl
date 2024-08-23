@@ -58,6 +58,7 @@ run "certificate_empty" {
       test = {
         object_id               = "00000000-0000-0000-0000-000000000000"
         certificate_permissions = []
+        secret_permissions      = ["Get"]
       }
     }
   }
@@ -69,7 +70,8 @@ run "object_id_correct" {
     legacy_access_policies_enabled = true
     legacy_access_policies = {
       test = {
-        object_id = "00000000-0000-0000-0000-000000000000"
+        object_id          = "00000000-0000-0000-0000-000000000000"
+        secret_permissions = ["Get"]
       }
     }
   }
