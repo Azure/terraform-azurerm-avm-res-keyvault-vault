@@ -124,8 +124,8 @@ Default: `{}`
 
 ### <a name="input_enable_telemetry"></a> [enable\_telemetry](#input\_enable\_telemetry)
 
-Description: This variable controls whether or not telemetry is enabled for the module.
-For more information see https://aka.ms/avm/telemetryinfo.
+Description: This variable controls whether or not telemetry is enabled for the module.  
+For more information see https://aka.ms/avm/telemetryinfo.  
 If it is set to false, then no telemetry will be collected.
 
 Type: `bool`
@@ -268,8 +268,8 @@ Default: `null`
 
 ### <a name="input_network_acls"></a> [network\_acls](#input\_network\_acls)
 
-Description: The network ACL configuration for the Key Vault.
-If not specified then the Key Vault will be created with a firewall that blocks access.
+Description: The network ACL configuration for the Key Vault.  
+If not specified then the Key Vault will be created with a firewall that blocks access.  
 Specify `null` to create the Key Vault with no firewall.
 
 - `bypass` - (Optional) Should Azure Services bypass the ACL. Possible values are `AzureServices` and `None`. Defaults to `None`.
@@ -442,8 +442,8 @@ Default: `{}`
 
 ### <a name="input_secrets_value"></a> [secrets\_value](#input\_secrets\_value)
 
-Description: A map of secret keys to values.
-The map key is the supplied input to `var.secrets`.
+Description: A map of secret keys to values.  
+The map key is the supplied input to `var.secrets`.  
 The map value is the secret value.
 
 This is a separate variable to `var.secrets` because it is sensitive and therefore cannot be used in a `for_each` loop.
@@ -478,9 +478,9 @@ Default: `null`
 
 ### <a name="input_wait_for_rbac_before_contact_operations"></a> [wait\_for\_rbac\_before\_contact\_operations](#input\_wait\_for\_rbac\_before\_contact\_operations)
 
-Description: This variable controls the amount of time to wait before performing contact operations.
-It only applies when `var.role_assignments` and `var.contacts` are both set.
-This is useful when you are creating role assignments on the key vault and immediately creating keys in it.
+Description: This variable controls the amount of time to wait before performing contact operations.  
+It only applies when `var.role_assignments` and `var.contacts` are both set.  
+This is useful when you are creating role assignments on the key vault and immediately creating keys in it.  
 The default is 30 seconds for create and 0 seconds for destroy.
 
 Type:
@@ -496,9 +496,9 @@ Default: `{}`
 
 ### <a name="input_wait_for_rbac_before_key_operations"></a> [wait\_for\_rbac\_before\_key\_operations](#input\_wait\_for\_rbac\_before\_key\_operations)
 
-Description: This variable controls the amount of time to wait before performing key operations.
-It only applies when `var.role_assignments` and `var.keys` are both set.
-This is useful when you are creating role assignments on the key vault and immediately creating keys in it.
+Description: This variable controls the amount of time to wait before performing key operations.  
+It only applies when `var.role_assignments` and `var.keys` are both set.  
+This is useful when you are creating role assignments on the key vault and immediately creating keys in it.  
 The default is 30 seconds for create and 0 seconds for destroy.
 
 Type:
@@ -514,9 +514,9 @@ Default: `{}`
 
 ### <a name="input_wait_for_rbac_before_secret_operations"></a> [wait\_for\_rbac\_before\_secret\_operations](#input\_wait\_for\_rbac\_before\_secret\_operations)
 
-Description: This variable controls the amount of time to wait before performing secret operations.
-It only applies when `var.role_assignments` and `var.secrets` are both set.
-This is useful when you are creating role assignments on the key vault and immediately creating secrets in it.
+Description: This variable controls the amount of time to wait before performing secret operations.  
+It only applies when `var.role_assignments` and `var.secrets` are both set.  
+This is useful when you are creating role assignments on the key vault and immediately creating secrets in it.  
 The default is 30 seconds for create and 0 seconds for destroy.
 
 Type:
