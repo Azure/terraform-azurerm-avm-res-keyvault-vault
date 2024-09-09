@@ -1,7 +1,7 @@
 variable "location" {
   type        = string
   description = "The Azure location where the resources will be deployed."
-  nullable    = false
+  //nullable    = false
 }
 
 variable "name" {
@@ -13,15 +13,15 @@ variable "name" {
     error_message = "The name must be between 3 and 24 characters long and can only contain letters, numbers and dashes."
   }
   validation {
-    error_message = "The name must not contain two consecutive dashes"
+    error_message = "The name must not contain two consecutive dashes."
     condition     = !can(regex("--", var.name))
   }
   validation {
-    error_message = "The name must start with a letter"
+    error_message = "The name must start with a letter."
     condition     = can(regex("^[a-zA-Z]", var.name))
   }
   validation {
-    error_message = "The name must end with a letter or number"
+    error_message = "The name must end with a letter or number."
     condition     = can(regex("[a-zA-Z0-9]$", var.name))
   }
 }
