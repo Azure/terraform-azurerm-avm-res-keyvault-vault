@@ -25,7 +25,7 @@ resource "azurerm_key_vault" "this" {
     }
   }
  lifecycle {
-   ignore_changes = [ tags,private_endpoints ]
+   ignore_changes = [ tags ]
  }
 }
 

@@ -33,6 +33,9 @@ resource "azurerm_private_endpoint" "this" {
       private_dns_zone_ids = each.value.private_dns_zone_resource_ids
     }
   }
+  lifecycle {
+    ignore_changes = [private_dns_zone_group]
+  }
 }
 
 # The PE resource when we are managing **not** the private_dns_zone_group block, such as when using Azure Policy:
