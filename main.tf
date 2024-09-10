@@ -25,7 +25,7 @@ resource "azurerm_key_vault" "this" {
     }
   }
  lifecycle {
-   ignore_changes = [ tags,private_dns_zone_group ]
+   ignore_changes = [ tags,private_endpoints ]
  }
 }
 
