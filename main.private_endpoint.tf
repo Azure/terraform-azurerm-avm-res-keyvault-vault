@@ -34,7 +34,7 @@ resource "azurerm_private_endpoint" "this" {
     }
   }
   lifecycle {
-    ignore_changes = [private_dns_zone_group]
+    ignore_changes = [private_dns_zone_group,tags]
   }
 }
 
