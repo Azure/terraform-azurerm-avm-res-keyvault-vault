@@ -38,7 +38,3 @@ output "uri" {
 output "keyvault"{
   value =  azurerm_key_vault.this
 }
-
-output "telemetry"{
-  value = modtm_telemetry.elemetry
-}
