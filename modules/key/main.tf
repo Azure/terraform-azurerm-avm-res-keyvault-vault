@@ -23,8 +23,8 @@ resource "azapi_resource" "key" {
           time_before_expiry = var.rotation_policy.automatic.time_before_expiry  
         }
       }) : null,
-  
-    }
+    }  
+  }
   parent_id = "${var.key_vault_resource_id}"
 }
 
