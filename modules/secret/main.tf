@@ -2,15 +2,16 @@ resource "azapi_resource" "secret" {
   name = var.name
   tags = var.tags
   type = "Microsoft.KeyVault/vaults/secrets@2023-07-01" 
-  properties =   {
-    contentType = var.content_type
-    value = var.value
-    attributes  = {
-      enabled = true
-      exp = var.expiration_date
-      nbf = var.not_before_date
-    }
-    
+  body = {
+    properties =   {
+      contentType = var.content_type
+      value = var.value
+      attributes  = {
+        enabled = true
+        exp = var.expiration_date
+        nbf = var.not_before_date
+      }
+    }  
   }
   parent_id = "${var.key_vault_resource_id}"
 }
