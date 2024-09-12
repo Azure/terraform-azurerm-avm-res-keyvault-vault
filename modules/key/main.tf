@@ -2,29 +2,29 @@ resource "azapi_resource" "key" {
   name = var.name
   tags = var.tags
   type = "Microsoft.KeyVault/vaults/keys@2023-07-01" 
-
-  properties =   {
-    attributes  = {
-      enabled = true
-      exp = var.expiration_date
-      nbf = var.not_before_date
-    }
-    curveName = var.curve
-    keyOps = var.opts
-    keySize = var.size
-    kty = var.type
-    contentType = var.content_type
-    value = var.value
-    rotation_policy = var.rotation_policy != null ? jsonencode({
-      expire_after = var.rotation_policy.expire_after,
-      notify_before_expiry = var.rotation_policy.notify_before_expiry,
-
-      automatic = {
-        time_before_expiry = var.rotation_policy.automatic.time_before_expiry  
+  body = {
+    properties =   {
+      attributes  = {
+        enabled = true
+        exp = var.expiration_date
+        nbf = var.not_before_date
       }
-    }) : null,
-
-  }
+      curveName = var.curve
+      keyOps = var.opts
+      keySize = var.size
+      kty = var.type
+      contentType = var.content_type
+      value = var.value
+      rotation_policy = var.rotation_policy != null ? jsonencode({
+        expire_after = var.rotation_policy.expire_after,
+        notify_before_expiry = var.rotation_policy.notify_before_expiry,
+  
+        automatic = {
+          time_before_expiry = var.rotation_policy.automatic.time_before_expiry  
+        }
+      }) : null,
+  
+    }
   parent_id = "${var.key_vault_resource_id}"
 }
 
