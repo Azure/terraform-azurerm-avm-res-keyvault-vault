@@ -17,7 +17,6 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-        shell: bash
 
       - name: Get the latest tag
         id: get_latest_tag
@@ -28,7 +27,7 @@ jobs:
             LATEST_TAG="v1.0.0"
           fi
           echo "LATEST_TAG=$LATEST_TAG" >> $GITHUB_ENV
-        shell: bash
+        shell: /usr/bin/bash --noprofile --norc -e -o pipefail
 
       - name: Calculate next tag version
         id: calc_next_tag
@@ -46,10 +45,10 @@ jobs:
           # Create the new tag
           NEW_TAG="v$MAJOR.$MINOR.$PATCH"
           echo "NEW_TAG=$NEW_TAG" >> $GITHUB_ENV
-        shell: bash
+        shell: /usr/bin/bash --noprofile --norc -e -o pipefail
 
       - name: Create and push new tag
         run: |
           git tag ${{ env.NEW_TAG }}
           git push origin ${{ env.NEW_TAG }}
-        shell: bash
+        shell: /usr/bin/bash --noprofile --norc -e -o pipefail
