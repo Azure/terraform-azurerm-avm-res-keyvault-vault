@@ -1,0 +1,50 @@
+name: Auto Tag on Merge to Main
+
+on:
+  push:
+    branches:
+      - main  # Replace with your target branch name
+
+jobs:
+  create_tag:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Get the latest tag
+        id: get_latest_tag
+        run: |
+          # Get the latest tag; if none exists, default to "v1.0.0"
+          LATEST_TAG=$(git describe --tags `git rev-list --tags --max-count=1` 2>/dev/null || echo "v1.0.0")
+          echo "LATEST_TAG=$LATEST_TAG" >> $GITHUB_ENV
+
+      - name: Calculate next tag version
+        id: calc_next_tag
+        run: |
+          # Extract version components from the latest tag (format: v<major>.<minor>.<patch>)
+          IFS='.' read -ra VERSION_PARTS <<< "${{ env.LATEST_TAG#v }}"
+          MAJOR=${VERSION_PARTS[0]}
+          MINOR=${VERSION_PARTS[1]}
+          PATCH=${VERSION_PARTS[2]}
+
+          # Increment the minor version
+          MINOR=$((MINOR + 1))
+
+          # Reset patch version to 0
+          PATCH=0
+
+          # Create the new tag
+          NEW_TAG="v$MAJOR.$MINOR.$PATCH"
+          echo "NEW_TAG=$NEW_TAG" >> $GITHUB_ENV
+
+      - name: Create and push new tag
+        run: |
+          git tag ${{ env.NEW_TAG }}
+          git push origin ${{ env.NEW_TAG }}
