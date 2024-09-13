@@ -21,17 +21,24 @@ jobs:
       - name: Get the latest tag
         id: get_latest_tag
         run: |
+          # Enable strict error handling
+          set -e
+          set -o pipefail
+
           # Get the latest tag; if none exists, default to "v1.0.0"
           LATEST_TAG=$(git describe --tags $(git rev-list --tags --max-count=1) 2>/dev/null)
           if [ -z "$LATEST_TAG" ]; then
             LATEST_TAG="v1.0.0"
           fi
           echo "LATEST_TAG=$LATEST_TAG" >> $GITHUB_ENV
-        shell: /usr/bin/bash --noprofile --norc -e -o pipefail
+        shell: bash
 
       - name: Calculate next tag version
         id: calc_next_tag
         run: |
+          set -e
+          set -o pipefail
+
           # Remove the 'v' prefix and extract version components (format: <major>.<minor>.<patch>)
           LATEST_TAG="${LATEST_TAG#v}"
           IFS='.' read -r MAJOR MINOR PATCH <<< "$LATEST_TAG"
@@ -45,10 +52,13 @@ jobs:
           # Create the new tag
           NEW_TAG="v$MAJOR.$MINOR.$PATCH"
           echo "NEW_TAG=$NEW_TAG" >> $GITHUB_ENV
-        shell: /usr/bin/bash --noprofile --norc -e -o pipefail
+        shell: bash
 
       - name: Create and push new tag
         run: |
+          set -e
+          set -o pipefail
+
           git tag ${{ env.NEW_TAG }}
           git push origin ${{ env.NEW_TAG }}
-        shell: /usr/bin/bash --noprofile --norc -e -o pipefail
+        shell: bash
