@@ -28,16 +28,14 @@ jobs:
       - name: Calculate next tag version
         id: calc_next_tag
         run: |
-          # Extract version components from the latest tag (format: v<major>.<minor>.<patch>)
-          IFS='.' read -ra VERSION_PARTS <<< "${{ env.LATEST_TAG#v }}"
-          MAJOR=${VERSION_PARTS[0]}
-          MINOR=${VERSION_PARTS[1]}
-          PATCH=${VERSION_PARTS[2]}
+          # Remove the 'v' prefix and extract version components (format: <major>.<minor>.<patch>)
+          LATEST_TAG="${LATEST_TAG#v}"
+          IFS='.' read -r MAJOR MINOR PATCH <<< "$LATEST_TAG"
 
           # Increment the minor version
           MINOR=$((MINOR + 1))
 
-          # Reset patch version to 0
+          # Reset the patch version to 0
           PATCH=0
 
           # Create the new tag
