@@ -22,7 +22,10 @@ jobs:
         id: get_latest_tag
         run: |
           # Get the latest tag; if none exists, default to "v1.0.0"
-          LATEST_TAG=$(git describe --tags `git rev-list --tags --max-count=1` 2>/dev/null || echo "v1.0.0")
+          LATEST_TAG=$(git describe --tags `git rev-list --tags --max-count=1` 2>/dev/null)
+          if [ -z "$LATEST_TAG" ]; then
+            LATEST_TAG="v1.0.0"
+          fi
           echo "LATEST_TAG=$LATEST_TAG" >> $GITHUB_ENV
 
       - name: Calculate next tag version
