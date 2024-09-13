@@ -25,11 +25,14 @@ jobs:
           set -e
           set -o pipefail
 
-          # Get the latest tag; if none exists, default to "v1.0.0"
+          # Get the latest tag; if none exists, default to empty string
           LATEST_TAG=$(git describe --tags $(git rev-list --tags --max-count=1) 2>/dev/null || echo "")
+
+          # If no tags exist, start from v1.0.0
           if [ -z "$LATEST_TAG" ]; then
             LATEST_TAG="v1.0.0"
           fi
+
           echo "LATEST_TAG=$LATEST_TAG" >> $GITHUB_ENV
         shell: bash
 
@@ -39,9 +42,14 @@ jobs:
           set -e
           set -o pipefail
 
-          # Remove the 'v' prefix and extract version components (format: <major>.<minor>.<patch>)
-          LATEST_TAG="${LATEST_TAG#v}"
+          # Extract version components (format: <major>.<minor>.<patch>) from LATEST_TAG
+          LATEST_TAG="${LATEST_TAG#v}"  # Remove the 'v' prefix
           IFS='.' read -r MAJOR MINOR PATCH <<< "$LATEST_TAG"
+
+          # If this is the initial tag, ensure we start with v1.0.0
+          if [ "$LATEST_TAG" == "1.0.0" ]; then
+            MINOR=0  # Set initial minor version to 0
+          fi
 
           # Increment the minor version
           MINOR=$((MINOR + 1))
