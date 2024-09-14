@@ -1,86 +1,69 @@
-name: Module Version Check and Tag on Merge
+name: Tag Version Update
 
 on:
-  pull_request:  # Trigger the workflow on all pull request events
+  pull_request:
+    types: [opened, synchronize]  # Trigger on PR creation and updates
   push:
     branches:
-      - main  # Trigger the workflow on push to the main branch
+      - main  # Trigger on push to the main branch
 
 jobs:
-  check_module_version:
+  tag_version:
     runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request'
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Set up Git
+      - name: Get the latest tag
+        id: get_latest_tag
+        run: |
+          # Fetch all tags from the remote
+          git fetch --tags
+
+          # Get the latest tag; if none exists, default to "v0.0.0"
+          LATEST_TAG=$(git describe --tags $(git rev-list --tags --max-count=1) 2>/dev/null || echo "v0.0.0")
+          echo "LATEST_TAG=$LATEST_TAG" >> $GITHUB_ENV
+
+      - name: Calculate next tag version
+        id: calc_next_tag
+        run: |
+          # Ensure LATEST_TAG is available
+          if [ -z "${LATEST_TAG}" ]; then
+            echo "Error: LATEST_TAG is not set."
+            exit 1
+          fi
+
+          # Validate that the tag follows the format 'v<major>.<minor>.<patch>'
+          if [[ "${LATEST_TAG}" =~ ^v([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
+            MAJOR="${BASH_REMATCH[1]}"
+            MINOR="${BASH_REMATCH[2]}"
+            PATCH="${BASH_REMATCH[3]}"
+          else
+            echo "Error: Latest tag '${LATEST_TAG}' does not match the expected format 'v<major>.<minor>.<patch>'"
+            exit 1
+          fi
+
+          # Increment the patch version
+          PATCH=$((PATCH + 1))
+
+          # Create the new tag
+          NEW_TAG="v$MAJOR.$MINOR.$PATCH"
+          echo "NEW_TAG=$NEW_TAG" >> $GITHUB_ENV
+
+      - name: Configure Git for Pushing
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-      - name: Define SemVer Regex
-        shell: pwsh
-        run: |
-          $regex = '^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$'
-          Write-Output "SEMVER_REGEX=$regex" | Out-File -FilePath $env:GITHUB_ENV -Append
-
-      - name: Get latest release version
-        shell: pwsh
-        run: |
-          $response = Invoke-RestMethod -Headers @{ Authorization = "Bearer $($env:GITHUB_TOKEN)" } -Uri "https://api.github.com/repos/$($env:GITHUB_REPOSITORY)/releases/latest"
-          $latestVersion = $response.name -replace "^v", ""
-
-          if (-not $latestVersion -or $latestVersion -eq 'null') {
-            Write-Output "No releases found"
-            Write-Output "LATEST_RELEASE=0.0.0" | Out-File -FilePath $env:GITHUB_ENV -Append
-          }
-          elseif ($latestVersion -notmatch $env:SEMVER_REGEX) {
-            throw "Release version $latestVersion is not a valid semantic version"
-          }
-          else {
-            Write-Output "LATEST_RELEASE=$latestVersion" | Out-File -FilePath $env:GITHUB_ENV -Append
-          }
-
-      - name: Get current module version
-        shell: pwsh
-        run: |
-          $moduleVersion = (Get-Content -Raw -Path locals.version.tf.json | ConvertFrom-Json).locals.module_version
-
-          if ($moduleVersion -notmatch $env:SEMVER_REGEX) {
-            throw "Module version $moduleVersion is not a valid semantic version"
-          }
-
-          Write-Output "MODULE_VERSION=$moduleVersion" | Out-File -FilePath $env:GITHUB_ENV -Append
-
-      - name: Check module version is greater than latest release
-        shell: pwsh
-        run: |
-          $modVerMajor, $modVerMinor, $modVerPatch = $env:MODULE_VERSION -split '\.'
-          $relVerMajor, $relVerMinor, $relVerPatch = $env:LATEST_RELEASE -split '\.'
-
-          if (($modVerMajor -lt $relVerMajor) -or
-              (($modVerMajor -eq $relVerMajor) -and ($modVerMinor -lt $relVerMinor)) -or
-              (($modVerMajor -eq $relVerMajor) -and ($modVerMinor -eq $relVerMinor) -and ($modVerPatch -le $relVerPatch))) {
-            throw "Module version $($env:MODULE_VERSION) is not greater than the latest release $($env:LATEST_RELEASE)"
-          }
-
-  create_tag:
-    runs-on: ubuntu-latest
-    needs: check_module_version
-    if: github.event_name == 'push'
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Get the module version
-        shell: pwsh
-        run: |
-          $moduleVersion = (Get-Content -Raw -Path locals.version.tf.json | ConvertFrom-Json).locals.module_version
-          Write-Output "MODULE_VERSION=$moduleVersion" | Out-File -FilePath $env:GITHUB_ENV -Append
-
       - name: Create and push new tag
-        shell: pwsh
         run: |
-          git tag "v$($env:MODULE_VERSION)"
-          git push origin "v$($env:MODULE_VERSION)"
+          # Create the new tag
+          git tag ${{ env.NEW_TAG }}
+
+          # Push the new tag to the remote repository
+          git push origin ${{ env.NEW_TAG }}
+
+      - name: Output new tag
+        run: |
+          echo "New tag created: ${{ env.NEW_TAG }}"
