@@ -1,14 +1,16 @@
-name: Auto Tag on Merge to Main
+name: Module Version Check and Tag on Merge
 
 on:
+  pull_request:
+    types: [opened, synchronize]  # Trigger the workflow on PR creation and updates
   push:
     branches:
-      - main  # Replace with your target branch name
+      - main  # Trigger the workflow on push to the main branch
 
 jobs:
-  create_tag:
+  check_module_version:
     runs-on: ubuntu-latest
-
+    if: github.event_name == 'pull_request'
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -18,55 +20,78 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-      - name: Get the latest tag
-        id: get_latest_tag
+      - name: semver regex
+        shell: bash
         run: |
-          # Enable strict error handling
-          set -e
-          set -o pipefail
+          echo SEMVER_REGEX="^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$" >> "$GITHUB_ENV"
 
-          # Get the latest tag; if none exists, default to empty string
-          LATEST_TAG=$(git describe --tags $(git rev-list --tags --max-count=1) 2>/dev/null || echo "")
+      - name: Get latest release version
+        shell: bash
+        run: |
+          VER=$(curl --silent -L -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" -H "Accept: application/vnd.github+json" -H "X-GitHub-Api-Version: 2022-11-28" https://api.github.com/repos/${{ github.repository }}/releases/latest | jq -r .name | sed s/^v//)
+          if [ "$VER" == "null" ]; then
+            echo "No releases found"
+            echo LATEST_RELEASE="0.0.0" >> "$GITHUB_ENV"
+            exit 0
+          fi
+          if echo "$VER" | grep -P -qv "$SEMVER_REGEX"; then
+            echo "Release version $VER is not a valid semantic version"
+            exit 1
+          fi
+          echo LATEST_RELEASE="$VER" >> "$GITHUB_ENV"
 
-          # If no tags exist, start from v1.0.0
-          if [ -z "$LATEST_TAG" ]; then
-            LATEST_TAG="v1.0.0"
+      - name: Get current module version
+        shell: bash
+        run: |
+          VER=$(jq -r '${{ inputs.jq-query }}' < ${{ inputs.version-file-name }})
+          if echo "$VER" | grep -P -qv "$SEMVER_REGEX"; then
+            echo "Module version $VER is not a valid semantic version"
+            exit 1
+          fi
+          echo MODULE_VERSION="$VER" >> "$GITHUB_ENV"
+
+      - name: Check module version is greater than latest release
+        shell: bash
+        run: |
+          MODVERMAJOR=$(echo ${{ env.MODULE_VERSION }} | cut -d. -f1)
+          MODVERMINOR=$(echo ${{ env.MODULE_VERSION }} | cut -d. -f2)
+          MODVERPATCH=$(echo ${{ env.MODULE_VERSION }} | cut -d. -f3)
+
+          RELVERMAJOR=$(echo ${{ env.LATEST_RELEASE }} | cut -d. -f1)
+          RELVERMINOR=$(echo ${{ env.LATEST_RELEASE }} | cut -d. -f2)
+          RELVERPATCH=$(echo ${{ env.LATEST_RELEASE }} | cut -d. -f3)
+
+          if [ "$MODVERMAJOR" -lt "$RELVERMAJOR" ]; then
+            echo "Module version ${{ env.MODULE_VERSION }} is less than latest release ${{ env.LATEST_RELEASE }}"
+            exit 1
           fi
 
-          echo "LATEST_TAG=$LATEST_TAG" >> $GITHUB_ENV
-        shell: bash
-
-      - name: Calculate next tag version
-        id: calc_next_tag
-        run: |
-          set -e
-          set -o pipefail
-
-          # Extract version components (format: <major>.<minor>.<patch>) from LATEST_TAG
-          LATEST_TAG="${LATEST_TAG#v}"  # Remove the 'v' prefix
-          IFS='.' read -r MAJOR MINOR PATCH <<< "$LATEST_TAG"
-
-          # If this is the initial tag, ensure we start with v1.0.0
-          if [ "$LATEST_TAG" == "1.0.0" ]; then
-            MINOR=0  # Set initial minor version to 0
+          if [ "$MODVERMAJOR" -eq "$RELVERMAJOR" ] && [ "$MODVERMINOR" -lt "$RELVERMINOR" ]; then
+            echo "Module version ${{ env.MODULE_VERSION }} is less than latest release ${{ env.LATEST_RELEASE }}"
+            exit 1
           fi
 
-          # Increment the minor version
-          MINOR=$((MINOR + 1))
+          if [ "$MODVERMAJOR" -eq "$RELVERMAJOR" ] && [ "$MODVERMINOR" -eq "$RELVERMINOR" ] && [ "$MODVERPATCH" -lt "$RELVERPATCH" ]; then
+            echo "Module version ${{ env.MODULE_VERSION }} is less than latest release ${{ env.LATEST_RELEASE }}"
+            exit 1
+          fi
 
-          # Reset the patch version to 0
-          PATCH=0
+  create_tag:
+    runs-on: ubuntu-latest
+    needs: check_module_version
+    if: github.event_name == 'push'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-          # Create the new tag
-          NEW_TAG="v$MAJOR.$MINOR.$PATCH"
-          echo "NEW_TAG=$NEW_TAG" >> $GITHUB_ENV
+      - name: Get the module version
         shell: bash
+        run: |
+          VER=$(jq -r '${{ inputs.jq-query }}' < ${{ inputs.version-file-name }})
+          echo MODULE_VERSION="$VER" >> $GITHUB_ENV
 
       - name: Create and push new tag
-        run: |
-          set -e
-          set -o pipefail
-
-          git tag ${{ env.NEW_TAG }}
-          git push origin ${{ env.NEW_TAG }}
         shell: bash
+        run: |
+          git tag v${{ env.MODULE_VERSION }}
+          git push origin v${{ env.MODULE_VERSION }}
