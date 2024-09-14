@@ -1,8 +1,7 @@
 name: Module Version Check and Tag on Merge
 
 on:
-  pull_request:
-    types: [opened, synchronize]  # Trigger the workflow on PR creation and updates
+  pull_request:  # Trigger the workflow on all pull request events
   push:
     branches:
       - main  # Trigger the workflow on push to the main branch
@@ -20,61 +19,51 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-      - name: semver regex
-        shell: bash
+      - name: Define SemVer Regex
+        shell: pwsh
         run: |
-          echo SEMVER_REGEX="^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$" >> "$GITHUB_ENV"
+          $regex = '^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$'
+          Write-Output "SEMVER_REGEX=$regex" | Out-File -FilePath $env:GITHUB_ENV -Append
 
       - name: Get latest release version
-        shell: bash
+        shell: pwsh
         run: |
-          VER=$(curl --silent -L -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" -H "Accept: application/vnd.github+json" -H "X-GitHub-Api-Version: 2022-11-28" https://api.github.com/repos/${{ github.repository }}/releases/latest | jq -r .name | sed s/^v//)
-          if [ "$VER" == "null" ]; then
-            echo "No releases found"
-            echo LATEST_RELEASE="0.0.0" >> "$GITHUB_ENV"
-            exit 0
-          fi
-          if echo "$VER" | grep -P -qv "$SEMVER_REGEX"; then
-            echo "Release version $VER is not a valid semantic version"
-            exit 1
-          fi
-          echo LATEST_RELEASE="$VER" >> "$GITHUB_ENV"
+          $response = Invoke-RestMethod -Headers @{ Authorization = "Bearer $($env:GITHUB_TOKEN)" } -Uri "https://api.github.com/repos/$($env:GITHUB_REPOSITORY)/releases/latest"
+          $latestVersion = $response.name -replace "^v", ""
+
+          if (-not $latestVersion -or $latestVersion -eq 'null') {
+            Write-Output "No releases found"
+            Write-Output "LATEST_RELEASE=0.0.0" | Out-File -FilePath $env:GITHUB_ENV -Append
+          }
+          elseif ($latestVersion -notmatch $env:SEMVER_REGEX) {
+            throw "Release version $latestVersion is not a valid semantic version"
+          }
+          else {
+            Write-Output "LATEST_RELEASE=$latestVersion" | Out-File -FilePath $env:GITHUB_ENV -Append
+          }
 
       - name: Get current module version
-        shell: bash
+        shell: pwsh
         run: |
-          VER=$(jq -r '${{ inputs.jq-query }}' < ${{ inputs.version-file-name }})
-          if echo "$VER" | grep -P -qv "$SEMVER_REGEX"; then
-            echo "Module version $VER is not a valid semantic version"
-            exit 1
-          fi
-          echo MODULE_VERSION="$VER" >> "$GITHUB_ENV"
+          $moduleVersion = (Get-Content -Raw -Path locals.version.tf.json | ConvertFrom-Json).locals.module_version
+
+          if ($moduleVersion -notmatch $env:SEMVER_REGEX) {
+            throw "Module version $moduleVersion is not a valid semantic version"
+          }
+
+          Write-Output "MODULE_VERSION=$moduleVersion" | Out-File -FilePath $env:GITHUB_ENV -Append
 
       - name: Check module version is greater than latest release
-        shell: bash
+        shell: pwsh
         run: |
-          MODVERMAJOR=$(echo ${{ env.MODULE_VERSION }} | cut -d. -f1)
-          MODVERMINOR=$(echo ${{ env.MODULE_VERSION }} | cut -d. -f2)
-          MODVERPATCH=$(echo ${{ env.MODULE_VERSION }} | cut -d. -f3)
+          $modVerMajor, $modVerMinor, $modVerPatch = $env:MODULE_VERSION -split '\.'
+          $relVerMajor, $relVerMinor, $relVerPatch = $env:LATEST_RELEASE -split '\.'
 
-          RELVERMAJOR=$(echo ${{ env.LATEST_RELEASE }} | cut -d. -f1)
-          RELVERMINOR=$(echo ${{ env.LATEST_RELEASE }} | cut -d. -f2)
-          RELVERPATCH=$(echo ${{ env.LATEST_RELEASE }} | cut -d. -f3)
-
-          if [ "$MODVERMAJOR" -lt "$RELVERMAJOR" ]; then
-            echo "Module version ${{ env.MODULE_VERSION }} is less than latest release ${{ env.LATEST_RELEASE }}"
-            exit 1
-          fi
-
-          if [ "$MODVERMAJOR" -eq "$RELVERMAJOR" ] && [ "$MODVERMINOR" -lt "$RELVERMINOR" ]; then
-            echo "Module version ${{ env.MODULE_VERSION }} is less than latest release ${{ env.LATEST_RELEASE }}"
-            exit 1
-          fi
-
-          if [ "$MODVERMAJOR" -eq "$RELVERMAJOR" ] && [ "$MODVERMINOR" -eq "$RELVERMINOR" ] && [ "$MODVERPATCH" -lt "$RELVERPATCH" ]; then
-            echo "Module version ${{ env.MODULE_VERSION }} is less than latest release ${{ env.LATEST_RELEASE }}"
-            exit 1
-          fi
+          if (($modVerMajor -lt $relVerMajor) -or
+              (($modVerMajor -eq $relVerMajor) -and ($modVerMinor -lt $relVerMinor)) -or
+              (($modVerMajor -eq $relVerMajor) -and ($modVerMinor -eq $relVerMinor) -and ($modVerPatch -le $relVerPatch))) {
+            throw "Module version $($env:MODULE_VERSION) is not greater than the latest release $($env:LATEST_RELEASE)"
+          }
 
   create_tag:
     runs-on: ubuntu-latest
@@ -85,13 +74,13 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Get the module version
-        shell: bash
+        shell: pwsh
         run: |
-          VER=$(jq -r '${{ inputs.jq-query }}' < ${{ inputs.version-file-name }})
-          echo MODULE_VERSION="$VER" >> $GITHUB_ENV
+          $moduleVersion = (Get-Content -Raw -Path locals.version.tf.json | ConvertFrom-Json).locals.module_version
+          Write-Output "MODULE_VERSION=$moduleVersion" | Out-File -FilePath $env:GITHUB_ENV -Append
 
       - name: Create and push new tag
-        shell: bash
+        shell: pwsh
         run: |
-          git tag v${{ env.MODULE_VERSION }}
-          git push origin v${{ env.MODULE_VERSION }}
+          git tag "v$($env:MODULE_VERSION)"
+          git push origin "v$($env:MODULE_VERSION)"
