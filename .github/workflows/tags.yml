@@ -1,11 +1,14 @@
 name: Tag Version Update
 
 on:
-  # pull_request:
-  #   types: [opened, synchronize]  # Trigger on PR creation and updates
+  pull_request:
+    types:
+      - opened
+      - synchronize  
   push:
     branches:
-      - main  # Trigger on push to the main branch
+      - main
+  workflow_dispatch:  # Allow manual triggering of the workflow
 
 jobs:
   tag_version:
@@ -25,7 +28,7 @@ jobs:
           LATEST_TAG=$(git describe --tags $(git rev-list --tags --max-count=1) 2>/dev/null || echo "v0.0.0")
           echo "LATEST_TAG=$LATEST_TAG" >> $GITHUB_ENV
 
-      - name: Calculate next tag version
+      - name: Calculate next minor tag version
         id: calc_next_tag
         run: |
           # Ensure LATEST_TAG is available
@@ -44,8 +47,9 @@ jobs:
             exit 1
           fi
 
-          # Increment the patch version
-          PATCH=$((PATCH + 1))
+          # Increment the minor version and reset the patch version
+          MINOR=$((MINOR + 1))
+          PATCH=0
 
           # Create the new tag
           NEW_TAG="v$MAJOR.$MINOR.$PATCH"
