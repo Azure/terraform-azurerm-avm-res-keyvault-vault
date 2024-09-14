@@ -1,8 +1,8 @@
 name: Tag Version Update
 
 on:
-  pull_request:
-    types: [opened, synchronize]  # Trigger on PR creation and updates
+  # pull_request:
+  #   types: [opened, synchronize]  # Trigger on PR creation and updates
   push:
     branches:
       - main  # Trigger on push to the main branch
