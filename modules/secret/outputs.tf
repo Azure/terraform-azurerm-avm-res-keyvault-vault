@@ -5,7 +5,7 @@ output "id" {
 
 output "resource_id" {
   description = "The Azure resource id of the secret."
-  value       = azapi_resource.secret.resource_id
+  value       = azapi_resource.key.output.properties.resource_id
 }
 
 #output "resource_versionless_id" {
