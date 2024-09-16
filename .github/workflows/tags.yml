@@ -22,9 +22,13 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
+      - name: Check if running on the 'main' branch
+        if: ${{ github.ref == 'refs/heads/main' }}  # Ensure the job continues only on the 'main' branch
+        run: echo "Running on the main branch."
+
       - name: Get the latest tag
         id: get_latest_tag
-        if: github.ref == 'refs/heads/main'  # Ensure this step runs only on the 'main' branch
+        if: ${{ github.ref == 'refs/heads/main' }}  # Ensure this step runs only on the 'main' branch
         run: |
           # Fetch all tags from the remote
           git fetch --tags
@@ -35,7 +39,7 @@ jobs:
 
       - name: Calculate next minor tag version
         id: calc_next_tag
-        if: github.ref == 'refs/heads/main'  # Ensure this step runs only on the 'main' branch
+        if: ${{ github.ref == 'refs/heads/main' }}  # Ensure this step runs only on the 'main' branch
         run: |
           # Ensure LATEST_TAG is available
           if [ -z "${LATEST_TAG}" ]; then
@@ -62,13 +66,13 @@ jobs:
           echo "NEW_TAG=$NEW_TAG" >> $GITHUB_ENV
 
       - name: Configure Git for Pushing
-        if: github.ref == 'refs/heads/main'  # Ensure this step runs only on the 'main' branch
+        if: ${{ github.ref == 'refs/heads/main' }}  # Ensure this step runs only on the 'main' branch
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
       - name: Create and push new tag
-        if: github.ref == 'refs/heads/main'  # Ensure this step runs only on the 'main' branch
+        if: ${{ github.ref == 'refs/heads/main' }}  # Ensure this step runs only on the 'main' branch
         run: |
           # Create the new tag
           git tag ${{ env.NEW_TAG }}
@@ -77,6 +81,6 @@ jobs:
           git push origin ${{ env.NEW_TAG }}
 
       - name: Output new tag
-        if: github.ref == 'refs/heads/main'  # Ensure this step runs only on the 'main' branch
+        if: ${{ github.ref == 'refs/heads/main' }}  # Ensure this step runs only on the 'main' branch
         run: |
           echo "New tag created: ${{ env.NEW_TAG }}"
