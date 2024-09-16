@@ -25,8 +25,8 @@ resource "azurerm_key_vault" "this" {
     }
   }
  lifecycle {
-   ignore_changes = [ tags ]
- }
+    ignore_changes = [ tags ]
+  }
 }
 
 resource "azurerm_management_lock" "this" {
@@ -109,3 +109,5 @@ resource "time_sleep" "wait_for_rbac_before_contact_operations" {
     contacts = jsonencode(var.contacts)
   }
 }
+
+
