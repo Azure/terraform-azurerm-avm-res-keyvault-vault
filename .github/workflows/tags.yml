@@ -4,9 +4,9 @@ on:
   pull_request:
     branches:
       - main  # Trigger only on pull requests targeting the 'main' branch
-  push:
-    branches:
-      - main  # Trigger only on pushes to the 'main' branch
+  # push:
+  #   branches:
+  #     - main  # Trigger only on pushes to the 'main' branch
   workflow_dispatch:  # Allow manual triggering of the workflow
     inputs:
       branch:
