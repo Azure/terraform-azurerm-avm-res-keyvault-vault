@@ -8,11 +8,11 @@ on:
   #   branches:
   #     - main  
   workflow_dispatch:
-   inputs:
-    branch:
-      description: 'Select branch to run the workflow'
-      required: true
-      default: 'main'
+  #  inputs:
+  #   branch:
+  #     description: 'Select branch to run the workflow'
+  #     required: true
+  #     default: 'main'
 
 
 jobs:
