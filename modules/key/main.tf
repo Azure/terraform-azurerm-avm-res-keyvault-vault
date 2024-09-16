@@ -13,7 +13,6 @@ resource "azapi_resource" "key" {
       keyOps = var.opts
       keySize = var.size
       kty = var.type
-      contentType = var.content_type
       value = var.value
       rotation_policy = var.rotation_policy != null ? jsonencode({
         expire_after = var.rotation_policy.expire_after,
