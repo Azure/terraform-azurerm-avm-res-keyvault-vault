@@ -3,11 +3,17 @@ name: Tag Version Update
 on:
   pull_request:
     branches:
-      - main  # Trigger only on pull requests targeting the 'main' branch
+      - main  
   push:
     branches:
-      - main  # Trigger only on pushes to the 'main' branch
-  workflow_dispatch:  # Allow manual triggering of the workflow
+      - main  
+  workflow_dispatch:
+   inputs:
+    branch:
+      description: 'Select branch to run the workflow'
+      required: true
+      default: 'main'
+
 
 jobs:
   tag_version:
