@@ -2,13 +2,13 @@ resource "azapi_resource" "key" {
   name = var.name
   tags = var.tags
   type = "Microsoft.KeyVault/vaults/keys@2023-07-01" 
-  body = {
+  body = jsonencode ({
     properties =   {
-      attributes  = {
+      attributes  = jsonencode ({
         enabled = true
         exp = var.expiration_date
         nbf = var.not_before_date
-      }
+      })
       curveName = var.curve
       keyOps = var.opts
       keySize = var.size
@@ -22,7 +22,7 @@ resource "azapi_resource" "key" {
         }
       }) : null,
     }  
-  }
+  })
   parent_id = "${var.key_vault_resource_id}"
 }
 
