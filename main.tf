@@ -25,8 +25,8 @@ resource "azurerm_key_vault" "this" {
     }
   }
  lifecycle {
-  ignore_changes = [ tags ]
-   }
+    ignore_changes = [ tags ]
+  }
 }
 
 resource "azurerm_management_lock" "this" {
