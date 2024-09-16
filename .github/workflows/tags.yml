@@ -1,0 +1,78 @@
+name: Tag Version Update
+
+on:
+  pull_request:
+    branches:
+      - main  
+  # push:
+  #   branches:
+  #     - main  
+  workflow_dispatch:
+   inputs:
+    branch:
+      description: 'Select branch to run the workflow'
+      required: true
+      default: 'main'
+
+
+jobs:
+  tag_version:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Get the latest tag
+        id: get_latest_tag
+        run: |
+          # Fetch all tags from the remote
+          git fetch --tags
+
+          # Get the latest tag; if none exists, default to "v1.0.0"
+          LATEST_TAG=$(git describe --tags $(git rev-list --tags --max-count=1) 2>/dev/null || echo "v1.0.0")
+          echo "LATEST_TAG=$LATEST_TAG" >> $GITHUB_ENV
+
+      - name: Calculate next minor tag version
+        id: calc_next_tag
+        run: |
+          # Ensure LATEST_TAG is available
+          if [ -z "${LATEST_TAG}" ]; then
+            echo "Error: LATEST_TAG is not set."
+            exit 1
+          fi
+
+          # Validate that the tag follows the format 'v<major>.<minor>.<patch>'
+          if [[ "${LATEST_TAG}" =~ ^v([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
+            MAJOR="${BASH_REMATCH[1]}"
+            MINOR="${BASH_REMATCH[2]}"
+            PATCH="${BASH_REMATCH[3]}"
+          else
+            echo "Error: Latest tag '${LATEST_TAG}' does not match the expected format 'v<major>.<minor>.<patch>'"
+            exit 1
+          fi
+
+          # Increment the minor version and reset the patch version
+          MINOR=$((MINOR + 1))
+          PATCH=0
+
+          # Create the new tag
+          NEW_TAG="v$MAJOR.$MINOR.$PATCH"
+          echo "NEW_TAG=$NEW_TAG" >> $GITHUB_ENV
+
+      - name: Configure Git for Pushing
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Create and push new tag
+        run: |
+          # Create the new tag
+          git tag ${{ env.NEW_TAG }}
+
+          # Push the new tag to the remote repository
+          git push origin ${{ env.NEW_TAG }}
+
+      - name: Output new tag
+        run: |
+          echo "New tag created: ${{ env.NEW_TAG }}"
