@@ -4,16 +4,16 @@ resource "azapi_resource" "key" {
   type = "Microsoft.KeyVault/vaults/keys@2023-02-01" 
   body = jsonencode ({
     properties =   {
-      attributes  = jsonencode ({
+      attributes  = {
         enabled = true
         exp = var.expiration_date
         nbf = var.not_before_date
-      })
+      }
       curveName = var.curve
       keyOps = var.opts
       keySize = var.size
       kty = var.type
-      rotation_policy = var.rotation_policy != null ? jsonencode({
+      rotationPolicy = var.rotation_policy != null ? jsonencode({
         expire_after = var.rotation_policy.expire_after,
         notify_before_expiry = var.rotation_policy.notify_before_expiry,
   
