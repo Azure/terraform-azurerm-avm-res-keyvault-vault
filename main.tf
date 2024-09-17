@@ -24,6 +24,9 @@ resource "azurerm_key_vault" "this" {
       virtual_network_subnet_ids = network_acls.value.virtual_network_subnet_ids
     }
   }
+  lifecycle {
+    ignore_changes = [ tags ]
+  }
 }
 
 resource "azurerm_management_lock" "this" {
