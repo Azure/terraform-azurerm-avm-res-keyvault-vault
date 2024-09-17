@@ -14,6 +14,7 @@ resource "azapi_resource" "secret" {
     }  
   })
   parent_id = "${var.key_vault_resource_id}"
+  response_export_values = ["*"]
 }
 
 resource "azurerm_role_assignment" "this" {
