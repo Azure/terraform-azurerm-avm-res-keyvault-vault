@@ -2,9 +2,18 @@ module "secrets" {
   source   = "./modules/secret"
   for_each = var.secrets
 
+  secrets_value = var.secrets_value
+
+  for_each = {
+    for key, value in var.secrets: 
+    key => value 
+  }
+
+  value = secrets_value[each.key]
+
   key_vault_resource_id = azurerm_key_vault.this.id
   name                  = each.value.name
-  value                 = var.secrets_value[each.key]
+#  value                 = var.secrets_value[each.key]
   content_type          = each.value.content_type
   expiration_date       = each.value.expiration_date
   not_before_date       = each.value.not_before_date
