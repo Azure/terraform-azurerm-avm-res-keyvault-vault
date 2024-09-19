@@ -1,6 +1,6 @@
 module "secrets" {
   source   = "./modules/secret"
-  for_each = var.secrets
+#  for_each = var.secrets
 
   secrets_value = var.secrets_value
 
