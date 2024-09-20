@@ -1,12 +1,13 @@
 module "secrets" {
   source   = "./modules/secret"
-  # for_each = var.secrets
+  for_each = var.secrets
 
-  for_each = {
-    for key, value in var.secrets: 
-    key => value 
-  }
-  value = lookup(var.secrets_value, each.key, "")
+#  for_each = {
+#    for key, value in var.secrets: 
+#    key => value 
+#  }
+#  value = lookup(var.secrets_value, each.key, "")
+  value = each.value.value
 
   key_vault_resource_id = azurerm_key_vault.this.id
   name                  = each.value.name
