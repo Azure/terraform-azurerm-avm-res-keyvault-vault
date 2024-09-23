@@ -388,7 +388,6 @@ DESCRIPTION
 variable "secrets" {
   type = map(object({
     name            = string
-    value           = optional(string, null)
     content_type    = optional(string, null)
     tags            = optional(map(any), null)
     not_before_date = optional(string, null)
@@ -422,18 +421,18 @@ DESCRIPTION
   nullable    = false
 }
 
-# variable "secrets_value" {
-#  type        = map(string)
-#  default     = null
-#  description = <<DESCRIPTION
-#A map of secret keys to values.
-#The map key is the supplied input to `var.secrets`.
-#The map value is the secret value.
+variable "secrets_value" {
+  type        = map(string)
+  default     = null
+  description = <<DESCRIPTION
+A map of secret keys to values.
+The map key is the supplied input to `var.secrets`.
+The map value is the secret value.
 
-#This is a separate variable to `var.secrets` because it is sensitive and therefore cannot be used in a `for_each` loop.
-#DESCRIPTION
-#  sensitive   = true
-#}
+This is a separate variable to `var.secrets` because it is sensitive and therefore cannot be used in a `for_each` loop.
+DESCRIPTION
+  sensitive   = true
+}
 
 variable "sku_name" {
   type        = string
