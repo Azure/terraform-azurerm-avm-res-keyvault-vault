@@ -2,14 +2,14 @@ resource "azapi_resource" "secret" {
   name = var.name
   tags = var.tags
   type = "Microsoft.KeyVault/vaults/secrets@2023-02-01" 
-  body = jsonencode({
+  body = jsonencode ({
     properties =   {
       contentType = var.content_type
       value = var.value
-      attributes  = jsonencode({
+      attributes  = ({
         enabled = true
-        exp = jsonencode(var.expiration_date)
-        nbf = jsonencode(var.not_before_date)
+        exp = var.expiration_date
+        nbf = var.not_before_date
       })
     }  
   })
