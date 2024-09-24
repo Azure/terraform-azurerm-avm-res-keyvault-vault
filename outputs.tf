@@ -22,10 +22,10 @@ output "resource_id" {
 output "secrets_resource_ids" {
   description = "A map of secret keys to resource ids."
   value = { for sk, sv in module.secrets : sk => {
-#    resource_id             = sv.resource_id
-#    resource_versionless_id = sv.resource_versionless_id
+    resource_id             = sv.resource_id
+    resource_versionless_id = sv.resource_versionless_id
     id                      = sv.id
-#    versionless_id          = sv.versionless_id
+    versionless_id          = sv.versionless_id
     }
   }
 }
