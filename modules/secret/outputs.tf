@@ -6,10 +6,9 @@ output "id" {
 output "resource_id" {
   description = "The Azure resource id of the secret."
   value = "${azapi_resource.secret.output.id}/${
-    regex_replace(
+    replace(
       jsondecode(azapi_resource.secret.output).properties.secretUriWithVersion, 
-      "/(.+)$",
-      "$1"
+      "/(.+)$","$1"
     )
   }" 
 }
