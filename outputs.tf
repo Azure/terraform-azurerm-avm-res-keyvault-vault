@@ -1,10 +1,10 @@
 output "keys_resource_ids" {
   description = "A map of key keys to resource ids."
   value = { for kk, kv in module.keys : kk => {
-#    resource_id             = kv.resource_id
-#    resource_versionless_id = kv.resource_versionless_id
+    resource_id             = kv.resource_id
+    resource_versionless_id = kv.resource_versionless_id
     id                      = kv.id
-#    versionless_id          = kv.versionless_id
+    versionless_id          = kv.versionless_id
     }
   }
 }
