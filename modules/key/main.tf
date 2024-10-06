@@ -11,6 +11,7 @@ resource "azurerm_key_vault_key" "this" {
 
   dynamic "rotation_policy" {
     for_each = var.rotation_policy != null ? [var.rotation_policy] : []
+
     content {
       expire_after         = rotation_policy.value.expire_after
       notify_before_expiry = rotation_policy.value.notify_before_expiry

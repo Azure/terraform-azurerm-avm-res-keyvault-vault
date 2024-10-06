@@ -17,6 +17,7 @@ resource "azurerm_key_vault" "this" {
   # Create it if the variable is not null.
   dynamic "network_acls" {
     for_each = var.network_acls != null ? { this = var.network_acls } : {}
+
     content {
       bypass                     = network_acls.value.bypass
       default_action             = network_acls.value.default_action
@@ -62,18 +63,21 @@ resource "azurerm_monitor_diagnostic_setting" "this" {
 
   dynamic "enabled_log" {
     for_each = each.value.log_categories
+
     content {
       category = enabled_log.value
     }
   }
   dynamic "enabled_log" {
     for_each = each.value.log_groups
+
     content {
       category_group = enabled_log.value
     }
   }
   dynamic "metric" {
     for_each = each.value.metric_categories
+
     content {
       category = metric.value
     }
@@ -87,6 +91,7 @@ resource "azurerm_key_vault_certificate_contacts" "this" {
 
   dynamic "contact" {
     for_each = var.contacts
+
     content {
       email = contact.value.email
       name  = contact.value.name
