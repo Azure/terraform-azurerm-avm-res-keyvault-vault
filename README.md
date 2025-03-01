@@ -10,7 +10,7 @@ The following requirements are needed by this module:
 
 - <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) (>= 1.9, < 2.0)
 
-- <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) (>= 3.87)
+- <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) (>= 3.117, < 5.0)
 
 - <a name="requirement_modtm"></a> [modtm](#requirement\_modtm) (~> 0.3)
 
@@ -534,9 +534,23 @@ Default: `{}`
 
 The following outputs are exported:
 
+### <a name="output_keys"></a> [keys](#output\_keys)
+
+Description: A map of key keys to key values. The key value is the entire azurerm\_key\_vault\_key resource.
+
+The key value contains the following attributes:
+- id: The Key Vault Key ID
+- resource\_id: The Azure resource id of the key.
+- resource\_versionless\_id: The versionless Azure resource id of the key.
+- versionless\_id: The Base ID of the Key Vault Key
+
 ### <a name="output_keys_resource_ids"></a> [keys\_resource\_ids](#output\_keys\_resource\_ids)
 
 Description: A map of key keys to resource ids.
+
+### <a name="output_name"></a> [name](#output\_name)
+
+Description: The name of the key vault.
 
 ### <a name="output_private_endpoints"></a> [private\_endpoints](#output\_private\_endpoints)
 
@@ -545,6 +559,16 @@ Description: A map of private endpoints. The map key is the supplied input to va
 ### <a name="output_resource_id"></a> [resource\_id](#output\_resource\_id)
 
 Description: The Azure resource id of the key vault.
+
+### <a name="output_secrets"></a> [secrets](#output\_secrets)
+
+Description: A map of secret keys to secret values. The secret value is the entire azurerm\_key\_vault\_secret resource.
+
+The secret value contains the following attributes:
+- id: The Key Vault Secret ID
+- resource\_id: The Azure resource id of the secret.
+- resource\_versionless\_id: The versionless Azure resource id of the secret.
+- versionless\_id: The Base ID of the Key Vault Secret
 
 ### <a name="output_secrets_resource_ids"></a> [secrets\_resource\_ids](#output\_secrets\_resource\_ids)
 

@@ -13,7 +13,7 @@ terraform {
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = ">= 3.87"
+      version = ">= 3.117"
     }
     http = {
       source  = "hashicorp/http"
@@ -28,7 +28,7 @@ terraform {
 
 module "regions" {
   source  = "Azure/avm-utl-regions/azurerm"
-  version = "0.1.0"
+  version = "0.3.0"
 }
 
 # This allows us to randomize the region for the resource group.
@@ -91,6 +91,10 @@ module "key_vault" {
     ip_rules = ["${data.http.ip.response_body}/32"]
   }
 }
+
+output "secrets" {
+  value = module.key_vault.secrets
+}
 ```
 
 <!-- markdownlint-disable MD033 -->
@@ -100,7 +104,7 @@ The following requirements are needed by this module:
 
 - <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) (>= 1.9, < 2.0)
 
-- <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) (>= 3.87)
+- <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) (>= 3.117)
 
 - <a name="requirement_http"></a> [http](#requirement\_http) (~> 3.4)
 
@@ -136,7 +140,11 @@ Default: `true`
 
 ## Outputs
 
-No outputs.
+The following outputs are exported:
+
+### <a name="output_secrets"></a> [secrets](#output\_secrets)
+
+Description: n/a
 
 ## Modules
 
@@ -158,7 +166,7 @@ Version: 0.3.0
 
 Source: Azure/avm-utl-regions/azurerm
 
-Version: 0.1.0
+Version: 0.3.0
 
 <!-- markdownlint-disable-next-line MD041 -->
 ## Data Collection
