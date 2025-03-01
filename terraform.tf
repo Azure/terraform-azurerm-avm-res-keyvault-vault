@@ -3,7 +3,7 @@ terraform {
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = ">= 3.87"
+      version = ">= 3.117, < 5.0"
     }
     modtm = {
       source  = "azure/modtm"

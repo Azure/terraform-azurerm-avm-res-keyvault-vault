@@ -7,7 +7,7 @@ terraform {
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = ">= 3.87"
+      version = ">= 3.117"
     }
     random = {
       source  = "hashicorp/random"
@@ -22,7 +22,7 @@ data "azurerm_client_config" "this" {}
 # This allows us to randomize the region for the resource group.
 module "regions" {
   source  = "Azure/avm-utl-regions/azurerm"
-  version = "0.1.0"
+  version = "0.3.0"
 }
 
 # This allows us to randomize the region for the resource group.
@@ -47,17 +47,9 @@ resource "azurerm_resource_group" "this" {
 module "keyvault" {
   source = "../../"
   # source              = "Azure/avm-res-keyvault-vault/azurerm"
-  name                           = module.naming.key_vault.name_unique
-  enable_telemetry               = var.enable_telemetry
-  location                       = azurerm_resource_group.this.location
-  resource_group_name            = azurerm_resource_group.this.name
-  tenant_id                      = data.azurerm_client_config.this.tenant_id
-  legacy_access_policies_enabled = true
-  legacy_access_policies = {
-    test = {
-      object_id          = data.azurerm_client_config.this.object_id
-      tenant_id          = data.azurerm_client_config.this.tenant_id
-      secret_permissions = ["Get", "List"]
-    }
-  }
+  name                = module.naming.key_vault.name_unique
+  enable_telemetry    = var.enable_telemetry
+  location            = azurerm_resource_group.this.location
+  resource_group_name = azurerm_resource_group.this.name
+  tenant_id           = data.azurerm_client_config.this.tenant_id
 }

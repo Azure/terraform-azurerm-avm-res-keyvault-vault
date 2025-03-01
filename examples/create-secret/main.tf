@@ -7,7 +7,7 @@ terraform {
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = ">= 3.87"
+      version = ">= 3.117"
     }
     http = {
       source  = "hashicorp/http"
@@ -22,7 +22,7 @@ terraform {
 
 module "regions" {
   source  = "Azure/avm-utl-regions/azurerm"
-  version = "0.1.0"
+  version = "0.3.0"
 }
 
 # This allows us to randomize the region for the resource group.
@@ -84,4 +84,8 @@ module "key_vault" {
     bypass   = "AzureServices"
     ip_rules = ["${data.http.ip.response_body}/32"]
   }
+}
+
+output "secrets" {
+  value = module.key_vault.secrets
 }
