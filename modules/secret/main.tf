@@ -1,23 +1,37 @@
-resource "azurerm_key_vault_secret" "this" {
-  key_vault_id    = var.key_vault_resource_id
-  name            = var.name
-  value           = var.value
-  content_type    = var.content_type
-  expiration_date = var.expiration_date
-  not_before_date = var.not_before_date
-  tags            = var.tags
+resource "azapi_resource" "secret" {
+  type      = "Microsoft.KeyVault/vaults/secrets@2023-07-01"
+  name      = var.name
+  parent_id = var.key_vault_resource_id
+  body = {
+    properties = {
+      attributes = {
+        enabled = true
+        exp     = var.expiration_date
+        nbf     = var.not_before_date
+      }
+      contentType = var.content_type
+      value       = var.value
+    }
+  }
+  tags = var.tags
 }
 
-resource "azurerm_role_assignment" "this" {
-  for_each = var.role_assignments
+moved {
+  from = azurerm_key_vault_secret.this
+  to   = azapi_resource.secret
+}
 
-  principal_id                           = each.value.principal_id
-  scope                                  = azurerm_key_vault_secret.this.resource_versionless_id
-  condition                              = each.value.condition
-  condition_version                      = each.value.condition_version
-  delegated_managed_identity_resource_id = each.value.delegated_managed_identity_resource_id
-  principal_type                         = each.value.principal_type
-  role_definition_id                     = strcontains(lower(each.value.role_definition_id_or_name), lower(local.role_definition_resource_substring)) ? each.value.role_definition_id_or_name : null
-  role_definition_name                   = strcontains(lower(each.value.role_definition_id_or_name), lower(local.role_definition_resource_substring)) ? null : each.value.role_definition_id_or_name
-  skip_service_principal_aad_check       = each.value.skip_service_principal_aad_check
+module "interfaces" {
+  source                           = "Azure/avm-utl-interfaces/azure"
+  version                          = "0.1.0"
+  role_assignment_definition_scope = local.subscription_resource_id
+  role_assignments                 = var.role_assignments
+}
+
+resource "azapi_resource" "role_assignments" {
+  for_each  = module.interfaces.role_assignments_azapi
+  type      = each.value.type
+  name      = each.value.name
+  parent_id = azapi_resource.secret.id
+  body      = each.value.body
 }
