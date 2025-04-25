@@ -17,7 +17,8 @@ resource "azurerm_key_vault_key" "this" {
       notify_before_expiry = rotation_policy.value.notify_before_expiry
 
       automatic {
-        time_before_expiry = rotation_policy.value.automatic.time_before_expiry
+        time_after_creation = rotation_policy.value.automatic.time_after_creation
+        time_before_expiry  = rotation_policy.value.automatic.time_before_expiry
       }
     }
   }
