@@ -46,10 +46,11 @@ resource "azurerm_resource_group" "this" {
 # This is the module call
 module "keyvault" {
   source = "../../"
+
+  location = azurerm_resource_group.this.location
   # source              = "Azure/avm-res-keyvault-vault/azurerm"
   name                = module.naming.key_vault.name_unique
-  enable_telemetry    = var.enable_telemetry
-  location            = azurerm_resource_group.this.location
   resource_group_name = azurerm_resource_group.this.name
   tenant_id           = data.azurerm_client_config.this.tenant_id
+  enable_telemetry    = var.enable_telemetry
 }
