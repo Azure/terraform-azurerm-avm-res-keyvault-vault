@@ -58,10 +58,10 @@ resource "azurerm_log_analytics_workspace" "this" {
 # This is the module call
 module "keyvault" {
   source = "../../"
+
+  location = azurerm_resource_group.this.location
   # source             = "Azure/avm-res-keyvault-vault/azurerm"
   name                = module.naming.key_vault.name_unique
-  enable_telemetry    = var.enable_telemetry
-  location            = azurerm_resource_group.this.location
   resource_group_name = azurerm_resource_group.this.name
   tenant_id           = data.azurerm_client_config.this.tenant_id
   diagnostic_settings = {
@@ -70,6 +70,7 @@ module "keyvault" {
       workspace_resource_id = azurerm_log_analytics_workspace.this.id
     }
   }
+  enable_telemetry = var.enable_telemetry
 }
 ```
 

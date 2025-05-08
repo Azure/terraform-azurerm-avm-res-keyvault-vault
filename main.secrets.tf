@@ -8,8 +8,8 @@ module "secrets" {
   content_type          = each.value.content_type
   expiration_date       = each.value.expiration_date
   not_before_date       = each.value.not_before_date
-  tags                  = each.value.tags
   role_assignments      = each.value.role_assignments
+  tags                  = each.value.tags
 
   depends_on = [
     azurerm_private_endpoint.this,
