@@ -65,3 +65,15 @@ output "uri" {
   description = "The URI of the vault for performing operations on keys and secrets"
   value       = azurerm_key_vault.this.vault_uri
 }
+
+output "resource" {
+  description = "The full resource output for the Keyvault resource."
+  sensitive   = true
+  value       = azurerm_key_vault.this
+}
+
+output "access_policies_resource" {
+  description = "The full resource output for the Keyvault access policies map resource."
+  sensitive   = true
+  value       = { for pk, pv in azurerm_key_vault_access_policy.this : pk => pv }
+}

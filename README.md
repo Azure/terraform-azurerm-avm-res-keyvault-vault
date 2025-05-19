@@ -578,6 +578,14 @@ Description: A map of secret keys to resource ids.
 
 Description: The URI of the vault for performing operations on keys and secrets
 
+### <a name="output_resource"></a> [resource](#output\_resource)
+
+Description: This is the full resource output for the for the Keyvault resource.
+
+### <a name="output_access_policies_resource"></a> [access_policies_resource](#output\_access_policies_resource)
+
+Description:  Map of the full resource definition for the Key Vault access policies.
+
 ## Modules
 
 The following Modules are called:
