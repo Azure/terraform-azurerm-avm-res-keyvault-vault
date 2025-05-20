@@ -109,7 +109,15 @@ Default: `true`
 
 ## Outputs
 
-No outputs.
+The following outputs are exported:
+
+### <a name="output_access_policies_resource"></a> [access\_policies\_resource](#output\_access\_policies\_resource)
+
+Description: The full resource output for the Keyvault access policies map resource.
+
+### <a name="output_resource"></a> [resource](#output\_resource)
+
+Description: The full resource output for the Keyvault resource.
 
 ## Modules
 

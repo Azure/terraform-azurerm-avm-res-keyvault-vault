@@ -534,6 +534,10 @@ Default: `{}`
 
 The following outputs are exported:
 
+### <a name="output_access_policies_resource"></a> [access\_policies\_resource](#output\_access\_policies\_resource)
+
+Description: The full resource output for the Keyvault access policies map resource.
+
 ### <a name="output_keys"></a> [keys](#output\_keys)
 
 Description: A map of key keys to key values. The key value is the entire azurerm\_key\_vault\_key resource.
@@ -556,6 +560,10 @@ Description: The name of the key vault.
 
 Description: A map of private endpoints. The map key is the supplied input to var.private\_endpoints. The map value is the entire azurerm\_private\_endpoint resource.
 
+### <a name="output_resource"></a> [resource](#output\_resource)
+
+Description: The full resource output for the Keyvault resource.
+
 ### <a name="output_resource_id"></a> [resource\_id](#output\_resource\_id)
 
 Description: The Azure resource id of the key vault.
@@ -577,14 +585,6 @@ Description: A map of secret keys to resource ids.
 ### <a name="output_uri"></a> [uri](#output\_uri)
 
 Description: The URI of the vault for performing operations on keys and secrets
-
-### <a name="output_resource"></a> [resource](#output\_resource)
-
-Description: This is the full resource output for the for the Keyvault resource.
-
-### <a name="output_access_policies_resource"></a> [access_policies_resource](#output\_access_policies_resource)
-
-Description:  Map of the full resource definition for the Key Vault access policies.
 
 ## Modules
 
