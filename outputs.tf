@@ -1,3 +1,9 @@
+output "access_policies_resource" {
+  description = "The full resource output for the Keyvault access policies map resource."
+  sensitive   = true
+  value       = { for pk, pv in azurerm_key_vault_access_policy.this : pk => pv }
+}
+
 output "keys" {
   description = <<DESCRIPTION
 A map of key keys to key values. The key value is the entire azurerm_key_vault_key resource.
@@ -30,6 +36,12 @@ output "name" {
 output "private_endpoints" {
   description = "A map of private endpoints. The map key is the supplied input to var.private_endpoints. The map value is the entire azurerm_private_endpoint resource."
   value       = var.private_endpoints_manage_dns_zone_group ? azurerm_private_endpoint.this : azurerm_private_endpoint.this_unmanaged_dns_zone_groups
+}
+
+output "resource" {
+  description = "The full resource output for the Keyvault resource."
+  sensitive   = true
+  value       = azurerm_key_vault.this
 }
 
 output "resource_id" {
