@@ -226,7 +226,7 @@ DESCRIPTION
     condition     = alltrue([for _, v in var.legacy_access_policies : setintersection(["Backup", "Delete", "Get", "List", "Purge", "Recover", "Restore", "Set"], v.secret_permissions) == v.secret_permissions])
   }
   validation {
-    error_message = "Storage permissions must be a set composed of: `Backup`, `Delete`, `DeleteSAS`, `Get`, `GetSAS`, `List`, `ListSAS`, `Purge`, `Recover`, `RegenerateKey`, `Restore`, `Set`, `SetSAS`, and `Update`."
+    error_message = "Storage permissions must be a set composed of: `Backup`, `Delete`, `DeleteSAS`, `Get`, `GetSAS`, `List`, `ListSas`, `Purge`, `Recover`, `RegenerateKey`, `Restore`, `Set`, `SetSAS`, and `Update`."
     condition     = alltrue([for _, v in var.legacy_access_policies : setintersection(["Backup", "Delete", "DeleteSAS", "Get", "GetSAS", "List", "ListSAS", "Purge", "Recover", "RegenerateKey", "Restore", "Set", "SetSAS", "Update"], v.storage_permissions) == v.storage_permissions])
   }
   validation {
