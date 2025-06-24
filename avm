@@ -1,7 +1,5 @@
 #!/usr/bin/env sh
 
-set -x
-
 usage () {
   echo "Usage: avm <make target>"
 }
