@@ -2,14 +2,15 @@ module "secrets" {
   source   = "./modules/secret"
   for_each = var.secrets
 
-  key_vault_resource_id = azurerm_key_vault.this.id
-  name                  = each.value.name
-  value                 = var.secrets_value[each.key]
-  content_type          = each.value.content_type
-  expiration_date       = each.value.expiration_date
-  not_before_date       = each.value.not_before_date
-  role_assignments      = each.value.role_assignments
-  tags                  = each.value.tags
+  parent_id        = azurerm_key_vault.this.id
+  name             = each.value.name
+  value            = lookup(var.secrets_value, each.key, null)
+  value_wo         = lookup(var.secrets_value_wo, each.key, null)
+  content_type     = each.value.content_type
+  expiration_date  = each.value.expiration_date
+  not_before_date  = each.value.not_before_date
+  role_assignments = each.value.role_assignments
+  tags             = each.value.tags
 
   depends_on = [
     azurerm_private_endpoint.this,

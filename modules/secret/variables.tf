@@ -1,11 +1,11 @@
-variable "key_vault_resource_id" {
+variable "parent_id" {
   type        = string
-  description = "The ID of the Key Vault where the secret should be created."
+  description = "The resource ID of the Key Vault where the secret should be created."
   nullable    = false
 
   validation {
     error_message = "Value must be a valid Azure Key Vault resource ID."
-    condition     = can(regex("\\/subscriptions\\/[a-f\\d]{4}(?:[a-f\\d]{4}-){4}[a-f\\d]{12}\\/resourceGroups\\/[^\\/]+\\/providers\\/Microsoft.KeyVault\\/vaults\\/[^\\/]+$", var.key_vault_resource_id))
+    condition     = can(regex("\\/subscriptions\\/[a-f\\d]{4}(?:[a-f\\d]{4}-){4}[a-f\\d]{12}\\/resourceGroups\\/[^\\/]+\\/providers\\/Microsoft.KeyVault\\/vaults\\/[^\\/]+$", var.parent_id))
   }
 }
 
@@ -24,6 +24,19 @@ variable "value" {
   type        = string
   description = "The value for the secret."
   sensitive   = true
+  default     = null
+
+  validation {
+    error_message = "One of `value` or `value_wo` must be set."
+    condition     = var.value != null || var.value_wo != null
+  }
+}
+
+variable "value_wo" {
+  type        = string
+  description = "The write-only value for the secret. This value is ephemeral and will not be stored in the state file."
+  ephemeral   = true
+  default     = null
 }
 
 variable "content_type" {
@@ -35,22 +48,22 @@ variable "content_type" {
 variable "expiration_date" {
   type        = string
   default     = null
-  description = "The expiration date of the secret as a UTC datetime (Y-m-d'T'H:M:S'Z')."
+  description = "The expiration date of the secret as a RFC 3339 UTC datetime (Y-m-d'T'H:M:S'Z')."
 
   validation {
-    error_message = "Value must be a UTC datetime (Y-m-d'T'H:M:S'Z')."
-    condition     = var.expiration_date == null || can(regex("^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$", var.expiration_date))
+    error_message = "Value must be a RFC 3339 UTC datetime (Y-m-d'T'H:M:S'Z')."
+    condition     = var.expiration_date == null || can(provider::time::rfc3339_parse(var.expiration_date))
   }
 }
 
 variable "not_before_date" {
   type        = string
   default     = null
-  description = "Secret not usable before as a UTC datetime (Y-m-d'T'H:M:S'Z')."
+  description = "Secret not usable before as a RFC 3339 UTC datetime (Y-m-d'T'H:M:S'Z')."
 
   validation {
-    error_message = "Value must be a UTC datetime (Y-m-d'T'H:M:S'Z')."
-    condition     = var.not_before_date == null || can(regex("^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$", var.not_before_date))
+    error_message = "Value must be a RFC 3339 UTC datetime (Y-m-d'T'H:M:S'Z')."
+    condition     = var.not_before_date == null || can(provider::time::rfc3339_parse(var.not_before_date))
   }
 }
 

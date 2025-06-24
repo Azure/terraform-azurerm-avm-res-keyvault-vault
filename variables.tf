@@ -423,7 +423,7 @@ DESCRIPTION
 
 variable "secrets_value" {
   type        = map(string)
-  default     = null
+  default     = {}
   description = <<DESCRIPTION
 A map of secret keys to values.
 The map key is the supplied input to `var.secrets`.
@@ -432,6 +432,23 @@ The map value is the secret value.
 This is a separate variable to `var.secrets` because it is sensitive and therefore cannot be used in a `for_each` loop.
 DESCRIPTION
   sensitive   = true
+  nullable    = false
+}
+
+variable "secrets_value_wo" {
+  type        = map(string)
+  default     = {}
+  description = <<DESCRIPTION
+A write-only map of secret keys to values.
+The map key is the supplied input to `var.secrets`.
+The map value is the secret value.
+
+This is a ephemeral value and will not be stored in the state file.
+
+This is a separate variable to `var.secrets` because it is sensitive and therefore cannot be used in a `for_each` loop.
+DESCRIPTION
+  ephemeral   = true
+  nullable    = false
 }
 
 variable "sku_name" {

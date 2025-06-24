@@ -15,7 +15,11 @@ terraform {
     }
     random = {
       source  = "hashicorp/random"
-      version = "~> 3.5"
+      version = "~> 3.7"
+    }
+    time = {
+      source  = "hashicorp/time"
+      version = "~> 0.13"
     }
   }
 }
@@ -54,6 +58,20 @@ data "http" "ip" {
 
 data "azurerm_client_config" "current" {}
 
+resource "time_static" "nbf" {}
+
+resource "time_offset" "exp" {
+  offset_months = 1
+}
+
+ephemeral "random_password" "secret_value" {
+  length  = 16
+  special = true
+  upper   = true
+  lower   = true
+  numeric = true
+}
+
 module "key_vault" {
   source = "../../"
 
@@ -77,11 +95,13 @@ module "key_vault" {
   sku_name = "standard"
   secrets = {
     test_secret = {
-      name = "test-secret"
+      name            = "test-secret"
+      not_before_date = time_static.nbf.rfc3339
+      expiration_date = time_offset.exp.rfc3339
     }
   }
-  secrets_value = {
-    test_secret = "secret-value"
+  secrets_value_wo = {
+    test_secret = ephemeral.random_password.secret_value.result
   }
   wait_for_rbac_before_secret_operations = {
     create = "60s"
