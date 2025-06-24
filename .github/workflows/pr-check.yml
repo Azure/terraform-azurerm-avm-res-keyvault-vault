@@ -20,7 +20,7 @@ jobs:
 
   run-managed-workflow:
     if: github.event.pull_request.head.repo.fork == false
-    uses: Azure/avm-terraform-governance/.github/workflows/managed/pr-check.yml@main
+    uses: Azure/avm-terraform-governance/.github/workflows/managed-pr-check.yml@main
     name: run managed workflow
     secrets: inherit
     permissions:
