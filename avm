@@ -1,12 +1,14 @@
 #!/usr/bin/env sh
 
+set -e
+
 usage () {
   echo "Usage: avm <make target>"
 }
 
 # Default values for environment variables
 CONTAINER_RUNTIME=${CONTAINER_RUNTIME:-"docker"}
-CONTAINER_IMAGE=${CONTAINER_IMAGE:-"ghcr.io/azure/avm-terraform-governance:avm-latest"}
+CONTAINER_IMAGE=${CONTAINER_IMAGE:-"mcr.microsoft.com/azterraform:avm-latest"}
 CONTAINER_PULL_POLICY=${CONTAINER_PULL_POLICY:-"always"}
 MAKEFILE_REF=${MAKEFILE_REF:-"main"}
 PORCH_REF=${PORCH_REF:-"main"}
@@ -22,24 +24,27 @@ if [ -z "$1" ]; then
     usage
     exit 1
 fi
+
 # Check if AZURE_CONFIG_DIR is set, if not, set it to ~/.azure
 if [ -z "${AZURE_CONFIG_DIR}" ]; then
   AZURE_CONFIG_DIR="${HOME}/.azure"
 fi
 
+# Check if AZURE_CONFIG_DIR exists, if it does, mount it to the container
 if [ -d "${AZURE_CONFIG_DIR}" ]; then
   AZURE_CONFIG_MOUNT="-v ${AZURE_CONFIG_DIR}:/home/runtimeuser/.azure"
 fi
 
-# If we are not in GitHub Actions, we want to use TUI and interactive mode
-if [ -z "${GITHUB_RUN_ID}" ]; then
+# If we are not in GitHub Actions and NO_COLOR is not set, we want to use TUI and interactive mode
+if [ -z "${GITHUB_RUN_ID}" ] && [ -z "${NO_COLOR}" ]; then
   TUI="--tui"
   DOCKER_INTERACTIVE="-it"
   export FORCE_COLOR=1
 fi
 
+# if PORCH_BASE_URL is set, we want to add it to the make command
 if [ -n "${PORCH_BASE_URL}" ]; then
-  PORCH_MAKE_ADD="PORCH_BASE_URL=${PORCH_BASE_URL}"
+  PORCH_BASE_URL_MAKE_ADD="PORCH_BASE_URL=${PORCH_BASE_URL}"
 fi
 
 # Check if we are running in a container
@@ -69,14 +74,16 @@ if [ -z "${AVM_IN_CONTAINER}" ]; then
     -e NO_COLOR \
     -e PORCH_LOG_LEVEL \
     -e TEST_TYPE \
+    -e TF_IN_AUTOMATION=1 \
     -e TFLINT_CONFIG_URL \
+    --env-file <(env | grep '^TF_VAR_') \
     "${CONTAINER_IMAGE}" \
     make \
     TUI="${TUI}" \
     MAKEFILE_REF="${MAKEFILE_REF}" \
-    "${PORCH_MAKE_ADD}" \
+    "${PORCH_BASE_URL_MAKE_ADD}" \
     PORCH_REF="${PORCH_REF}" \
     "$1"
 else
-  make TUI="${TUI}" MAKEFILE_REF="${MAKEFILE_REF}" "${PORCH_MAKE_ADD}" PORCH_REF="${PORCH_REF}" "$1"
+  make TUI="${TUI}" MAKEFILE_REF="${MAKEFILE_REF}" "${PORCH_BASE_URL_MAKE_ADD}" PORCH_REF="${PORCH_REF}" "$1"
 fi
