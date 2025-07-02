@@ -1,6 +1,6 @@
 output "id" {
-  description = "The Key Vault Secret ID"
-  value       = azapi_resource.this.output.properties.secretUri
+  description = "The Key Vault Secret ID (URI)"
+  value       = azapi_resource.this.output.properties.secretUriWithVersion
 }
 
 output "resource_id" {
@@ -8,12 +8,7 @@ output "resource_id" {
   value       = azapi_resource.this.id
 }
 
-output "resource_versionless_id" {
-  description = "The versionless Azure resource id of the secret."
-  value       = azapi_resource.this.output.properties.secretUri
-}
-
 output "versionless_id" {
-  description = "The Base ID of the Key Vault Secret"
-  value       = azapi_resource.this.output.properties.secretUriWithVersion
+  description = "The Base ID (URI) of the Key Vault Secret"
+  value       = azapi_resource.this.output.properties.secretUri
 }

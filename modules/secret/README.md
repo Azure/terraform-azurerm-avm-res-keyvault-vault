@@ -4,28 +4,57 @@
 Module to deploy key vault secrets in Azure.
 
 ```hcl
-resource "azurerm_key_vault_secret" "this" {
-  key_vault_id    = var.key_vault_resource_id
-  name            = var.name
-  content_type    = var.content_type
-  expiration_date = var.expiration_date
-  not_before_date = var.not_before_date
-  tags            = var.tags
-  value           = var.value
+# moved {
+#   from = azurerm_key_vault_secret.this
+#   to   = azapi_resource.this
+# }
+
+resource "azapi_resource" "this" {
+  name      = var.name
+  parent_id = var.key_vault_resource_id
+  type      = "Microsoft.KeyVault/vaults/secrets@2024-11-01"
+  body = {
+    properties = {
+      attributes = {
+        enabled = var.enabled
+        exp     = var.expiration_date != null ? provider::time::rfc3339_parse(var.expiration_date).unix : null
+        nbf     = var.not_before_date != null ? provider::time::rfc3339_parse(var.not_before_date).unix : null
+      }
+      contentType = var.content_type
+    }
+  }
+  response_export_values = [
+    "properties.secretUri",
+    "properties.secretUriWithVersion",
+  ]
+  sensitive_body = {
+    properties = {
+      value = coalesce(var.value_wo, var.value)
+    }
+  }
+  sensitive_body_version = {
+    "properties.value" = var.value_wo_version
+  }
+  tags = var.tags
 }
 
-resource "azurerm_role_assignment" "this" {
-  for_each = var.role_assignments
+module "avm_interfaces" {
+  source  = "Azure/avm-utl-interfaces/azure"
+  version = "0.3.0"
 
-  principal_id                           = each.value.principal_id
-  scope                                  = azurerm_key_vault_secret.this.resource_versionless_id
-  condition                              = each.value.condition
-  condition_version                      = each.value.condition_version
-  delegated_managed_identity_resource_id = each.value.delegated_managed_identity_resource_id
-  principal_type                         = each.value.principal_type
-  role_definition_id                     = strcontains(lower(each.value.role_definition_id_or_name), lower(local.role_definition_resource_substring)) ? each.value.role_definition_id_or_name : null
-  role_definition_name                   = strcontains(lower(each.value.role_definition_id_or_name), lower(local.role_definition_resource_substring)) ? null : each.value.role_definition_id_or_name
-  skip_service_principal_aad_check       = each.value.skip_service_principal_aad_check
+  role_assignment_definition_lookup_enabled = var.role_definition_lookup_enabled
+  role_assignment_definition_scope          = var.key_vault_resource_id
+  role_assignment_name_use_random_uuid      = true
+  role_assignments                          = var.role_assignments
+}
+
+resource "azapi_resource" "role_assignments" {
+  for_each = module.avm_interfaces.role_assignments_azapi
+
+  name      = each.value.name
+  parent_id = azapi_resource.this.id
+  type      = each.value.type
+  body      = each.value.body
 }
 ```
 
@@ -36,20 +65,22 @@ The following requirements are needed by this module:
 
 - <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) (>= 1.9, < 2.0)
 
-- <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) (>= 3.117, < 5.0)
+- <a name="requirement_azapi"></a> [azapi](#requirement\_azapi) (~> 2.5)
+
+- <a name="requirement_time"></a> [time](#requirement\_time) (~> 0.13)
 
 ## Providers
 
 The following providers are used by this module:
 
-- <a name="provider_azurerm"></a> [azurerm](#provider\_azurerm) (>= 3.117, < 5.0)
+- <a name="provider_azapi"></a> [azapi](#provider\_azapi) (~> 2.5)
 
 ## Resources
 
 The following resources are used by this module:
 
-- [azurerm_key_vault_secret.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_secret) (resource)
-- [azurerm_role_assignment.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/role_assignment) (resource)
+- [azapi_resource.role_assignments](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource) (resource)
+- [azapi_resource.this](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource) (resource)
 
 <!-- markdownlint-disable MD013 -->
 ## Required Inputs
@@ -68,12 +99,6 @@ Description: The name of the secret.
 
 Type: `string`
 
-### <a name="input_value"></a> [value](#input\_value)
-
-Description: The value for the secret.
-
-Type: `string`
-
 ## Optional Inputs
 
 The following input variables are optional (have default values):
@@ -85,6 +110,14 @@ Description: The content type of the secret.
 Type: `string`
 
 Default: `null`
+
+### <a name="input_enabled"></a> [enabled](#input\_enabled)
+
+Description: Whether the secret is enabled. Defaults to `true`.
+
+Type: `bool`
+
+Default: `true`
 
 ### <a name="input_expiration_date"></a> [expiration\_date](#input\_expiration\_date)
 
@@ -132,6 +165,14 @@ map(object({
 
 Default: `{}`
 
+### <a name="input_role_definition_lookup_enabled"></a> [role\_definition\_lookup\_enabled](#input\_role\_definition\_lookup\_enabled)
+
+Description: If set to false, role definition lookup will be disabled. You must then supply only valid role definition IDs in `role_assignments`. Defaults to `true`.
+
+Type: `bool`
+
+Default: `true`
+
 ### <a name="input_tags"></a> [tags](#input\_tags)
 
 Description: The tags to assign to the secret.
@@ -140,29 +181,55 @@ Type: `map(string)`
 
 Default: `null`
 
+### <a name="input_value"></a> [value](#input\_value)
+
+Description: The value for the secret.
+
+Type: `string`
+
+Default: `null`
+
+### <a name="input_value_wo"></a> [value\_wo](#input\_value\_wo)
+
+Description: Value for the secret, write only attribute. This value will not be stored in state, or returned in the plan or apply output.
+
+Type: `string`
+
+Default: `null`
+
+### <a name="input_value_wo_version"></a> [value\_wo\_version](#input\_value\_wo\_version)
+
+Description: The version of the write-only attribute value. Changing this value will indicate to Terraform that the value has changed, and will trigger an update to the secret.
+
+Type: `string`
+
+Default: `"0"`
+
 ## Outputs
 
 The following outputs are exported:
 
 ### <a name="output_id"></a> [id](#output\_id)
 
-Description: The Key Vault Secret ID
+Description: The Key Vault Secret ID (URI)
 
 ### <a name="output_resource_id"></a> [resource\_id](#output\_resource\_id)
 
 Description: The Azure resource id of the secret.
 
-### <a name="output_resource_versionless_id"></a> [resource\_versionless\_id](#output\_resource\_versionless\_id)
-
-Description: The versionless Azure resource id of the secret.
-
 ### <a name="output_versionless_id"></a> [versionless\_id](#output\_versionless\_id)
 
-Description: The Base ID of the Key Vault Secret
+Description: The Base ID (URI) of the Key Vault Secret
 
 ## Modules
 
-No modules.
+The following Modules are called:
+
+### <a name="module_avm_interfaces"></a> [avm\_interfaces](#module\_avm\_interfaces)
+
+Source: Azure/avm-utl-interfaces/azure
+
+Version: 0.3.0
 
 <!-- markdownlint-disable-next-line MD041 -->
 ## Data Collection

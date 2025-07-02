@@ -4,12 +4,12 @@ module "secrets" {
 
   key_vault_resource_id = azurerm_key_vault.this.id
   name                  = each.value.name
-  value                 = var.secrets_value[each.key]
   content_type          = each.value.content_type
   expiration_date       = each.value.expiration_date
   not_before_date       = each.value.not_before_date
   role_assignments      = each.value.role_assignments
   tags                  = each.value.tags
+  value                 = var.secrets_value[each.key]
 
   depends_on = [
     azurerm_private_endpoint.this,

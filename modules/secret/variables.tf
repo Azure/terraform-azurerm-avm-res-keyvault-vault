@@ -20,32 +20,6 @@ variable "name" {
   }
 }
 
-variable "value" {
-  type        = string
-  default     = null
-  description = "The value for the secret."
-  sensitive   = true
-}
-
-variable "value_wo" {
-  type        = string
-  default     = null
-  description = "Value for the secret, write only attribute. This value will not be stored in state, or returned in the plan or apply output."
-  ephemeral   = true
-
-  validation {
-    error_message = "`value_wo` must be set if `value` is not set."
-    condition     = can(coalesce(var.value, var.value_wo))
-  }
-}
-
-variable "value_wo_version" {
-  type        = string
-  default     = "0"
-  description = "The version of the write-only attribute value. Changing this value will indicate to Terraform that the value has changed, and will trigger an update to the secret."
-  nullable    = false
-}
-
 variable "content_type" {
   type        = string
   default     = null
@@ -112,14 +86,40 @@ DESCRIPTION
   nullable    = false
 }
 
+variable "role_definition_lookup_enabled" {
+  type        = bool
+  default     = true
+  description = "If set to false, role definition lookup will be disabled. You must then supply only valid role definition IDs in `role_assignments`. Defaults to `true`."
+}
+
 variable "tags" {
   type        = map(string)
   default     = null
   description = "The tags to assign to the secret."
 }
 
-variable "role_definition_lookup_enabled" {
-  type        = bool
-  default     = true
-  description = "If set to false, role definition lookup will be disabled. You must then supply only valid role definition IDs in `role_assignments`. Defaults to `true`."
+variable "value" {
+  type        = string
+  default     = null
+  description = "The value for the secret."
+  sensitive   = true
+}
+
+variable "value_wo" {
+  type        = string
+  ephemeral   = true
+  default     = null
+  description = "Value for the secret, write only attribute. This value will not be stored in state, or returned in the plan or apply output."
+
+  validation {
+    error_message = "`value_wo` must be set if `value` is not set."
+    condition     = can(coalesce(var.value, var.value_wo))
+  }
+}
+
+variable "value_wo_version" {
+  type        = string
+  default     = "0"
+  description = "The version of the write-only attribute value. Changing this value will indicate to Terraform that the value has changed, and will trigger an update to the secret."
+  nullable    = false
 }
