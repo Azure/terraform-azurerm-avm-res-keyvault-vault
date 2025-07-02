@@ -93,3 +93,34 @@ run "object_id_invalid" {
   }
   expect_failures = [var.legacy_access_policies]
 }
+
+run "storage_permissions_correct" {
+  command = plan
+  variables {
+    legacy_access_policies_enabled = true
+    legacy_access_policies = {
+      test = {
+        object_id = "00000000-0000-0000-0000-000000000000"
+        storage_permissions = ["Backup", "Delete", "DeleteSAS", "Get", "GetSAS", "List", "ListSAS", "Purge", "Recover", "RegenerateKey", "Restore", "Set", "SetSAS", "Update"]
+      }
+    }
+  }
+  assert {
+    error_message = "Storage permissions not as expected"
+    condition     = toset(azurerm_key_vault_access_policy.this["test"].storage_permissions) == toset(["Backup", "Delete", "DeleteSAS", "Get", "GetSAS", "List", "ListSAS", "Purge", "Recover", "RegenerateKey", "Restore", "Set", "SetSAS", "Update"])
+  }
+}
+
+run "storage_permissions_incorrect" {
+  command = plan
+  variables {
+    legacy_access_policies_enabled = true
+    legacy_access_policies = {
+      test = {
+        object_id = "00000000-0000-0000-0000-000000000000"
+        storage_permissions = ["Backup", "Invalid", "ListSAS"]
+      }
+    }
+  }
+  expect_failures = [var.legacy_access_policies]
+}
