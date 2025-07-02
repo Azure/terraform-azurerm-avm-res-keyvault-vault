@@ -22,14 +22,41 @@ variable "name" {
 
 variable "value" {
   type        = string
+  default     = null
   description = "The value for the secret."
   sensitive   = true
+}
+
+variable "value_wo" {
+  type        = string
+  default     = null
+  description = "Value for the secret, write only attribute. This value will not be stored in state, or returned in the plan or apply output."
+  ephemeral   = true
+
+  validation {
+    error_message = "`value_wo` must be set if `value` is not set."
+    condition     = can(coalesce(var.value, var.value_wo))
+  }
+}
+
+variable "value_wo_version" {
+  type        = string
+  default     = "0"
+  description = "The version of the write-only attribute value. Changing this value will indicate to Terraform that the value has changed, and will trigger an update to the secret."
+  nullable    = false
 }
 
 variable "content_type" {
   type        = string
   default     = null
   description = "The content type of the secret."
+}
+
+variable "enabled" {
+  type        = bool
+  default     = true
+  description = "Whether the secret is enabled. Defaults to `true`."
+  nullable    = false
 }
 
 variable "expiration_date" {
@@ -39,7 +66,9 @@ variable "expiration_date" {
 
   validation {
     error_message = "Value must be a UTC datetime (Y-m-d'T'H:M:S'Z')."
-    condition     = var.expiration_date == null || can(regex("^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$", var.expiration_date))
+    condition = var.expiration_date == null || can(
+      provider::time::rfc3339_parse(var.expiration_date)
+    )
   }
 }
 
@@ -50,7 +79,9 @@ variable "not_before_date" {
 
   validation {
     error_message = "Value must be a UTC datetime (Y-m-d'T'H:M:S'Z')."
-    condition     = var.not_before_date == null || can(regex("^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$", var.not_before_date))
+    condition = var.not_before_date == null || can(
+      provider::time::rfc3339_parse(var.not_before_date)
+    )
   }
 }
 
@@ -85,4 +116,10 @@ variable "tags" {
   type        = map(string)
   default     = null
   description = "The tags to assign to the secret."
+}
+
+variable "role_definition_lookup_enabled" {
+  type        = bool
+  default     = true
+  description = "If set to false, role definition lookup will be disabled. You must then supply only valid role definition IDs in `role_assignments`. Defaults to `true`."
 }

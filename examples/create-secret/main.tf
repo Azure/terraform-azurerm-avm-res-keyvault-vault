@@ -87,4 +87,3 @@ module "key_vault" {
     create = "60s"
   }
 }
-
