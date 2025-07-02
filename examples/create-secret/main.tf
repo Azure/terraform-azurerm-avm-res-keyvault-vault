@@ -23,7 +23,7 @@ terraform {
 
 module "regions" {
   source  = "Azure/avm-utl-regions/azurerm"
-  version = "0.3.0"
+  version = "0.5.2"
 }
 
 # This allows us to randomize the region for the resource group.
@@ -87,4 +87,3 @@ module "key_vault" {
     create = "60s"
   }
 }
-
