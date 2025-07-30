@@ -46,17 +46,19 @@ The secret value contains the following attributes:
 - resource_id: The Azure resource id of the secret.
 - resource_versionless_id: The versionless Azure resource id of the secret.
 - versionless_id: The Base ID of the Key Vault Secret
+- name: The name of the Key Vault Secret
 DESCRIPTION
   value       = module.secrets
 }
 
 output "secrets_resource_ids" {
-  description = "A map of secret keys to resource ids."
+  description = "A map of secret keys to resource ids and name."
   value = { for sk, sv in module.secrets : sk => {
     resource_id             = sv.resource_id
     resource_versionless_id = sv.resource_versionless_id
     id                      = sv.id
     versionless_id          = sv.versionless_id
+    name                    = sv.name
     }
   }
 }
