@@ -47,6 +47,8 @@ resource "azurerm_role_assignment" "this" {
   role_definition_id                     = strcontains(lower(each.value.role_definition_id_or_name), lower(local.role_definition_resource_substring)) ? each.value.role_definition_id_or_name : null
   role_definition_name                   = strcontains(lower(each.value.role_definition_id_or_name), lower(local.role_definition_resource_substring)) ? null : each.value.role_definition_id_or_name
   skip_service_principal_aad_check       = each.value.skip_service_principal_aad_check
+
+  depends_on = [azurerm_management_lock.this]
 }
 
 resource "azurerm_monitor_diagnostic_setting" "this" {
@@ -82,6 +84,8 @@ resource "azurerm_monitor_diagnostic_setting" "this" {
       category = metric.value
     }
   }
+
+  depends_on = [azurerm_management_lock.this]
 }
 
 resource "azurerm_key_vault_certificate_contacts" "this" {
@@ -99,7 +103,7 @@ resource "azurerm_key_vault_certificate_contacts" "this" {
     }
   }
 
-  depends_on = [time_sleep.wait_for_rbac_before_contact_operations]
+  depends_on = [azurerm_management_lock.this, time_sleep.wait_for_rbac_before_contact_operations]
 }
 
 resource "time_sleep" "wait_for_rbac_before_contact_operations" {
