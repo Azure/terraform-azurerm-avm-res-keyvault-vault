@@ -12,7 +12,6 @@ module "secrets" {
   tags                  = each.value.tags
 
   depends_on = [
-    azurerm_management_lock.this,
     azurerm_private_endpoint.this,
     time_sleep.wait_for_rbac_before_secret_operations
   ]

@@ -33,8 +33,6 @@ resource "azurerm_private_endpoint" "this" {
       private_dns_zone_ids = each.value.private_dns_zone_resource_ids
     }
   }
-
-  depends_on = [azurerm_management_lock.this]
 }
 
 # The PE resource when we are managing **not** the private_dns_zone_group block, such as when using Azure Policy:
@@ -65,8 +63,6 @@ resource "azurerm_private_endpoint" "this_unmanaged_dns_zone_groups" {
     }
   }
 
-  depends_on = [azurerm_management_lock.this]
-
   lifecycle {
     ignore_changes = [private_dns_zone_group]
   }
@@ -77,6 +73,4 @@ resource "azurerm_private_endpoint_application_security_group_association" "this
 
   application_security_group_id = each.value.asg_resource_id
   private_endpoint_id           = azurerm_private_endpoint.this[each.value.pe_key].id
-
-  depends_on = [azurerm_management_lock.this]
 }

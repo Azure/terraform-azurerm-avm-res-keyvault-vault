@@ -36,16 +36,16 @@ run "management_lock_dependencies" {
     error_message = "Management lock should be created when lock variable is provided"
   }
 
-  # Verify that role assignments have proper dependencies
+  # Verify that the lock has proper dependencies on child resources
   assert {
-    condition     = can(azurerm_role_assignment.this)
-    error_message = "Role assignments should be plannable when management lock is configured"
+    condition     = contains(azurerm_management_lock.this[0].depends_on, azurerm_role_assignment.this)
+    error_message = "Management lock should depend on role assignments for proper destroy order"
   }
 
-  # Verify that diagnostic settings have proper dependencies
+  # Verify that child resources do not depend on the lock
   assert {
-    condition     = can(azurerm_monitor_diagnostic_setting.this)
-    error_message = "Diagnostic settings should be plannable when management lock is configured"
+    condition     = !contains(coalesce(azurerm_role_assignment.this["test"].depends_on, []), azurerm_management_lock.this)
+    error_message = "Role assignments should not depend on management lock - dependencies should be reversed"
   }
 }
 
