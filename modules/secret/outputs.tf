@@ -17,3 +17,8 @@ output "versionless_id" {
   description = "The Base ID of the Key Vault Secret"
   value       = azurerm_key_vault_secret.this.versionless_id
 }
+
+output "name" {
+  description = "The name of the Key Vault Secret"
+  value       = azurerm_key_vault_secret.this.name
+}
