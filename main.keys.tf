@@ -2,7 +2,7 @@ module "keys" {
   source   = "./modules/key"
   for_each = var.keys
 
-  key_vault_resource_id = azurerm_key_vault.this.id
+  key_vault_resource_id = azapi_resource.this.id
   name                  = each.value.name
   type                  = each.value.key_type
   curve                 = each.value.curve

@@ -1,8 +1,9 @@
+mock_provider "azapi" {}
 mock_provider "azurerm" {
-  override_resource {
-    target = azurerm_key_vault.this
+  override_data {
+    target = data.azurerm_client_config.current
     values = {
-      id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resource_group_name/providers/Microsoft.KeyVault/vaults/keyvault"
+      subscription_id = "00000000-0000-0000-0000-000000000000"
     }
   }
 }
@@ -32,7 +33,7 @@ run "certificate_correct" {
   }
   assert {
     error_message = "Access policy not as expected"
-    condition     = toset(azurerm_key_vault_access_policy.this["test"].certificate_permissions) == toset(["Backup", "Create", "Delete"])
+    condition     = contains([for policy in jsondecode(azapi_resource.this.body).properties.accessPolicies : policy.permissions.certificates], ["Backup", "Create", "Delete"])
   }
 }
 
@@ -77,7 +78,7 @@ run "object_id_correct" {
   }
   assert {
     error_message = "Access policy object id not as expected"
-    condition     = azurerm_key_vault_access_policy.this["test"].object_id == "00000000-0000-0000-0000-000000000000"
+    condition     = contains([for policy in jsondecode(azapi_resource.this.body).properties.accessPolicies : policy.objectId], "00000000-0000-0000-0000-000000000000")
   }
 }
 

@@ -1,45 +1,71 @@
-resource "azurerm_key_vault" "this" {
-  location                        = var.location
-  name                            = var.name
-  resource_group_name             = var.resource_group_name
-  sku_name                        = var.sku_name
-  tenant_id                       = var.tenant_id
-  enable_rbac_authorization       = !var.legacy_access_policies_enabled
-  enabled_for_deployment          = var.enabled_for_deployment
-  enabled_for_disk_encryption     = var.enabled_for_disk_encryption
-  enabled_for_template_deployment = var.enabled_for_template_deployment
-  public_network_access_enabled   = var.public_network_access_enabled
-  purge_protection_enabled        = var.purge_protection_enabled
-  soft_delete_retention_days      = var.soft_delete_retention_days
-  tags                            = var.tags
+resource "azapi_resource" "this" {
+  type      = "Microsoft.KeyVault/vaults@2023-07-01"
+  name      = var.name
+  parent_id = "/subscriptions/${data.azurerm_client_config.current.subscription_id}/resourceGroups/${var.resource_group_name}"
+  location  = var.location
+  tags      = var.tags
 
-  # Only one network_acls block is allowed.
-  # Create it if the variable is not null.
-  dynamic "network_acls" {
-    for_each = var.network_acls != null ? { this = var.network_acls } : {}
-
-    content {
-      bypass                     = network_acls.value.bypass
-      default_action             = network_acls.value.default_action
-      ip_rules                   = network_acls.value.ip_rules
-      virtual_network_subnet_ids = network_acls.value.virtual_network_subnet_ids
+  body = {
+    properties = {
+      tenantId                    = var.tenant_id
+      enableRbacAuthorization     = !var.legacy_access_policies_enabled
+      enabledForDeployment        = var.enabled_for_deployment
+      enabledForDiskEncryption    = var.enabled_for_disk_encryption
+      enabledForTemplateDeployment = var.enabled_for_template_deployment
+      publicNetworkAccess         = var.public_network_access_enabled ? "Enabled" : "Disabled"
+      enablePurgeProtection       = var.purge_protection_enabled
+      softDeleteRetentionInDays   = var.soft_delete_retention_days
+      sku = {
+        family = "A"
+        name   = var.sku_name
+      }
+      accessPolicies = var.legacy_access_policies_enabled ? [
+        for policy in var.legacy_access_policies : {
+          tenantId    = var.tenant_id
+          objectId    = policy.object_id
+          applicationId = policy.application_id
+          permissions = {
+            certificates = policy.certificate_permissions
+            keys         = policy.key_permissions
+            secrets      = policy.secret_permissions
+            storage      = policy.storage_permissions
+          }
+        }
+      ] : []
+      networkAcls = var.network_acls != null ? {
+        bypass        = var.network_acls.bypass
+        defaultAction = var.network_acls.default_action
+        ipRules = [
+          for ip in var.network_acls.ip_rules : {
+            value = ip
+          }
+        ]
+        virtualNetworkRules = [
+          for subnet in var.network_acls.virtual_network_subnet_ids : {
+            id = subnet
+          }
+        ]
+      } : null
     }
   }
 }
+
+# Data source to get current client configuration
+data "azurerm_client_config" "current" {}
 
 resource "azurerm_management_lock" "this" {
   count = var.lock != null ? 1 : 0
 
   lock_level = var.lock.kind
   name       = coalesce(var.lock.name, "lock-${var.name}")
-  scope      = azurerm_key_vault.this.id
+  scope      = azapi_resource.this.id
 }
 
 resource "azurerm_role_assignment" "this" {
   for_each = var.role_assignments
 
   principal_id                           = each.value.principal_id
-  scope                                  = azurerm_key_vault.this.id
+  scope                                  = azapi_resource.this.id
   condition                              = each.value.condition
   condition_version                      = each.value.condition_version
   delegated_managed_identity_resource_id = each.value.delegated_managed_identity_resource_id
@@ -53,7 +79,7 @@ resource "azurerm_monitor_diagnostic_setting" "this" {
   for_each = var.diagnostic_settings
 
   name                           = each.value.name != null ? each.value.name : "diag-${var.name}"
-  target_resource_id             = azurerm_key_vault.this.id
+  target_resource_id             = azapi_resource.this.id
   eventhub_authorization_rule_id = each.value.event_hub_authorization_rule_resource_id
   eventhub_name                  = each.value.event_hub_name
   log_analytics_destination_type = each.value.log_analytics_destination_type
@@ -84,10 +110,11 @@ resource "azurerm_monitor_diagnostic_setting" "this" {
   }
 }
 
+# Certificate contacts are handled via azurerm provider as they are management plane operations
 resource "azurerm_key_vault_certificate_contacts" "this" {
   count = length(var.contacts) > 0 ? 1 : 0
 
-  key_vault_id = azurerm_key_vault.this.id
+  key_vault_id = azapi_resource.this.id
 
   dynamic "contact" {
     for_each = var.contacts

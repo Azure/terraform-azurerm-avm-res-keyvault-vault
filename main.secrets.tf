@@ -2,7 +2,7 @@ module "secrets" {
   source   = "./modules/secret"
   for_each = var.secrets
 
-  key_vault_resource_id = azurerm_key_vault.this.id
+  key_vault_resource_id = azapi_resource.this.id
   name                  = each.value.name
   value                 = var.secrets_value[each.key]
   content_type          = each.value.content_type

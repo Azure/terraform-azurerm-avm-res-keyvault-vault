@@ -1,18 +1,27 @@
-resource "azurerm_key_vault_secret" "this" {
-  key_vault_id    = var.key_vault_resource_id
-  name            = var.name
-  content_type    = var.content_type
-  expiration_date = var.expiration_date
-  not_before_date = var.not_before_date
-  tags            = var.tags
-  value           = var.value
+resource "azapi_resource" "this" {
+  type      = "Microsoft.KeyVault/vaults/secrets@2023-07-01"
+  name      = var.name
+  parent_id = var.key_vault_resource_id
+  tags      = var.tags
+
+  body = {
+    properties = {
+      value       = var.value
+      contentType = var.content_type
+      attributes = {
+        enabled = true
+        nbf     = var.not_before_date != null ? formatdate("YYYY-MM-DD", var.not_before_date) : null
+        exp     = var.expiration_date != null ? formatdate("YYYY-MM-DD", var.expiration_date) : null
+      }
+    }
+  }
 }
 
 resource "azurerm_role_assignment" "this" {
   for_each = var.role_assignments
 
   principal_id                           = each.value.principal_id
-  scope                                  = azurerm_key_vault_secret.this.resource_versionless_id
+  scope                                  = azapi_resource.this.id
   condition                              = each.value.condition
   condition_version                      = each.value.condition_version
   delegated_managed_identity_resource_id = each.value.delegated_managed_identity_resource_id

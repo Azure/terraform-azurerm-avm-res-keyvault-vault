@@ -24,7 +24,7 @@ output "keys_resource_ids" {
 
 output "name" {
   description = "The name of the key vault."
-  value       = azurerm_key_vault.this.name
+  value       = azapi_resource.this.name
 }
 
 output "private_endpoints" {
@@ -34,7 +34,7 @@ output "private_endpoints" {
 
 output "resource_id" {
   description = "The Azure resource id of the key vault."
-  value       = azurerm_key_vault.this.id
+  value       = azapi_resource.this.id
 }
 
 output "secrets" {
@@ -63,5 +63,5 @@ output "secrets_resource_ids" {
 
 output "uri" {
   description = "The URI of the vault for performing operations on keys and secrets"
-  value       = azurerm_key_vault.this.vault_uri
+  value       = azapi_resource.this.output
 }
