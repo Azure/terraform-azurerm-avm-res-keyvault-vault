@@ -26,6 +26,12 @@ variable "value" {
   sensitive   = true
 }
 
+variable "manage_value" {
+  type = bool
+  default = true
+  description = "Specifies whether to manage the value of the secret. If false, the value will not be set or updated."
+}
+
 variable "content_type" {
   type        = string
   default     = null

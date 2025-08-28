@@ -423,7 +423,11 @@ DESCRIPTION
 }
 
 variable "secrets_value" {
-  type        = map(string)
+  type        = map(object({
+    key_secret = string
+    value      = string
+    manage_value = optional(bool, true)
+  }))
   default     = null
   description = <<DESCRIPTION
 A map of secret keys to values.

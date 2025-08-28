@@ -1,4 +1,6 @@
-resource "azurerm_key_vault_secret" "this" {
+resource "azurerm_key_vault_secret" "managed" {
+  count = var.manage_value == true ? 1 : 0
+
   key_vault_id    = var.key_vault_resource_id
   name            = var.name
   content_type    = var.content_type
@@ -8,11 +10,27 @@ resource "azurerm_key_vault_secret" "this" {
   value           = var.value
 }
 
+resource "azurerm_key_vault_secret" "unmanaged" {
+  count = var.manage_value == false ? 1 : 0
+
+  key_vault_id    = var.key_vault_resource_id
+  name            = var.name
+  content_type    = var.content_type
+  expiration_date = var.expiration_date
+  not_before_date = var.not_before_date
+  tags            = var.tags
+  value           = var.value
+
+  lifecycle {
+    ignore_changes = [value]
+  }
+}
+
 resource "azurerm_role_assignment" "this" {
   for_each = var.role_assignments
 
   principal_id                           = each.value.principal_id
-  scope                                  = azurerm_key_vault_secret.this.resource_versionless_id
+  scope                                  = try(azurerm_key_vault_secret.managed[0].resource_versionless_id,azurerm_key_vault_secret.unmanaged[0].resource_versionless_id)
   condition                              = each.value.condition
   condition_version                      = each.value.condition_version
   delegated_managed_identity_resource_id = each.value.delegated_managed_identity_resource_id
