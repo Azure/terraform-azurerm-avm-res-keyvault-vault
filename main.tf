@@ -53,76 +53,101 @@ resource "azapi_resource" "this" {
 # Data source to get current client configuration
 data "azurerm_client_config" "current" {}
 
-resource "azurerm_management_lock" "this" {
+resource "azapi_resource" "management_lock" {
   count = var.lock != null ? 1 : 0
 
-  lock_level = var.lock.kind
-  name       = coalesce(var.lock.name, "lock-${var.name}")
-  scope      = azapi_resource.this.id
+  type      = "Microsoft.Authorization/locks@2020-05-01"
+  name      = coalesce(var.lock.name, "lock-${var.name}")
+  parent_id = azapi_resource.this.id
+
+  body = {
+    properties = {
+      level = var.lock.kind
+      notes = "Managed by Terraform - Key Vault resource lock"
+    }
+  }
+
+  depends_on = [azapi_resource.this]
 }
 
-resource "azurerm_role_assignment" "this" {
+resource "azapi_resource" "role_assignment" {
   for_each = var.role_assignments
 
-  principal_id                           = each.value.principal_id
-  scope                                  = azapi_resource.this.id
-  condition                              = each.value.condition
-  condition_version                      = each.value.condition_version
-  delegated_managed_identity_resource_id = each.value.delegated_managed_identity_resource_id
-  principal_type                         = each.value.principal_type
-  role_definition_id                     = strcontains(lower(each.value.role_definition_id_or_name), lower(local.role_definition_resource_substring)) ? each.value.role_definition_id_or_name : null
-  role_definition_name                   = strcontains(lower(each.value.role_definition_id_or_name), lower(local.role_definition_resource_substring)) ? null : each.value.role_definition_id_or_name
-  skip_service_principal_aad_check       = each.value.skip_service_principal_aad_check
+  type = "Microsoft.Authorization/roleAssignments@2022-04-01"
+  name = uuidv5("oid", "${each.value.principal_id}-${azapi_resource.this.id}-${strcontains(lower(each.value.role_definition_id_or_name), lower(local.role_definition_resource_substring)) ? each.value.role_definition_id_or_name : data.azurerm_role_definition.this[each.key].id}")
+  parent_id = azapi_resource.this.id
+
+  body = {
+    properties = {
+      principalId      = each.value.principal_id
+      principalType    = each.value.principal_type
+      roleDefinitionId = strcontains(lower(each.value.role_definition_id_or_name), lower(local.role_definition_resource_substring)) ? each.value.role_definition_id_or_name : data.azurerm_role_definition.this[each.key].id
+      condition        = each.value.condition
+      conditionVersion = each.value.condition_version
+      delegatedManagedIdentityResourceId = each.value.delegated_managed_identity_resource_id
+    }
+  }
+
+  depends_on = [azapi_resource.this]
 }
 
-resource "azurerm_monitor_diagnostic_setting" "this" {
+# Data source to get role definition ID when role definition name is provided
+data "azurerm_role_definition" "this" {
+  for_each = { for k, v in var.role_assignments : k => v if !strcontains(lower(v.role_definition_id_or_name), lower(local.role_definition_resource_substring)) }
+  
+  name  = each.value.role_definition_id_or_name
+  scope = azapi_resource.this.id
+}
+
+resource "azapi_resource" "diagnostic_setting" {
   for_each = var.diagnostic_settings
 
-  name                           = each.value.name != null ? each.value.name : "diag-${var.name}"
-  target_resource_id             = azapi_resource.this.id
-  eventhub_authorization_rule_id = each.value.event_hub_authorization_rule_resource_id
-  eventhub_name                  = each.value.event_hub_name
-  log_analytics_destination_type = each.value.log_analytics_destination_type
-  log_analytics_workspace_id     = each.value.workspace_resource_id
-  partner_solution_id            = each.value.marketplace_partner_resource_id
-  storage_account_id             = each.value.storage_account_resource_id
+  type      = "Microsoft.Insights/diagnosticSettings@2021-05-01-preview"
+  name      = each.value.name != null ? each.value.name : "diag-${var.name}"
+  parent_id = azapi_resource.this.id
 
-  dynamic "enabled_log" {
-    for_each = each.value.log_categories
-
-    content {
-      category = enabled_log.value
+  body = jsonencode({
+    properties = {
+      eventHubAuthorizationRuleId = each.value.event_hub_authorization_rule_resource_id
+      eventHubName                = each.value.event_hub_name
+      logAnalyticsDestinationType = each.value.log_analytics_destination_type
+      workspaceId                 = each.value.workspace_resource_id
+      marketplacePartnerId        = each.value.marketplace_partner_resource_id
+      storageAccountId            = each.value.storage_account_resource_id
+      logs = concat(
+        [for category in each.value.log_categories : {
+          category = category
+          enabled  = true
+        }],
+        [for group in each.value.log_groups : {
+          categoryGroup = group
+          enabled       = true
+        }]
+      )
+      metrics = [for category in each.value.metric_categories : {
+        category = category
+        enabled  = true
+      }]
     }
-  }
-  dynamic "enabled_log" {
-    for_each = each.value.log_groups
-
-    content {
-      category_group = enabled_log.value
-    }
-  }
-  dynamic "metric" {
-    for_each = each.value.metric_categories
-
-    content {
-      category = metric.value
-    }
-  }
+  })
 }
 
-# Certificate contacts are handled via azurerm provider as they are management plane operations
-resource "azurerm_key_vault_certificate_contacts" "this" {
+# Certificate contacts are handled via azapi_update_resource to update the Key Vault's certificateContacts property
+resource "azapi_update_resource" "certificate_contacts" {
   count = length(var.contacts) > 0 ? 1 : 0
 
-  key_vault_id = azapi_resource.this.id
+  type        = "Microsoft.KeyVault/vaults@2023-07-01"
+  resource_id = azapi_resource.this.id
 
-  dynamic "contact" {
-    for_each = var.contacts
-
-    content {
-      email = contact.value.email
-      name  = contact.value.name
-      phone = contact.value.phone
+  body = {
+    properties = {
+      certificateContacts = [
+        for contact in var.contacts : {
+          email = contact.email
+          name  = contact.name
+          phone = contact.phone
+        }
+      ]
     }
   }
 
@@ -138,5 +163,5 @@ resource "time_sleep" "wait_for_rbac_before_contact_operations" {
     contacts = jsonencode(var.contacts)
   }
 
-  depends_on = [azurerm_role_assignment.this]
+  depends_on = [azapi_resource.role_assignment]
 }

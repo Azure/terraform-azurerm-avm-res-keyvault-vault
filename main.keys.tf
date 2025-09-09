@@ -15,7 +15,8 @@ module "keys" {
   tags                  = each.value.tags
 
   depends_on = [
-    azurerm_private_endpoint.this,
+    azapi_resource.private_endpoint,
+    azapi_resource.private_endpoint_unmanaged_dns,
     time_sleep.wait_for_rbac_before_key_operations
   ]
 }
@@ -30,6 +31,6 @@ resource "time_sleep" "wait_for_rbac_before_key_operations" {
   }
 
   depends_on = [
-    azurerm_role_assignment.this
+    azapi_resource.role_assignment
   ]
 }

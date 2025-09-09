@@ -14,6 +14,6 @@ output "resource_versionless_id" {
 }
 
 output "versionless_id" {
-  description = "The Base ID of the Key Vault Key"
-  value       = azapi_resource.this.id
+  description = "The versionless ID of the Key Vault key."
+  value       = azapi_resource.this.output.properties.keyUri
 }
