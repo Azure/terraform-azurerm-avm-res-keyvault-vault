@@ -1,23 +1,47 @@
-resource "azurerm_key_vault_secret" "this" {
-  key_vault_id    = var.key_vault_resource_id
-  name            = var.name
-  content_type    = var.content_type
-  expiration_date = var.expiration_date
-  not_before_date = var.not_before_date
-  tags            = var.tags
-  value           = var.value
+resource "azapi_resource" "this" {
+  type      = "Microsoft.KeyVault/vaults/secrets@2023-07-01"
+  name      = var.name
+  parent_id = var.key_vault_resource_id
+  tags      = var.tags
+
+  body = {
+    properties = {
+      value       = var.value
+      contentType = var.content_type
+      attributes = {
+        enabled = true
+        nbf     = var.not_before_date != null ? formatdate("YYYY-MM-DD", var.not_before_date) : null
+        exp     = var.expiration_date != null ? formatdate("YYYY-MM-DD", var.expiration_date) : null
+      }
+    }
+  }
 }
 
-resource "azurerm_role_assignment" "this" {
+resource "azapi_resource" "role_assignment" {
   for_each = var.role_assignments
 
-  principal_id                           = each.value.principal_id
-  scope                                  = azurerm_key_vault_secret.this.resource_versionless_id
-  condition                              = each.value.condition
-  condition_version                      = each.value.condition_version
-  delegated_managed_identity_resource_id = each.value.delegated_managed_identity_resource_id
-  principal_type                         = each.value.principal_type
-  role_definition_id                     = strcontains(lower(each.value.role_definition_id_or_name), lower(local.role_definition_resource_substring)) ? each.value.role_definition_id_or_name : null
-  role_definition_name                   = strcontains(lower(each.value.role_definition_id_or_name), lower(local.role_definition_resource_substring)) ? null : each.value.role_definition_id_or_name
-  skip_service_principal_aad_check       = each.value.skip_service_principal_aad_check
+  type = "Microsoft.Authorization/roleAssignments@2022-04-01"
+  name = uuidv5("oid", "${each.value.principal_id}-${azapi_resource.this.id}-${strcontains(lower(each.value.role_definition_id_or_name), lower(local.role_definition_resource_substring)) ? each.value.role_definition_id_or_name : data.azurerm_role_definition.this[each.key].id}")
+  parent_id = azapi_resource.this.id
+
+  body = {
+    properties = {
+      principalId      = each.value.principal_id
+      principalType    = each.value.principal_type
+      roleDefinitionId = strcontains(lower(each.value.role_definition_id_or_name), lower(local.role_definition_resource_substring)) ? each.value.role_definition_id_or_name : data.azurerm_role_definition.this[each.key].id
+      condition        = each.value.condition
+      conditionVersion = each.value.condition_version
+      delegatedManagedIdentityResourceId = each.value.delegated_managed_identity_resource_id
+    }
+  }
+
+  depends_on = [azapi_resource.this]
+}
+
+# Data source to get role definition ID when role definition name is provided
+data "azurerm_role_definition" "this" {
+  for_each = { for k, v in var.role_assignments : k => v if !strcontains(lower(v.role_definition_id_or_name), lower(local.role_definition_resource_substring)) }
+  
+  name  = each.value.role_definition_id_or_name
+  scope = azapi_resource.this.id
 }
