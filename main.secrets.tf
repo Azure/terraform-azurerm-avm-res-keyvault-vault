@@ -2,7 +2,7 @@ module "secrets" {
   source   = "./modules/secret"
   for_each = var.secrets
 
-  key_vault_resource_id = azurerm_key_vault.this.id
+  key_vault_resource_id = azapi_resource.this.id
   name                  = each.value.name
   value                 = var.secrets_value[each.key]
   content_type          = each.value.content_type
@@ -12,7 +12,8 @@ module "secrets" {
   tags                  = each.value.tags
 
   depends_on = [
-    azurerm_private_endpoint.this,
+    azapi_resource.private_endpoint,
+    azapi_resource.private_endpoint_unmanaged_dns,
     time_sleep.wait_for_rbac_before_secret_operations
   ]
 }
@@ -27,6 +28,6 @@ resource "time_sleep" "wait_for_rbac_before_secret_operations" {
   }
 
   depends_on = [
-    azurerm_role_assignment.this
+    azapi_resource.role_assignment
   ]
 }
