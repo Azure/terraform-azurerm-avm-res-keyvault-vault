@@ -13,6 +13,7 @@ module "secrets" {
 
   depends_on = [
     azurerm_private_endpoint.this,
+    azurerm_private_endpoint.this_unmanaged_dns_zone_groups,
     time_sleep.wait_for_rbac_before_secret_operations
   ]
 }
