@@ -4,7 +4,7 @@ module "secrets" {
 
   key_vault_resource_id = azurerm_key_vault.this.id
   name                  = each.value.name
-  value                 = var.secrets_value[each.key]
+  value                 = var.secrets_value[each.key].value
   content_type          = each.value.content_type
   expiration_date       = each.value.expiration_date
   not_before_date       = each.value.not_before_date
@@ -15,6 +15,7 @@ module "secrets" {
     azurerm_private_endpoint.this,
     time_sleep.wait_for_rbac_before_secret_operations
   ]
+  manage_value = var.secrets_value[each.key].manage_value
 }
 
 resource "time_sleep" "wait_for_rbac_before_secret_operations" {
