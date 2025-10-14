@@ -33,6 +33,18 @@ resource "azurerm_management_lock" "this" {
   lock_level = var.lock.kind
   name       = coalesce(var.lock.name, "lock-${var.name}")
   scope      = azurerm_key_vault.this.id
+
+  depends_on = [
+    azurerm_role_assignment.this,
+    azurerm_monitor_diagnostic_setting.this,
+    azurerm_private_endpoint.this,
+    azurerm_private_endpoint.this_unmanaged_dns_zone_groups,
+    azurerm_private_endpoint_application_security_group_association.this,
+    azurerm_key_vault_access_policy.this,
+    azurerm_key_vault_certificate_contacts.this,
+    module.keys,
+    module.secrets
+  ]
 }
 
 resource "azurerm_role_assignment" "this" {
