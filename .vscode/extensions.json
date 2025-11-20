@@ -1,0 +1,7 @@
+{
+  "recommendations": [
+    "EditorConfig.EditorConfig",
+    "hashicorp.terraform",
+    "ms-azurertools.vscode-azureterraform"
+  ]
+}
