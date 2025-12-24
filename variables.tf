@@ -433,11 +433,29 @@ DESCRIPTION
 
 variable "secrets_value" {
   type        = map(string)
-  default     = null
+  default     = {}
   description = <<DESCRIPTION
 A map of secret keys to values.
 The map key is the supplied input to `var.secrets`.
 The map value is the secret value.
+
+This is a separate variable to `var.secrets` because it is sensitive and therefore cannot be used in a `for_each` loop.
+DESCRIPTION
+  sensitive   = true
+}
+
+variable "secrets_value_wo" {
+  type = map(object({
+    value   = string
+    version = number
+  }))
+  default     = {}
+  description = <<DESCRIPTION
+A map of secret keys to values writable only.
+The map key is the supplied input to `var.secrets`.
+The map value is an object with the following attributes:
+- `value` - The value for the secret writable only.
+- `version` - The version of the secret writable only. Changing this updates the secret value.
 
 This is a separate variable to `var.secrets` because it is sensitive and therefore cannot be used in a `for_each` loop.
 DESCRIPTION

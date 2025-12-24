@@ -83,6 +83,12 @@ module "key_vault" {
   secrets_value = {
     test_secret = "secret-value"
   }
+  secrets_value_wo = {
+    test_secret = {
+      value   = "secret-value-wo"
+      version = 1
+    }
+  }
   wait_for_rbac_before_secret_operations = {
     create = "60s"
   }

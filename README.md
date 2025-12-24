@@ -453,7 +453,28 @@ This is a separate variable to `var.secrets` because it is sensitive and therefo
 
 Type: `map(string)`
 
-Default: `null`
+Default: `{}`
+
+### <a name="input_secrets_value_wo"></a> [secrets\_value\_wo](#input\_secrets\_value\_wo)
+
+Description: A map of secret keys to values writable only.  
+The map key is the supplied input to `var.secrets`.  
+The map value is an object with the following attributes:
+- `value` - The value for the secret writable only.
+- `version` - The version of the secret writable only. Changing this updates the secret value.
+
+This is a separate variable to `var.secrets` because it is sensitive and therefore cannot be used in a `for_each` loop.
+
+Type:
+
+```hcl
+map(object({
+    value   = string
+    version = number
+  }))
+```
+
+Default: `{}`
 
 ### <a name="input_sku_name"></a> [sku\_name](#input\_sku\_name)
 

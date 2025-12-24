@@ -64,12 +64,6 @@ Description: The name of the secret.
 
 Type: `string`
 
-### <a name="input_value"></a> [value](#input\_value)
-
-Description: The value for the secret.
-
-Type: `string`
-
 ## Optional Inputs
 
 The following input variables are optional (have default values):
@@ -133,6 +127,30 @@ Default: `{}`
 Description: The tags to assign to the secret.
 
 Type: `map(string)`
+
+Default: `null`
+
+### <a name="input_value"></a> [value](#input\_value)
+
+Description: The value for the secret. Must be set if `value_wo` is not set.
+
+Type: `string`
+
+Default: `null`
+
+### <a name="input_value_wo"></a> [value\_wo](#input\_value\_wo)
+
+Description: The value for the secret writable only. Must be set if `value` is not set.
+
+Type: `string`
+
+Default: `null`
+
+### <a name="input_value_wo_version"></a> [value\_wo\_version](#input\_value\_wo\_version)
+
+Description: The version of the secret writable only. Must be set if `value_wo` is not set.
+
+Type: `number`
 
 Default: `null`
 
