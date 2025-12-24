@@ -79,12 +79,15 @@ module "key_vault" {
     test_secret = {
       name = "test-secret"
     }
+    test_secret_wo = {
+      name = "test-secret-wo"
+    }
   }
   secrets_value = {
     test_secret = "secret-value"
   }
   secrets_value_wo = {
-    test_secret = {
+    test_secret_wo = {
       value   = "secret-value-wo"
       version = 1
     }
