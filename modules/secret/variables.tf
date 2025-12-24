@@ -22,8 +22,22 @@ variable "name" {
 
 variable "value" {
   type        = string
-  description = "The value for the secret."
+  description = "The value for the secret. Must be set if `value_wo` is not set."
+  default     = null
   sensitive   = true
+}
+
+variable "value_wo" {
+  type        = string
+  description = "The value for the secret writable only. Must be set if `value` is not set."
+  default     = null
+  sensitive   = true
+}
+
+variable "value_wo_version" {
+  type        = number
+  description = "The version of the secret writable only. Must be set if `value_wo` is not set."
+  default     = null
 }
 
 variable "content_type" {
