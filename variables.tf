@@ -445,21 +445,28 @@ DESCRIPTION
 }
 
 variable "secrets_value_wo" {
-  type = map(object({
-    value   = string
-    version = number
-  }))
-  default     = {}
+  type        = map(string)
+  default     = null
   description = <<DESCRIPTION
-A map of secret keys to values writable only.
+A map of secret keys to writable-only secret values.
 The map key is the supplied input to `var.secrets`.
-The map value is an object with the following attributes:
-- `value` - The value for the secret writable only.
-- `version` - The version of the secret writable only. Changing this updates the secret value.
+The map value is the writable-only secret value for that key.
 
-This is a separate variable to `var.secrets` because it is sensitive and therefore cannot be used in a `for_each` loop.
+Use `var.secrets_value_wo_version` with the same key to control updates when the writable-only value changes.
 DESCRIPTION
   sensitive   = true
+}
+
+variable "secrets_value_wo_version" {
+  type        = map(number)
+  default     = null
+  description = <<DESCRIPTION
+A map of secret keys to writable-only secret value versions.
+The map key is the supplied input to `var.secrets`.
+The map value is the version identifier for that secret value.
+
+Use the same key as `var.secrets_value_wo`; increment the version when the corresponding writable-only value changes to trigger a secret update.
+DESCRIPTION
 }
 
 variable "sku_name" {

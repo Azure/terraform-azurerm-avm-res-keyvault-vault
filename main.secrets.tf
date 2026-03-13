@@ -5,8 +5,8 @@ module "secrets" {
   key_vault_resource_id = azurerm_key_vault.this.id
   name                  = each.value.name
   value                 = try(var.secrets_value[each.key], null)
-  value_wo              = try(var.secrets_value_wo[each.key].value, null)
-  value_wo_version      = try(var.secrets_value_wo[each.key].version, null)
+  value_wo              = try(var.secrets_value_wo[each.key], null)
+  value_wo_version      = try(var.secrets_value_wo_version[each.key], null)
   content_type          = each.value.content_type
   expiration_date       = each.value.expiration_date
   not_before_date       = each.value.not_before_date
