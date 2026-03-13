@@ -454,6 +454,7 @@ The map value is the writable-only secret value for that key.
 
 Use `var.secrets_value_wo_version` with the same key to control updates when the writable-only value changes.
 DESCRIPTION
+  ephemeral   = true
   sensitive   = true
 }
 
