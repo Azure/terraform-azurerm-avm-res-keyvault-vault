@@ -6,7 +6,7 @@ resource "azurerm_private_endpoint" "this" {
   name                          = each.value.name != null ? each.value.name : "pep-${var.name}"
   resource_group_name           = each.value.resource_group_name != null ? each.value.resource_group_name : var.resource_group_name
   subnet_id                     = each.value.subnet_resource_id
-  custom_network_interface_name = each.value.network_interface_name
+  custom_network_interface_name = each.value.network_interface_name != null ? each.value.network_interface_name : "nic-pep-${var.name}"
   tags                          = each.value.tags
 
   private_service_connection {
@@ -43,7 +43,7 @@ resource "azurerm_private_endpoint" "this_unmanaged_dns_zone_groups" {
   name                          = each.value.name != null ? each.value.name : "pep-${var.name}"
   resource_group_name           = each.value.resource_group_name != null ? each.value.resource_group_name : var.resource_group_name
   subnet_id                     = each.value.subnet_resource_id
-  custom_network_interface_name = each.value.network_interface_name
+  custom_network_interface_name = each.value.network_interface_name != null ? each.value.network_interface_name : "nic-pep-${var.name}"
   tags                          = each.value.tags
 
   private_service_connection {
