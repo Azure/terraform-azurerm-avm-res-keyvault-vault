@@ -62,13 +62,20 @@ if [ -S /var/run/docker.sock ]; then
   DOCKER_SOCK_MOUNT="-v /var/run/docker.sock:/var/run/docker.sock"
 fi
 
-# If we are in GitHub Copilot Coding Agent (or any environment where mkcert is used for TLS inspection),
-# we need to mount a combined SSL certificate bundle into the container.
+# SSL certificate handling:
+# The script builds a combined CA bundle and mounts it into the container when any of the
+# following are detected:
 #
-# The coding agent installs a TLS-inspecting firewall that uses mkcert-generated certificates.
-# These certificates are trusted on the host via NODE_EXTRA_CA_CERTS / CAROOT, but not inside
-# the Docker container. We detect this situation automatically and create a combined cert bundle
-# that includes both the system CA certificates and the mkcert root CA.
+# 1. Customer-provided certificates (AVM_SSL_CERT_FILE):
+#    Set AVM_SSL_CERT_FILE to the path of a PEM-encoded CA certificate or bundle on the host.
+#    This is intended for private TLS inspection environments where outbound traffic is
+#    intercepted by a corporate proxy using a custom CA. The file will be appended to the
+#    system CA bundle and mounted into the container.
+#
+# 2. GitHub Copilot Coding Agent (automatic detection):
+#    The coding agent installs a TLS-inspecting firewall that uses mkcert-generated certificates.
+#    These are trusted on the host via NODE_EXTRA_CA_CERTS / CAROOT, but not inside the Docker
+#    container. Detected via COPILOT_AGENT_ACTION or CAROOT/NODE_EXTRA_CA_CERTS in GITHUB_ACTIONS.
 SSL_CERT_MOUNTS=""
 
 # Detect coding agent environment:
@@ -81,7 +88,14 @@ elif [ -n "${GITHUB_ACTIONS}" ] && ([ -n "${CAROOT}" ] || [ -n "${NODE_EXTRA_CA_
   IN_CODING_AGENT=true
 fi
 
-if [ "${IN_CODING_AGENT}" = "true" ]; then
+# Build a combined cert bundle if we need to inject any additional CA certificates.
+# This happens when customer certs are provided (AVM_SSL_CERT_FILE) or we are in the coding agent.
+if [ -n "${AVM_SSL_CERT_FILE}" ] || [ "${IN_CODING_AGENT}" = "true" ]; then
+  # Validate customer-provided cert file if set
+  if [ -n "${AVM_SSL_CERT_FILE}" ] && [ ! -f "${AVM_SSL_CERT_FILE}" ]; then
+    echo "Warning: AVM_SSL_CERT_FILE is set but the file does not exist: ${AVM_SSL_CERT_FILE}"
+  fi
+
   # Create a temporary directory for the combined cert bundle.
   # This directory is cleaned up automatically when the script exits.
   AVM_CERT_TMP_DIR=$(mktemp -d)
@@ -96,22 +110,28 @@ if [ "${IN_CODING_AGENT}" = "true" ]; then
     cat "/etc/ssl/certs/ca-certificates.crt" > "${AVM_CERT_BUNDLE}"
   fi
 
-  # Append the mkcert root CA (used by the coding agent's TLS inspection firewall).
+  # Append the mkcert root CA if in the coding agent environment (used for TLS inspection firewall).
   # NODE_EXTRA_CA_CERTS takes priority over CAROOT/rootCA.pem.
-  if [ -n "${NODE_EXTRA_CA_CERTS}" ] && [ -f "${NODE_EXTRA_CA_CERTS}" ]; then
-    echo "" >> "${AVM_CERT_BUNDLE}"
-    cat "${NODE_EXTRA_CA_CERTS}" >> "${AVM_CERT_BUNDLE}"
-  elif [ -n "${CAROOT}" ] && [ -f "${CAROOT}/rootCA.pem" ]; then
-    echo "" >> "${AVM_CERT_BUNDLE}"
-    cat "${CAROOT}/rootCA.pem" >> "${AVM_CERT_BUNDLE}"
+  if [ "${IN_CODING_AGENT}" = "true" ]; then
+    if [ -n "${NODE_EXTRA_CA_CERTS}" ] && [ -f "${NODE_EXTRA_CA_CERTS}" ]; then
+      echo "" >> "${AVM_CERT_BUNDLE}"
+      cat "${NODE_EXTRA_CA_CERTS}" >> "${AVM_CERT_BUNDLE}"
+    elif [ -n "${CAROOT}" ] && [ -f "${CAROOT}/rootCA.pem" ]; then
+      echo "" >> "${AVM_CERT_BUNDLE}"
+      cat "${CAROOT}/rootCA.pem" >> "${AVM_CERT_BUNDLE}"
+    fi
   fi
 
-  if [ -f "${AVM_CERT_BUNDLE}" ]; then
-    # Mount the combined cert bundle to the container's expected CA certificate paths
-    SSL_CERT_MOUNTS="-v ${AVM_CERT_BUNDLE}:/etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem:ro"
-    SSL_CERT_MOUNTS="${SSL_CERT_MOUNTS} -v ${AVM_CERT_BUNDLE}:/etc/pki/ca-trust/extracted/openssl/ca-bundle.trust.crt:ro"
-    SSL_CERT_MOUNTS="${SSL_CERT_MOUNTS} -v ${AVM_CERT_BUNDLE}:/etc/ssl/certs/ca-certificates.crt:ro"
+  # Append customer-provided CA certificate(s) for private TLS inspection environments.
+  if [ -n "${AVM_SSL_CERT_FILE}" ] && [ -f "${AVM_SSL_CERT_FILE}" ]; then
+    echo "" >> "${AVM_CERT_BUNDLE}"
+    cat "${AVM_SSL_CERT_FILE}" >> "${AVM_CERT_BUNDLE}"
   fi
+
+  # Mount the combined cert bundle to the container's expected CA certificate paths
+  SSL_CERT_MOUNTS="-v ${AVM_CERT_BUNDLE}:/etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem:ro"
+  SSL_CERT_MOUNTS="${SSL_CERT_MOUNTS} -v ${AVM_CERT_BUNDLE}:/etc/pki/ca-trust/extracted/openssl/ca-bundle.trust.crt:ro"
+  SSL_CERT_MOUNTS="${SSL_CERT_MOUNTS} -v ${AVM_CERT_BUNDLE}:/etc/ssl/certs/ca-certificates.crt:ro"
 fi
 
 # New: allow overriding TUI behavior with PORCH_FORCE_TUI and PORCH_NO_TUI environment variables.
