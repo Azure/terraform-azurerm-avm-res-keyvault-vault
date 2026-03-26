@@ -40,7 +40,7 @@ Make the necessary code changes to add the feature or fix the issue.
 Unit tests use **provider mocking** and live in the `tests/unit` directory. Add or update unit tests when your change introduces new logic, variables, or outputs that can be validated without deploying real infrastructure. For test writing guidance, syntax, and patterns, read [terraform-test.md](terraform-test.md).
 
 ```bash
-PORCH_NO_TUI=1 ./avm tf-test-unit
+PORCH_NO_TUI=1 ./avm-agent tf-test-unit
 ```
 
 ### Step 5: Add integration tests (if justified)
@@ -48,7 +48,7 @@ PORCH_NO_TUI=1 ./avm tf-test-unit
 Integration tests do **not** use provider mocking and live in the `tests/integration` directory. Add or update integration tests when your change requires validation against real Azure infrastructure. For test writing guidance, syntax, and patterns, read [terraform-test.md](terraform-test.md).
 
 ```bash
-PORCH_NO_TUI=1 ./avm tf-test-integration
+PORCH_NO_TUI=1 ./avm-agent tf-test-integration
 ```
 
 ### Step 6: Add or update examples (if justified)
@@ -56,7 +56,7 @@ PORCH_NO_TUI=1 ./avm tf-test-integration
 If your change affects module usage or introduces new functionality, add or update examples in the `examples/` directory. Test only the pertinent example:
 
 ```bash
-PORCH_NO_TUI=1 AVM_EXAMPLE="<ExampleDir>" ./avm test-examples
+PORCH_NO_TUI=1 AVM_EXAMPLE="<ExampleDir>" ./avm-agent test-examples
 ```
 
 ### Step 7: Update documentation (if justified)
@@ -68,7 +68,7 @@ If documentation changes are needed, edit `_header.md`. **NEVER edit README.md d
 This must **always** be run before committing:
 
 ```bash
-PORCH_NO_TUI=1 ./avm pre-commit
+PORCH_NO_TUI=1 ./avm-agent pre-commit
 ```
 
 ### Step 9: Commit changes
@@ -83,7 +83,7 @@ git commit -m "<type>: <meaningful description>"
 This must **always** be run after committing:
 
 ```bash
-PORCH_NO_TUI=1 ./avm pr-check
+PORCH_NO_TUI=1 ./avm-agent pr-check
 ```
 
 ### Step 11: Push and open a PR
