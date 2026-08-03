@@ -4,6 +4,25 @@
 
 This example shows how to deploy the module and create a key using Azure RBAC.
 
+It also shows how to consume the key from another module. Keys are exposed through the
+module's `keys` output, indexed by the **map key** used in `var.keys`
+(`cmk_for_storage_account` below), not by the key's `name`
+(`cmk-for-storage-account`). Each entry exposes four identifiers, which are easy to
+confuse:
+
+| Attribute | Shape | Use it for |
+| - | - | - |
+| `id` | `https://<vault-name>.vault.azure.net/keys/<key-name>/<key-version>` | Data plane URI pinned to a version. This is what most Azure services want for a customer managed key, including the `transparent_data_encryption_key_vault_key_id` input of `Azure/avm-res-sql-server/azurerm`. |
+| `versionless_id` | `https://<vault-name>.vault.azure.net/keys/<key-name>` | Data plane URI without a version, for services that pick up new key versions automatically. |
+| `resource_id` | `/subscriptions/<subscription-id>/resourceGroups/<resource-group-name>/providers/Microsoft.KeyVault/vaults/<vault-name>/keys/<key-name>/versions/<key-version>` | ARM resource ID pinned to a version, for example in role assignment scopes. |
+| `resource_versionless_id` | `/subscriptions/<subscription-id>/resourceGroups/<resource-group-name>/providers/Microsoft.KeyVault/vaults/<vault-name>/keys/<key-name>` | ARM resource ID without a version. |
+
+So the versioned key URI is:
+
+```hcl
+module.key_vault.keys["cmk_for_storage_account"].id
+```
+
 ```hcl
 provider "azurerm" {
   features {}
@@ -101,6 +120,33 @@ module "key_vault" {
     create = "60s"
   }
 }
+
+# The created key is referenced through the `keys` output, indexed by the *map key* used in
+# `var.keys` above (`cmk_for_storage_account`), not by the key's `name`
+# (`cmk-for-storage-account`).
+#
+# Use `.id` for the versioned data plane URI that services expect for a customer managed key:
+#   https://<vault-name>.vault.azure.net/keys/<key-name>/<key-version>
+#
+# For example, to enable transparent data encryption on an Azure SQL server:
+#
+# module "sql_server" {
+#   source  = "Azure/avm-res-sql-server/azurerm"
+#   version = "0.2.1"
+#
+#   location            = azurerm_resource_group.this.location
+#   name                = module.naming.sql_server.name_unique
+#   resource_group_name = azurerm_resource_group.this.name
+#
+#   # This input requires the fully versioned key URL, which is what `.id` returns.
+#   # Automatic key rotation is a separate option on that module, so `.versionless_id`
+#   # is not used here.
+#   transparent_data_encryption_key_vault_key_id = module.key_vault.keys["cmk_for_storage_account"].id
+# }
+#
+# The SQL server's identity needs `Key Vault Crypto Service Encryption User` on the vault
+# before encryption can be enabled. See the outputs.tf file in this example for the other
+# identifier forms the module exposes.
 ```
 
 <!-- markdownlint-disable MD033 -->
@@ -146,7 +192,31 @@ Default: `true`
 
 ## Outputs
 
-No outputs.
+The following outputs are exported:
+
+### <a name="output_key_resource_id"></a> [key\_resource\_id](#output\_key\_resource\_id)
+
+Description: The versioned ARM resource ID of the key, in the form
+`/subscriptions/<subscription-id>/resourceGroups/<resource-group-name>/providers/Microsoft.KeyVault/vaults/<vault-name>/keys/<key-name>/versions/<key-version>`.
+
+This is an ARM resource ID, not a data plane URI. Use `key_uri` when a service asks for a  
+key vault key URI.
+
+### <a name="output_key_uri"></a> [key\_uri](#output\_key\_uri)
+
+Description: The versioned data plane URI of the key, in the form
+`https://<vault-name>.vault.azure.net/keys/<key-name>/<key-version>`.
+
+This is the value to pass to services that expect a customer managed key URI, such as the
+`transparent_data_encryption_key_vault_key_id` input of the
+`Azure/avm-res-sql-server/azurerm` module.
+
+### <a name="output_key_versionless_uri"></a> [key\_versionless\_uri](#output\_key\_versionless\_uri)
+
+Description: The versionless data plane URI of the key, in the form
+`https://<vault-name>.vault.azure.net/keys/<key-name>`.
+
+Use this instead of `key_uri` where the consuming service supports automatic key rotation.
 
 ## Modules
 

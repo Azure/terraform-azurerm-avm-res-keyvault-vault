@@ -115,19 +115,35 @@ The following outputs are exported:
 
 ### <a name="output_id"></a> [id](#output\_id)
 
-Description: The Key Vault Secret ID
+Description: The versioned data plane URI of the secret, in the form
+`https://<vault-name>.vault.azure.net/secrets/<secret-name>/<secret-version>`.
+
+Because it pins a specific secret version, consumers will not pick up new versions  
+automatically; use `versionless_id` instead if that is required.
 
 ### <a name="output_resource_id"></a> [resource\_id](#output\_resource\_id)
 
-Description: The Azure resource id of the secret.
+Description: The versioned Azure Resource Manager (ARM) resource ID of the secret, in the form
+`/subscriptions/<subscription-id>/resourceGroups/<resource-group-name>/providers/Microsoft.KeyVault/vaults/<vault-name>/secrets/<secret-name>/versions/<secret-version>`.
+
+This is an ARM resource ID, not a data plane URI. Use `id` when a service asks for a  
+key vault secret URI such as `https://<vault-name>.vault.azure.net/secrets/...`.
 
 ### <a name="output_resource_versionless_id"></a> [resource\_versionless\_id](#output\_resource\_versionless\_id)
 
-Description: The versionless Azure resource id of the secret.
+Description: The versionless Azure Resource Manager (ARM) resource ID of the secret, in the form
+`/subscriptions/<subscription-id>/resourceGroups/<resource-group-name>/providers/Microsoft.KeyVault/vaults/<vault-name>/secrets/<secret-name>`.
+
+This is an ARM resource ID, not a data plane URI. Because it does not pin a secret  
+version, consumers that support it will pick up new secret versions automatically.
 
 ### <a name="output_versionless_id"></a> [versionless\_id](#output\_versionless\_id)
 
-Description: The Base ID of the Key Vault Secret
+Description: The versionless data plane URI of the secret, in the form
+`https://<vault-name>.vault.azure.net/secrets/<secret-name>`.
+
+Because it does not pin a secret version, consumers that support it will pick up new  
+secret versions automatically. Use `id` when a specific version is required.
 
 ## Modules
 

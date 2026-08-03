@@ -539,17 +539,24 @@ The following outputs are exported:
 
 ### <a name="output_keys"></a> [keys](#output\_keys)
 
-Description: A map of key keys to key values. The key value is the entire azurerm\_key\_vault\_key resource.
+Description: A map of key keys to key values. The map key is the key of the `var.keys` map entry (not  
+the name of the key itself). The key value is the entire azurerm\_key\_vault\_key resource.
 
 The key value contains the following attributes:
-- id: The Key Vault Key ID
-- resource\_id: The Azure resource id of the key.
-- resource\_versionless\_id: The versionless Azure resource id of the key.
-- versionless\_id: The Base ID of the Key Vault Key
+- id: The versioned data plane URI of the key, in the form `https://<vault-name>.vault.azure.net/keys/<key-name>/<key-version>`. This is the value most Azure services expect for a customer managed key.
+- versionless\_id: The versionless data plane URI of the key, in the form `https://<vault-name>.vault.azure.net/keys/<key-name>`. Use this where the consuming service supports automatic key rotation.
+- resource\_id: The versioned ARM resource ID of the key, in the form `/subscriptions/<subscription-id>/resourceGroups/<resource-group-name>/providers/Microsoft.KeyVault/vaults/<vault-name>/keys/<key-name>/versions/<key-version>`.
+- resource\_versionless\_id: The versionless ARM resource ID of the key, in the form `/subscriptions/<subscription-id>/resourceGroups/<resource-group-name>/providers/Microsoft.KeyVault/vaults/<vault-name>/keys/<key-name>`.
+
+For example, to pass a key to a service that expects a key vault key URI:
+`module.key_vault.keys["<var.keys map key>"].id`
 
 ### <a name="output_keys_resource_ids"></a> [keys\_resource\_ids](#output\_keys\_resource\_ids)
 
-Description: A map of key keys to resource ids.
+Description: A map of key keys to resource ids. The map key is the key of the `var.keys` map entry
+(not the name of the key itself). See the `keys` output for the exact shape of each  
+attribute: `id` and `versionless_id` are data plane URIs, `resource_id` and
+`resource_versionless_id` are ARM resource IDs.
 
 ### <a name="output_name"></a> [name](#output\_name)
 
@@ -565,17 +572,22 @@ Description: The Azure resource id of the key vault.
 
 ### <a name="output_secrets"></a> [secrets](#output\_secrets)
 
-Description: A map of secret keys to secret values. The secret value is the entire azurerm\_key\_vault\_secret resource.
+Description: A map of secret keys to secret values. The map key is the key of the `var.secrets` map  
+entry (not the name of the secret itself). The secret value is the entire  
+azurerm\_key\_vault\_secret resource.
 
 The secret value contains the following attributes:
-- id: The Key Vault Secret ID
-- resource\_id: The Azure resource id of the secret.
-- resource\_versionless\_id: The versionless Azure resource id of the secret.
-- versionless\_id: The Base ID of the Key Vault Secret
+- id: The versioned data plane URI of the secret, in the form `https://<vault-name>.vault.azure.net/secrets/<secret-name>/<secret-version>`.
+- versionless\_id: The versionless data plane URI of the secret, in the form `https://<vault-name>.vault.azure.net/secrets/<secret-name>`.
+- resource\_id: The versioned ARM resource ID of the secret, in the form `/subscriptions/<subscription-id>/resourceGroups/<resource-group-name>/providers/Microsoft.KeyVault/vaults/<vault-name>/secrets/<secret-name>/versions/<secret-version>`.
+- resource\_versionless\_id: The versionless ARM resource ID of the secret, in the form `/subscriptions/<subscription-id>/resourceGroups/<resource-group-name>/providers/Microsoft.KeyVault/vaults/<vault-name>/secrets/<secret-name>`.
 
 ### <a name="output_secrets_resource_ids"></a> [secrets\_resource\_ids](#output\_secrets\_resource\_ids)
 
-Description: A map of secret keys to resource ids.
+Description: A map of secret keys to resource ids. The map key is the key of the `var.secrets` map  
+entry (not the name of the secret itself). See the `secrets` output for the exact shape  
+of each attribute: `id` and `versionless_id` are data plane URIs, `resource_id` and
+`resource_versionless_id` are ARM resource IDs.
 
 ### <a name="output_uri"></a> [uri](#output\_uri)
 
