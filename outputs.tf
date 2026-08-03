@@ -1,12 +1,18 @@
 output "keys" {
   description = <<DESCRIPTION
-A map of key keys to key values. The key value is the entire azurerm_key_vault_key resource.
+A map of key keys to key values. The key value is not the entire azurerm_key_vault_key resource, only the attributes listed below are exposed.
 
 The key value contains the following attributes:
+- e: The RSA public exponent of the key. Empty for EC keys.
 - id: The Key Vault Key ID
+- n: The RSA modulus of the key. Empty for EC keys.
+- public_key_openssh: The OpenSSH encoded public key of the key.
+- public_key_pem: The PEM encoded public key of the key.
 - resource_id: The Azure resource id of the key.
 - resource_versionless_id: The versionless Azure resource id of the key.
 - versionless_id: The Base ID of the Key Vault Key
+- x: The EC X component of the key. Empty for RSA keys.
+- y: The EC Y component of the key. Empty for RSA keys.
 DESCRIPTION
   value       = module.keys
 }
@@ -39,7 +45,7 @@ output "resource_id" {
 
 output "secrets" {
   description = <<DESCRIPTION
-A map of secret keys to secret values. The secret value is the entire azurerm_key_vault_secret resource.
+A map of secret keys to secret values. The secret value is not the entire azurerm_key_vault_secret resource, only the attributes listed below are exposed.
 
 The secret value contains the following attributes:
 - id: The Key Vault Secret ID

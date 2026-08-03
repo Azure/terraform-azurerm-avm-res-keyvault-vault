@@ -154,9 +154,25 @@ Default: `null`
 
 The following outputs are exported:
 
+### <a name="output_e"></a> [e](#output\_e)
+
+Description: The RSA public exponent of the Key Vault Key. Empty for EC keys.
+
 ### <a name="output_id"></a> [id](#output\_id)
 
 Description: The Key Vault Key ID
+
+### <a name="output_n"></a> [n](#output\_n)
+
+Description: The RSA modulus of the Key Vault Key. Empty for EC keys.
+
+### <a name="output_public_key_openssh"></a> [public\_key\_openssh](#output\_public\_key\_openssh)
+
+Description: The OpenSSH encoded public key of the Key Vault Key.
+
+### <a name="output_public_key_pem"></a> [public\_key\_pem](#output\_public\_key\_pem)
+
+Description: The PEM encoded public key of the Key Vault Key.
 
 ### <a name="output_resource_id"></a> [resource\_id](#output\_resource\_id)
 
@@ -169,6 +185,14 @@ Description: The versionless Azure resource id of the secret.
 ### <a name="output_versionless_id"></a> [versionless\_id](#output\_versionless\_id)
 
 Description: The Base ID of the Key Vault Key
+
+### <a name="output_x"></a> [x](#output\_x)
+
+Description: The EC X component of the Key Vault Key. Empty for RSA keys.
+
+### <a name="output_y"></a> [y](#output\_y)
+
+Description: The EC Y component of the Key Vault Key. Empty for RSA keys.
 
 ## Modules
 

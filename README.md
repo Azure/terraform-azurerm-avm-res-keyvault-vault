@@ -539,13 +539,19 @@ The following outputs are exported:
 
 ### <a name="output_keys"></a> [keys](#output\_keys)
 
-Description: A map of key keys to key values. The key value is the entire azurerm\_key\_vault\_key resource.
+Description: A map of key keys to key values. The key value is not the entire azurerm\_key\_vault\_key resource, only the attributes listed below are exposed.
 
 The key value contains the following attributes:
+- e: The RSA public exponent of the key. Empty for EC keys.
 - id: The Key Vault Key ID
+- n: The RSA modulus of the key. Empty for EC keys.
+- public\_key\_openssh: The OpenSSH encoded public key of the key.
+- public\_key\_pem: The PEM encoded public key of the key.
 - resource\_id: The Azure resource id of the key.
 - resource\_versionless\_id: The versionless Azure resource id of the key.
 - versionless\_id: The Base ID of the Key Vault Key
+- x: The EC X component of the key. Empty for RSA keys.
+- y: The EC Y component of the key. Empty for RSA keys.
 
 ### <a name="output_keys_resource_ids"></a> [keys\_resource\_ids](#output\_keys\_resource\_ids)
 
@@ -565,7 +571,7 @@ Description: The Azure resource id of the key vault.
 
 ### <a name="output_secrets"></a> [secrets](#output\_secrets)
 
-Description: A map of secret keys to secret values. The secret value is the entire azurerm\_key\_vault\_secret resource.
+Description: A map of secret keys to secret values. The secret value is not the entire azurerm\_key\_vault\_secret resource, only the attributes listed below are exposed.
 
 The secret value contains the following attributes:
 - id: The Key Vault Secret ID

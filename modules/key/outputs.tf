@@ -1,6 +1,26 @@
+output "e" {
+  description = "The RSA public exponent of the Key Vault Key. Empty for EC keys."
+  value       = azurerm_key_vault_key.this.e
+}
+
 output "id" {
   description = "The Key Vault Key ID"
   value       = azurerm_key_vault_key.this.id
+}
+
+output "n" {
+  description = "The RSA modulus of the Key Vault Key. Empty for EC keys."
+  value       = azurerm_key_vault_key.this.n
+}
+
+output "public_key_openssh" {
+  description = "The OpenSSH encoded public key of the Key Vault Key."
+  value       = azurerm_key_vault_key.this.public_key_openssh
+}
+
+output "public_key_pem" {
+  description = "The PEM encoded public key of the Key Vault Key."
+  value       = azurerm_key_vault_key.this.public_key_pem
 }
 
 output "resource_id" {
@@ -16,4 +36,14 @@ output "resource_versionless_id" {
 output "versionless_id" {
   description = "The Base ID of the Key Vault Key"
   value       = azurerm_key_vault_key.this.versionless_id
+}
+
+output "x" {
+  description = "The EC X component of the Key Vault Key. Empty for RSA keys."
+  value       = azurerm_key_vault_key.this.x
+}
+
+output "y" {
+  description = "The EC Y component of the Key Vault Key. Empty for RSA keys."
+  value       = azurerm_key_vault_key.this.y
 }
