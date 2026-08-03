@@ -78,6 +78,21 @@ module "key_vault" {
       name     = "cmk-for-storage-account"
       key_size = 2048
     }
+    # HSM-backed keys require a Key Vault with the `premium` SKU, which is the
+    # module default for `sku_name`.
+    hsm_cmk_for_storage_account = {
+      key_opts = [
+        "decrypt",
+        "encrypt",
+        "sign",
+        "unwrapKey",
+        "verify",
+        "wrapKey"
+      ]
+      key_type = "RSA-HSM"
+      name     = "hsm-cmk-for-storage-account"
+      key_size = 2048
+    }
   }
   network_acls = {
     bypass   = "AzureServices"
