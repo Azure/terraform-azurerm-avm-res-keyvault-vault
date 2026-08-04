@@ -10,7 +10,7 @@ provider "azurerm" {
 }
 
 terraform {
-  required_version = ">= 1.9, < 2.0"
+  required_version = ">= 1.11, < 2.0"
 
   required_providers {
     azurerm = {
@@ -110,7 +110,7 @@ module "key_vault" {
 
 The following requirements are needed by this module:
 
-- <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) (>= 1.9, < 2.0)
+- <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) (>= 1.11, < 2.0)
 
 - <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) (>= 4.81)
 
