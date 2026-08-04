@@ -31,6 +31,7 @@ variable "value_wo" {
   type        = string
   description = "The value for the secret writable only. Must be set if `value` is not set."
   default     = null
+  ephemeral   = true
   sensitive   = true
 }
 
