@@ -1,4 +1,3 @@
-
 data "modtm_module_source" "telemetry" {
   count = var.enable_telemetry ? 1 : 0
 
@@ -20,6 +19,7 @@ resource "modtm_telemetry" "telemetry" {
     random_id       = one(random_uuid.telemetry).result
   }, { location = local.main_location })
 }
+
 locals {
   main_location = var.location
 }
