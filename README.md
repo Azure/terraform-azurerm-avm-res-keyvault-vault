@@ -543,13 +543,14 @@ Description: A map of key keys to key values. The key value is the entire azurer
 
 The key value contains the following attributes:
 - id: The Key Vault Key ID
+- name: The name of the key.
 - resource\_id: The Azure resource id of the key.
 - resource\_versionless\_id: The versionless Azure resource id of the key.
 - versionless\_id: The Base ID of the Key Vault Key
 
 ### <a name="output_keys_resource_ids"></a> [keys\_resource\_ids](#output\_keys\_resource\_ids)
 
-Description: A map of key keys to resource ids.
+Description: A map of key keys to resource ids and key names.
 
 ### <a name="output_name"></a> [name](#output\_name)
 
@@ -569,13 +570,14 @@ Description: A map of secret keys to secret values. The secret value is the enti
 
 The secret value contains the following attributes:
 - id: The Key Vault Secret ID
+- name: The name of the secret.
 - resource\_id: The Azure resource id of the secret.
 - resource\_versionless\_id: The versionless Azure resource id of the secret.
 - versionless\_id: The Base ID of the Key Vault Secret
 
 ### <a name="output_secrets_resource_ids"></a> [secrets\_resource\_ids](#output\_secrets\_resource\_ids)
 
-Description: A map of secret keys to resource ids.
+Description: A map of secret keys to resource ids and secret names.
 
 ### <a name="output_uri"></a> [uri](#output\_uri)
 
