@@ -12,6 +12,11 @@ DESCRIPTION
   value       = azurerm_key_vault_key.this.id
 }
 
+output "name" {
+  description = "The name of the Key Vault Key."
+  value       = azurerm_key_vault_key.this.name
+}
+
 output "resource_id" {
   description = <<DESCRIPTION
 The versioned Azure Resource Manager (ARM) resource ID of the key, in the form

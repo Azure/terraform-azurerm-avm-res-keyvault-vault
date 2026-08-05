@@ -148,6 +148,10 @@ Description: The versioned data plane URI of the secret, in the form
 Because it pins a specific secret version, consumers will not pick up new versions  
 automatically; use `versionless_id` instead if that is required.
 
+### <a name="output_name"></a> [name](#output\_name)
+
+Description: The name of the Key Vault Secret.
+
 ### <a name="output_resource_id"></a> [resource\_id](#output\_resource\_id)
 
 Description: The versioned Azure Resource Manager (ARM) resource ID of the secret, in the form

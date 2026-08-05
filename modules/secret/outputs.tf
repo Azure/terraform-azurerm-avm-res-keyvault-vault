@@ -9,6 +9,11 @@ DESCRIPTION
   value       = azurerm_key_vault_secret.this.id
 }
 
+output "name" {
+  description = "The name of the Key Vault Secret."
+  value       = azurerm_key_vault_secret.this.name
+}
+
 output "resource_id" {
   description = <<DESCRIPTION
 The versioned Azure Resource Manager (ARM) resource ID of the secret, in the form

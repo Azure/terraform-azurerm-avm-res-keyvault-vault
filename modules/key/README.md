@@ -197,6 +197,10 @@ for example the `transparent_data_encryption_key_vault_key_id` input of the
 consuming service will not pick up new versions automatically; use `versionless_id`  
 instead if the service supports automatic key rotation.
 
+### <a name="output_name"></a> [name](#output\_name)
+
+Description: The name of the Key Vault Key.
+
 ### <a name="output_resource_id"></a> [resource\_id](#output\_resource\_id)
 
 Description: The versioned Azure Resource Manager (ARM) resource ID of the key, in the form
