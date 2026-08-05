@@ -58,3 +58,95 @@ run "name_regex_must_end_with_letter_or_number" {
 
   expect_failures = [var.name]
 }
+
+run "keys_accepts_all_key_types" {
+  command = plan
+
+  variables {
+    keys = {
+      ec = {
+        name     = "ec-key"
+        key_type = "EC"
+        curve    = "P-256"
+      }
+      ec_hsm = {
+        name     = "ec-hsm-key"
+        key_type = "EC-HSM"
+        curve    = "P-256"
+      }
+      rsa = {
+        name     = "rsa-key"
+        key_type = "RSA"
+        key_size = 2048
+      }
+      rsa_hsm = {
+        name     = "rsa-hsm-key"
+        key_type = "RSA-HSM"
+        key_size = 2048
+      }
+    }
+  }
+}
+
+run "keys_rejects_unknown_key_type" {
+  command = plan
+
+  variables {
+    keys = {
+      invalid = {
+        name     = "invalid-key"
+        key_type = "AES"
+      }
+    }
+  }
+
+  expect_failures = [var.keys]
+}
+
+run "keys_key_type_is_case_sensitive" {
+  command = plan
+
+  variables {
+    keys = {
+      lowercase = {
+        name     = "rsa-hsm-key"
+        key_type = "rsa-hsm"
+        key_size = 2048
+      }
+    }
+  }
+
+  expect_failures = [var.keys]
+}
+
+run "keys_hsm_type_rejected_on_standard_sku" {
+  command = plan
+
+  variables {
+    sku_name = "standard"
+    keys = {
+      hsm = {
+        name     = "hsm-key"
+        key_type = "RSA-HSM"
+        key_size = 2048
+      }
+    }
+  }
+
+  expect_failures = [var.keys]
+}
+
+run "keys_non_hsm_type_allowed_on_standard_sku" {
+  command = plan
+
+  variables {
+    sku_name = "standard"
+    keys = {
+      rsa = {
+        name     = "rsa-key"
+        key_type = "RSA"
+        key_size = 2048
+      }
+    }
+  }
+}

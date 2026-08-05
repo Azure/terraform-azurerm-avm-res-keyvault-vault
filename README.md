@@ -164,10 +164,10 @@ Default: `false`
 Description: A map of keys to create on the Key Vault. The map key is deliberately arbitrary to avoid issues where map keys maybe unknown at plan time.
 
 - `name` - The name of the key.
-- `key_type` - The type of the key. Possible values are `EC` and `RSA`.
+- `key_type` - The type of the key. Possible values are `EC`, `EC-HSM`, `RSA`, and `RSA-HSM`. The values are case-sensitive. The HSM-backed types (`EC-HSM` and `RSA-HSM`) require `var.sku_name` to be set to `premium`.
 - `key_opts` - A list of key options. Possible values are `decrypt`, `encrypt`, `sign`, `unwrapKey`, `verify`, and `wrapKey`.
-- `key_size` - The size of the key. Required for `RSA` keys.
-- `curve` - The curve of the key. Required for `EC` keys.  Possible values are `P-256`, `P-256K`, `P-384`, and `P-521`. The API will default to `P-256` if nothing is specified.
+- `key_size` - The size of the key, e.g. `2048` or `4096`. Required for `RSA` and `RSA-HSM` keys.
+- `curve` - The curve of the key. Required for `EC` and `EC-HSM` keys.  Possible values are `P-256`, `P-256K`, `P-384`, and `P-521`. The API will default to `P-256` if nothing is specified.
 - `not_before_date` - The not before date of the key.
 - `expiration_date` - The expiration date of the key.
 - `tags` - A mapping of tags to assign to the key.

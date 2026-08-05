@@ -104,6 +104,21 @@ module "key_vault" {
       name     = "cmk-for-storage-account"
       key_size = 2048
     }
+    # HSM-backed keys require a Key Vault with the `premium` SKU. This example sets
+    # `sku_name` explicitly below rather than relying on the module default.
+    hsm_cmk_for_storage_account = {
+      key_opts = [
+        "decrypt",
+        "encrypt",
+        "sign",
+        "unwrapKey",
+        "verify",
+        "wrapKey"
+      ]
+      key_type = "RSA-HSM"
+      name     = "hsm-cmk-for-storage-account"
+      key_size = 2048
+    }
   }
   network_acls = {
     bypass   = "AzureServices"
@@ -116,6 +131,9 @@ module "key_vault" {
       principal_id               = data.azurerm_client_config.current.object_id
     }
   }
+  # Required for the HSM-backed key above. Also the module default, but set
+  # explicitly so the example does not silently break if that default changes.
+  sku_name = "premium"
   wait_for_rbac_before_key_operations = {
     create = "60s"
   }
