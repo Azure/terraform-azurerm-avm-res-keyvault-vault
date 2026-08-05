@@ -545,6 +545,7 @@ The key value contains the following attributes:
 - e: The RSA public exponent of the key. Empty for EC keys.
 - id: The Key Vault Key ID
 - n: The RSA modulus of the key. Empty for EC keys.
+- name: The name of the key.
 - public\_key\_openssh: The OpenSSH encoded public key of the key.
 - public\_key\_pem: The PEM encoded public key of the key.
 - resource\_id: The Azure resource id of the key.
@@ -555,7 +556,7 @@ The key value contains the following attributes:
 
 ### <a name="output_keys_resource_ids"></a> [keys\_resource\_ids](#output\_keys\_resource\_ids)
 
-Description: A map of key keys to resource ids.
+Description: A map of key keys to resource ids and key names.
 
 ### <a name="output_name"></a> [name](#output\_name)
 
@@ -575,13 +576,14 @@ Description: A map of secret keys to secret values. The secret value is not the 
 
 The secret value contains the following attributes:
 - id: The Key Vault Secret ID
+- name: The name of the secret.
 - resource\_id: The Azure resource id of the secret.
 - resource\_versionless\_id: The versionless Azure resource id of the secret.
 - versionless\_id: The Base ID of the Key Vault Secret
 
 ### <a name="output_secrets_resource_ids"></a> [secrets\_resource\_ids](#output\_secrets\_resource\_ids)
 
-Description: A map of secret keys to resource ids.
+Description: A map of secret keys to resource ids and secret names.
 
 ### <a name="output_uri"></a> [uri](#output\_uri)
 

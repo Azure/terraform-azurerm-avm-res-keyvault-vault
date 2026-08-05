@@ -198,6 +198,10 @@ Description: The Key Vault Key ID
 
 Description: The RSA modulus of the Key Vault Key. Empty for EC keys.
 
+### <a name="output_name"></a> [name](#output\_name)
+
+Description: The name of the Key Vault Key.
+
 ### <a name="output_public_key_openssh"></a> [public\_key\_openssh](#output\_public\_key\_openssh)
 
 Description: The OpenSSH encoded public key of the Key Vault Key.

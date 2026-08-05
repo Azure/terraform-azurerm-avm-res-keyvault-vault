@@ -13,6 +13,11 @@ output "n" {
   value       = azurerm_key_vault_key.this.n
 }
 
+output "name" {
+  description = "The name of the Key Vault Key."
+  value       = azurerm_key_vault_key.this.name
+}
+
 output "public_key_openssh" {
   description = "The OpenSSH encoded public key of the Key Vault Key."
   value       = azurerm_key_vault_key.this.public_key_openssh
