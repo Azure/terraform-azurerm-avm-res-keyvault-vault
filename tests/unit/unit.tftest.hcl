@@ -118,3 +118,35 @@ run "keys_key_type_is_case_sensitive" {
 
   expect_failures = [var.keys]
 }
+
+run "keys_hsm_type_rejected_on_standard_sku" {
+  command = plan
+
+  variables {
+    sku_name = "standard"
+    keys = {
+      hsm = {
+        name     = "hsm-key"
+        key_type = "RSA-HSM"
+        key_size = 2048
+      }
+    }
+  }
+
+  expect_failures = [var.keys]
+}
+
+run "keys_non_hsm_type_allowed_on_standard_sku" {
+  command = plan
+
+  variables {
+    sku_name = "standard"
+    keys = {
+      rsa = {
+        name     = "rsa-key"
+        key_type = "RSA"
+        key_size = 2048
+      }
+    }
+  }
+}

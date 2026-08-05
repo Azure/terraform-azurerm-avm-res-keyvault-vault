@@ -182,8 +182,12 @@ DESCRIPTION
   nullable    = false
 
   validation {
-    error_message = "The `key_type` of each key must be one of `EC`, `EC-HSM`, `RSA`, or `RSA-HSM` (case-sensitive). The HSM-backed types require `var.sku_name` to be set to `premium`."
+    error_message = "The `key_type` of each key must be one of `EC`, `EC-HSM`, `RSA`, or `RSA-HSM` (case-sensitive)."
     condition     = alltrue([for key in var.keys : contains(["EC", "EC-HSM", "RSA", "RSA-HSM"], key.key_type)])
+  }
+  validation {
+    error_message = "HSM-backed keys (`EC-HSM` and `RSA-HSM`) require `var.sku_name` to be set to `premium`, or a Managed HSM."
+    condition     = var.sku_name == "premium" || !anytrue([for key in var.keys : endswith(key.key_type, "-HSM")])
   }
 }
 
