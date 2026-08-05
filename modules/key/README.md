@@ -204,19 +204,19 @@ Description: The name of the Key Vault Key.
 
 ### <a name="output_public_key_openssh"></a> [public\_key\_openssh](#output\_public\_key\_openssh)
 
-Description: The OpenSSH encoded public key of the Key Vault Key.
+Description: The OpenSSH encoded public key of the Key Vault Key. Empty for `P-256K` keys, which the provider does not derive a public key for.
 
 ### <a name="output_public_key_pem"></a> [public\_key\_pem](#output\_public\_key\_pem)
 
-Description: The PEM encoded public key of the Key Vault Key.
+Description: The PEM encoded public key of the Key Vault Key. Empty for `P-256K` keys, which the provider does not derive a public key for.
 
 ### <a name="output_resource_id"></a> [resource\_id](#output\_resource\_id)
 
-Description: The Azure resource id of the secret.
+Description: The Azure resource id of the key.
 
 ### <a name="output_resource_versionless_id"></a> [resource\_versionless\_id](#output\_resource\_versionless\_id)
 
-Description: The versionless Azure resource id of the secret.
+Description: The versionless Azure resource id of the key.
 
 ### <a name="output_versionless_id"></a> [versionless\_id](#output\_versionless\_id)
 

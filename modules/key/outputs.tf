@@ -19,22 +19,22 @@ output "name" {
 }
 
 output "public_key_openssh" {
-  description = "The OpenSSH encoded public key of the Key Vault Key."
+  description = "The OpenSSH encoded public key of the Key Vault Key. Empty for `P-256K` keys, which the provider does not derive a public key for."
   value       = azurerm_key_vault_key.this.public_key_openssh
 }
 
 output "public_key_pem" {
-  description = "The PEM encoded public key of the Key Vault Key."
+  description = "The PEM encoded public key of the Key Vault Key. Empty for `P-256K` keys, which the provider does not derive a public key for."
   value       = azurerm_key_vault_key.this.public_key_pem
 }
 
 output "resource_id" {
-  description = "The Azure resource id of the secret."
+  description = "The Azure resource id of the key."
   value       = azurerm_key_vault_key.this.resource_id
 }
 
 output "resource_versionless_id" {
-  description = "The versionless Azure resource id of the secret."
+  description = "The versionless Azure resource id of the key."
   value       = azurerm_key_vault_key.this.resource_versionless_id
 }
 

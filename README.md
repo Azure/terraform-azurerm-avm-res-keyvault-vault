@@ -546,8 +546,8 @@ The key value contains the following attributes:
 - id: The Key Vault Key ID
 - n: The RSA modulus of the key. Empty for EC keys.
 - name: The name of the key.
-- public\_key\_openssh: The OpenSSH encoded public key of the key.
-- public\_key\_pem: The PEM encoded public key of the key.
+- public\_key\_openssh: The OpenSSH encoded public key of the key. Empty for `P-256K` keys.
+- public\_key\_pem: The PEM encoded public key of the key. Empty for `P-256K` keys.
 - resource\_id: The Azure resource id of the key.
 - resource\_versionless\_id: The versionless Azure resource id of the key.
 - versionless\_id: The Base ID of the Key Vault Key
