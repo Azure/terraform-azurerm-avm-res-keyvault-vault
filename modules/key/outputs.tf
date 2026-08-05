@@ -1,5 +1,5 @@
 output "e" {
-  description = "The RSA public exponent of the Key Vault Key. Empty for EC keys."
+  description = "The RSA public exponent of the Key Vault Key. Use together with `n`, which carries the modulus. Empty for EC keys."
   value       = azurerm_key_vault_key.this.e
 }
 
@@ -9,7 +9,7 @@ output "id" {
 }
 
 output "n" {
-  description = "The RSA modulus of the Key Vault Key. Empty for EC keys."
+  description = "The RSA modulus of the Key Vault Key. Use together with `e`, which carries the public exponent. Empty for EC keys."
   value       = azurerm_key_vault_key.this.n
 }
 
@@ -44,11 +44,11 @@ output "versionless_id" {
 }
 
 output "x" {
-  description = "The EC X component of the Key Vault Key. Empty for RSA keys."
+  description = "The EC X component of the Key Vault Key. Use together with `y`, which carries the Y component. Empty for RSA keys."
   value       = azurerm_key_vault_key.this.x
 }
 
 output "y" {
-  description = "The EC Y component of the Key Vault Key. Empty for RSA keys."
+  description = "The EC Y component of the Key Vault Key. Use together with `x`, which carries the X component. Empty for RSA keys."
   value       = azurerm_key_vault_key.this.y
 }

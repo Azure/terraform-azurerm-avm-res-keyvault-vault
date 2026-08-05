@@ -188,7 +188,7 @@ The following outputs are exported:
 
 ### <a name="output_e"></a> [e](#output\_e)
 
-Description: The RSA public exponent of the Key Vault Key. Empty for EC keys.
+Description: The RSA public exponent of the Key Vault Key. Use together with `n`, which carries the modulus. Empty for EC keys.
 
 ### <a name="output_id"></a> [id](#output\_id)
 
@@ -196,7 +196,7 @@ Description: The Key Vault Key ID
 
 ### <a name="output_n"></a> [n](#output\_n)
 
-Description: The RSA modulus of the Key Vault Key. Empty for EC keys.
+Description: The RSA modulus of the Key Vault Key. Use together with `e`, which carries the public exponent. Empty for EC keys.
 
 ### <a name="output_name"></a> [name](#output\_name)
 
@@ -224,11 +224,11 @@ Description: The Base ID of the Key Vault Key
 
 ### <a name="output_x"></a> [x](#output\_x)
 
-Description: The EC X component of the Key Vault Key. Empty for RSA keys.
+Description: The EC X component of the Key Vault Key. Use together with `y`, which carries the Y component. Empty for RSA keys.
 
 ### <a name="output_y"></a> [y](#output\_y)
 
-Description: The EC Y component of the Key Vault Key. Empty for RSA keys.
+Description: The EC Y component of the Key Vault Key. Use together with `x`, which carries the X component. Empty for RSA keys.
 
 ## Modules
 
