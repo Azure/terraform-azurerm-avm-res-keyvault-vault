@@ -540,12 +540,13 @@ The following outputs are exported:
 ### <a name="output_keys"></a> [keys](#output\_keys)
 
 Description: A map of key keys to key values. The map key is the key of the `var.keys` map entry (not  
-the name of the key itself). The key value is the entire azurerm\_key\_vault\_key resource.
+the name of the key itself). The key value is not the entire azurerm\_key\_vault\_key  
+resource, only the attributes listed below are exposed.
 
 The key value contains the following attributes:
 - id: The versioned data plane URI of the key, in the form `https://<vault-name>.vault.azure.net/keys/<key-name>/<key-version>`. This is the value most Azure services expect for a customer managed key.
 - name: The name of the key.
-- versionless\_id: The versionless data plane URI of the key, in the form `https://<vault-name>.vault.azure.net/keys/<key-name>`. Use this where the consuming service supports automatic key rotation.
+- versionless\_id: The versionless data plane URI of the key, in the form `https://<vault-name>.vault.azure.net/keys/<key-name>`. Use only where the consuming API documents that it accepts a versionless URI; supporting rotation does not imply this.
 - resource\_id: The versioned ARM resource ID of the key, in the form `/subscriptions/<subscription-id>/resourceGroups/<resource-group-name>/providers/Microsoft.KeyVault/vaults/<vault-name>/keys/<key-name>/versions/<key-version>`.
 - resource\_versionless\_id: The versionless ARM resource ID of the key, in the form `/subscriptions/<subscription-id>/resourceGroups/<resource-group-name>/providers/Microsoft.KeyVault/vaults/<vault-name>/keys/<key-name>`.
 
@@ -574,8 +575,8 @@ Description: The Azure resource id of the key vault.
 ### <a name="output_secrets"></a> [secrets](#output\_secrets)
 
 Description: A map of secret keys to secret values. The map key is the key of the `var.secrets` map  
-entry (not the name of the secret itself). The secret value is the entire  
-azurerm\_key\_vault\_secret resource.
+entry (not the name of the secret itself). The secret value is not the entire  
+azurerm\_key\_vault\_secret resource, only the attributes listed below are exposed.
 
 The secret value contains the following attributes:
 - id: The versioned data plane URI of the secret, in the form `https://<vault-name>.vault.azure.net/secrets/<secret-name>/<secret-version>`.

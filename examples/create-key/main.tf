@@ -120,22 +120,17 @@ module "key_vault" {
 # Use `.id` for the versioned data plane URI that services expect for a customer managed key:
 #   https://<vault-name>.vault.azure.net/keys/<key-name>/<key-version>
 #
-# For example, to enable transparent data encryption on an Azure SQL server:
+# For example, the `transparent_data_encryption_key_vault_key_id` input of
+# `Azure/avm-res-sql-server/azurerm` takes:
 #
-# module "sql_server" {
-#   source  = "Azure/avm-res-sql-server/azurerm"
-#   version = "0.2.1"
+#   module.key_vault.keys["cmk_for_storage_account"].id
 #
-#   location            = azurerm_resource_group.this.location
-#   name                = module.naming.sql_server.name_unique
-#   resource_group_name = azurerm_resource_group.this.name
+# That input requires the fully versioned key URL. Note that Azure SQL does support key
+# rotation, but it is enabled by a separate setting on that module rather than by passing
+# a versionless URI, so `.versionless_id` is not the right value here.
 #
-#   # This input requires the fully versioned key URL, which is what `.id` returns.
-#   # Automatic key rotation is a separate option on that module, so `.versionless_id`
-#   # is not used here.
-#   transparent_data_encryption_key_vault_key_id = module.key_vault.keys["cmk_for_storage_account"].id
-# }
-#
-# The SQL server's identity needs `Key Vault Crypto Service Encryption User` on the vault
-# before encryption can be enabled. See the outputs.tf file in this example for the other
-# identifier forms the module exposes.
+# A working end-to-end configuration also needs a managed identity on the SQL server and a
+# `Key Vault Crypto Service Encryption User` role assignment for it on the vault. That is
+# out of scope for this example — see the avm-res-sql-server module's own TDE example for a
+# complete, tested configuration. The `outputs.tf` file here shows the other identifier
+# forms this module exposes.

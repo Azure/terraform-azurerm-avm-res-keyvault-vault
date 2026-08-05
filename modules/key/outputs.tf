@@ -5,9 +5,11 @@ The versioned data plane URI of the key, in the form
 
 This is the value most Azure services expect when configuring a customer managed key,
 for example the `transparent_data_encryption_key_vault_key_id` input of the
-`Azure/avm-res-sql-server/azurerm` module. Because it pins a specific key version, the
-consuming service will not pick up new versions automatically; use `versionless_id`
-instead if the service supports automatic key rotation.
+`Azure/avm-res-sql-server/azurerm` module. It pins a specific key version. Note that
+supporting key rotation does not imply accepting a versionless URI — Azure SQL, for
+example, requires this versioned form and is told to follow rotation by a separate
+setting. Use `versionless_id` only where the consuming API documents that it accepts a
+versionless URI.
 DESCRIPTION
   value       = azurerm_key_vault_key.this.id
 }

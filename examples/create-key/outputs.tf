@@ -26,7 +26,9 @@ output "key_versionless_uri" {
 The versionless data plane URI of the key, in the form
 `https://<vault-name>.vault.azure.net/keys/<key-name>`.
 
-Use this instead of `key_uri` where the consuming service supports automatic key rotation.
+Use this instead of `key_uri` only where the consuming API documents that it accepts a
+versionless URI. Supporting key rotation does not imply this — Azure SQL supports
+rotation but requires the versioned `key_uri`.
 DESCRIPTION
   value       = module.key_vault.keys["cmk_for_storage_account"].versionless_id
 }
