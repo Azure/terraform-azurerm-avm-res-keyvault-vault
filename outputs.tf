@@ -6,6 +6,7 @@ The key value contains the following attributes:
 - e: The RSA public exponent of the key. Empty for EC keys.
 - id: The Key Vault Key ID
 - n: The RSA modulus of the key. Empty for EC keys.
+- name: The name of the key.
 - public_key_openssh: The OpenSSH encoded public key of the key.
 - public_key_pem: The PEM encoded public key of the key.
 - resource_id: The Azure resource id of the key.
@@ -18,12 +19,13 @@ DESCRIPTION
 }
 
 output "keys_resource_ids" {
-  description = "A map of key keys to resource ids."
+  description = "A map of key keys to resource ids and key names."
   value = { for kk, kv in module.keys : kk => {
     resource_id             = kv.resource_id
     resource_versionless_id = kv.resource_versionless_id
     id                      = kv.id
     versionless_id          = kv.versionless_id
+    name                    = kv.name
     }
   }
 }
@@ -49,6 +51,7 @@ A map of secret keys to secret values. The secret value is not the entire azurer
 
 The secret value contains the following attributes:
 - id: The Key Vault Secret ID
+- name: The name of the secret.
 - resource_id: The Azure resource id of the secret.
 - resource_versionless_id: The versionless Azure resource id of the secret.
 - versionless_id: The Base ID of the Key Vault Secret
@@ -57,12 +60,13 @@ DESCRIPTION
 }
 
 output "secrets_resource_ids" {
-  description = "A map of secret keys to resource ids."
+  description = "A map of secret keys to resource ids and secret names."
   value = { for sk, sv in module.secrets : sk => {
     resource_id             = sv.resource_id
     resource_versionless_id = sv.resource_versionless_id
     id                      = sv.id
     versionless_id          = sv.versionless_id
+    name                    = sv.name
     }
   }
 }

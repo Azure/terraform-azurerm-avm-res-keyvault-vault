@@ -164,10 +164,10 @@ Default: `false`
 Description: A map of keys to create on the Key Vault. The map key is deliberately arbitrary to avoid issues where map keys maybe unknown at plan time.
 
 - `name` - The name of the key.
-- `key_type` - The type of the key. Possible values are `EC` and `RSA`.
+- `key_type` - The type of the key. Possible values are `EC`, `EC-HSM`, `RSA`, and `RSA-HSM`. The values are case-sensitive. The HSM-backed types (`EC-HSM` and `RSA-HSM`) require `var.sku_name` to be set to `premium`.
 - `key_opts` - A list of key options. Possible values are `decrypt`, `encrypt`, `sign`, `unwrapKey`, `verify`, and `wrapKey`.
-- `key_size` - The size of the key. Required for `RSA` keys.
-- `curve` - The curve of the key. Required for `EC` keys.  Possible values are `P-256`, `P-256K`, `P-384`, and `P-521`. The API will default to `P-256` if nothing is specified.
+- `key_size` - The size of the key, e.g. `2048` or `4096`. Required for `RSA` and `RSA-HSM` keys.
+- `curve` - The curve of the key. Required for `EC` and `EC-HSM` keys.  Possible values are `P-256`, `P-256K`, `P-384`, and `P-521`. The API will default to `P-256` if nothing is specified.
 - `not_before_date` - The not before date of the key.
 - `expiration_date` - The expiration date of the key.
 - `tags` - A mapping of tags to assign to the key.
@@ -545,6 +545,7 @@ The key value contains the following attributes:
 - e: The RSA public exponent of the key. Empty for EC keys.
 - id: The Key Vault Key ID
 - n: The RSA modulus of the key. Empty for EC keys.
+- name: The name of the key.
 - public\_key\_openssh: The OpenSSH encoded public key of the key.
 - public\_key\_pem: The PEM encoded public key of the key.
 - resource\_id: The Azure resource id of the key.
@@ -555,7 +556,7 @@ The key value contains the following attributes:
 
 ### <a name="output_keys_resource_ids"></a> [keys\_resource\_ids](#output\_keys\_resource\_ids)
 
-Description: A map of key keys to resource ids.
+Description: A map of key keys to resource ids and key names.
 
 ### <a name="output_name"></a> [name](#output\_name)
 
@@ -575,13 +576,14 @@ Description: A map of secret keys to secret values. The secret value is not the 
 
 The secret value contains the following attributes:
 - id: The Key Vault Secret ID
+- name: The name of the secret.
 - resource\_id: The Azure resource id of the secret.
 - resource\_versionless\_id: The versionless Azure resource id of the secret.
 - versionless\_id: The Base ID of the Key Vault Secret
 
 ### <a name="output_secrets_resource_ids"></a> [secrets\_resource\_ids](#output\_secrets\_resource\_ids)
 
-Description: A map of secret keys to resource ids.
+Description: A map of secret keys to resource ids and secret names.
 
 ### <a name="output_uri"></a> [uri](#output\_uri)
 
