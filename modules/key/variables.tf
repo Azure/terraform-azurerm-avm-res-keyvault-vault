@@ -17,14 +17,19 @@ variable "name" {
 
 variable "type" {
   type        = string
-  description = "The type of the key. Possible values are `EC` and `RSA`."
+  description = "The type of the key. Possible values are `EC`, `EC-HSM`, `RSA`, and `RSA-HSM`. The values are case-sensitive. The HSM-backed types (`EC-HSM` and `RSA-HSM`) require a Key Vault with the `premium` SKU, or a Managed HSM."
   nullable    = false
+
+  validation {
+    error_message = "The key type must be one of `EC`, `EC-HSM`, `RSA`, or `RSA-HSM` (case-sensitive). The HSM-backed types require a Key Vault with the `premium` SKU, or a Managed HSM."
+    condition     = contains(["EC", "EC-HSM", "RSA", "RSA-HSM"], var.type)
+  }
 }
 
 variable "curve" {
   type        = string
   default     = null
-  description = "The curve of the EC key. Required if `type` is `EC`. Possible values are `P-256`, `P-256K`, `P-384`, and `P-521`. This field will be required in a future release if key_type is EC or EC-HSM. The API will default to `P-256` if nothing is specified."
+  description = "The curve of the EC key. Required if `type` is `EC` or `EC-HSM`. Possible values are `P-256`, `P-256K`, `P-384`, and `P-521`. This field will be required in a future release if key_type is EC or EC-HSM. The API will default to `P-256` if nothing is specified."
 }
 
 variable "expiration_date" {
@@ -106,7 +111,7 @@ DESCRIPTION
 variable "size" {
   type        = number
   default     = null
-  description = "The size of the RSA key. Required if `type` is `RSA` or `RSA-HSM`."
+  description = "The size of the RSA key, e.g. `2048` or `4096`. Required if `type` is `RSA` or `RSA-HSM`."
 }
 
 variable "tags" {

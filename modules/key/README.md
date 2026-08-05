@@ -71,7 +71,7 @@ Type: `string`
 
 ### <a name="input_type"></a> [type](#input\_type)
 
-Description: The type of the key. Possible values are `EC` and `RSA`.
+Description: The type of the key. Possible values are `EC`, `EC-HSM`, `RSA`, and `RSA-HSM`. The values are case-sensitive. The HSM-backed types (`EC-HSM` and `RSA-HSM`) require a Key Vault with the `premium` SKU, or a Managed HSM.
 
 Type: `string`
 
@@ -81,7 +81,7 @@ The following input variables are optional (have default values):
 
 ### <a name="input_curve"></a> [curve](#input\_curve)
 
-Description: The curve of the EC key. Required if `type` is `EC`. Possible values are `P-256`, `P-256K`, `P-384`, and `P-521`. This field will be required in a future release if key\_type is EC or EC-HSM. The API will default to `P-256` if nothing is specified.
+Description: The curve of the EC key. Required if `type` is `EC` or `EC-HSM`. Possible values are `P-256`, `P-256K`, `P-384`, and `P-521`. This field will be required in a future release if key\_type is EC or EC-HSM. The API will default to `P-256` if nothing is specified.
 
 Type: `string`
 
@@ -168,7 +168,7 @@ Default: `null`
 
 ### <a name="input_size"></a> [size](#input\_size)
 
-Description: The size of the RSA key. Required if `type` is `RSA` or `RSA-HSM`.
+Description: The size of the RSA key, e.g. `2048` or `4096`. Required if `type` is `RSA` or `RSA-HSM`.
 
 Type: `number`
 
