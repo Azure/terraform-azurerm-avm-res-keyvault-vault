@@ -4,6 +4,7 @@ A map of key keys to key values. The key value is the entire azurerm_key_vault_k
 
 The key value contains the following attributes:
 - id: The Key Vault Key ID
+- name: The name of the key.
 - resource_id: The Azure resource id of the key.
 - resource_versionless_id: The versionless Azure resource id of the key.
 - versionless_id: The Base ID of the Key Vault Key
@@ -12,12 +13,13 @@ DESCRIPTION
 }
 
 output "keys_resource_ids" {
-  description = "A map of key keys to resource ids."
+  description = "A map of key keys to resource ids and key names."
   value = { for kk, kv in module.keys : kk => {
     resource_id             = kv.resource_id
     resource_versionless_id = kv.resource_versionless_id
     id                      = kv.id
     versionless_id          = kv.versionless_id
+    name                    = kv.name
     }
   }
 }
@@ -43,6 +45,7 @@ A map of secret keys to secret values. The secret value is the entire azurerm_ke
 
 The secret value contains the following attributes:
 - id: The Key Vault Secret ID
+- name: The name of the secret.
 - resource_id: The Azure resource id of the secret.
 - resource_versionless_id: The versionless Azure resource id of the secret.
 - versionless_id: The Base ID of the Key Vault Secret
@@ -51,12 +54,13 @@ DESCRIPTION
 }
 
 output "secrets_resource_ids" {
-  description = "A map of secret keys to resource ids."
+  description = "A map of secret keys to resource ids and secret names."
   value = { for sk, sv in module.secrets : sk => {
     resource_id             = sv.resource_id
     resource_versionless_id = sv.resource_versionless_id
     id                      = sv.id
     versionless_id          = sv.versionless_id
+    name                    = sv.name
     }
   }
 }

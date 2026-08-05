@@ -190,6 +190,10 @@ The following outputs are exported:
 
 Description: The Key Vault Key ID
 
+### <a name="output_name"></a> [name](#output\_name)
+
+Description: The name of the Key Vault Key.
+
 ### <a name="output_resource_id"></a> [resource\_id](#output\_resource\_id)
 
 Description: The Azure resource id of the secret.

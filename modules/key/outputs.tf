@@ -3,6 +3,11 @@ output "id" {
   value       = azurerm_key_vault_key.this.id
 }
 
+output "name" {
+  description = "The name of the Key Vault Key."
+  value       = azurerm_key_vault_key.this.name
+}
+
 output "resource_id" {
   description = "The Azure resource id of the secret."
   value       = azurerm_key_vault_key.this.resource_id
