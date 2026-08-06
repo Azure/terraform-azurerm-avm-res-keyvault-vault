@@ -186,6 +186,10 @@ Default: `null`
 
 The following outputs are exported:
 
+### <a name="output_e"></a> [e](#output\_e)
+
+Description: The RSA public exponent of the Key Vault Key. Use together with `n`, which carries the modulus. Empty for EC keys.
+
 ### <a name="output_id"></a> [id](#output\_id)
 
 Description: The versioned data plane URI of the key, in the form
@@ -199,9 +203,21 @@ example, requires this versioned form and is told to follow rotation by a separa
 setting. Use `versionless_id` only where the consuming API documents that it accepts a  
 versionless URI.
 
+### <a name="output_n"></a> [n](#output\_n)
+
+Description: The RSA modulus of the Key Vault Key. Use together with `e`, which carries the public exponent. Empty for EC keys.
+
 ### <a name="output_name"></a> [name](#output\_name)
 
 Description: The name of the Key Vault Key.
+
+### <a name="output_public_key_openssh"></a> [public\_key\_openssh](#output\_public\_key\_openssh)
+
+Description: The OpenSSH encoded public key of the Key Vault Key. Empty for `P-256K` keys, which the provider does not derive a public key for.
+
+### <a name="output_public_key_pem"></a> [public\_key\_pem](#output\_public\_key\_pem)
+
+Description: The PEM encoded public key of the Key Vault Key. Empty for `P-256K` keys, which the provider does not derive a public key for.
 
 ### <a name="output_resource_id"></a> [resource\_id](#output\_resource\_id)
 
@@ -226,6 +242,14 @@ Description: The versionless data plane URI of the key, in the form
 
 Because it does not pin a key version, services that support it will pick up new key  
 versions automatically. Use `id` when a service requires a specific key version.
+
+### <a name="output_x"></a> [x](#output\_x)
+
+Description: The EC X component of the Key Vault Key. Use together with `y`, which carries the Y component. Empty for RSA keys.
+
+### <a name="output_y"></a> [y](#output\_y)
+
+Description: The EC Y component of the Key Vault Key. Use together with `x`, which carries the X component. Empty for RSA keys.
 
 ## Modules
 

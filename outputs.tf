@@ -4,12 +4,26 @@ A map of key keys to key values. The map key is the key of the `var.keys` map en
 the name of the key itself). The key value is not the entire azurerm_key_vault_key
 resource, only the attributes listed below are exposed.
 
-The key value contains the following attributes:
+The key value contains the following attributes, grouped by purpose:
+
+Identifiers:
 - id: The versioned data plane URI of the key, in the form `https://<vault-name>.vault.azure.net/keys/<key-name>/<key-version>`. This is the value most Azure services expect for a customer managed key.
 - name: The name of the key.
 - versionless_id: The versionless data plane URI of the key, in the form `https://<vault-name>.vault.azure.net/keys/<key-name>`. Use only where the consuming API documents that it accepts a versionless URI; supporting rotation does not imply this.
 - resource_id: The versioned ARM resource ID of the key, in the form `/subscriptions/<subscription-id>/resourceGroups/<resource-group-name>/providers/Microsoft.KeyVault/vaults/<vault-name>/keys/<key-name>/versions/<key-version>`.
 - resource_versionless_id: The versionless ARM resource ID of the key, in the form `/subscriptions/<subscription-id>/resourceGroups/<resource-group-name>/providers/Microsoft.KeyVault/vaults/<vault-name>/keys/<key-name>`.
+
+Encoded public key, for RSA and for EC curves other than `P-256K`:
+- public_key_pem: The PEM encoded public key of the key.
+- public_key_openssh: The OpenSSH encoded public key of the key.
+
+Raw RSA public key components, empty for EC keys. These are a pair:
+- n: The RSA modulus of the key.
+- e: The RSA public exponent of the key.
+
+Raw EC public key components, empty for RSA keys. These are a pair:
+- x: The EC X component of the key.
+- y: The EC Y component of the key.
 
 For example, to pass a key to a service that expects a key vault key URI:
 `module.key_vault.keys["<var.keys map key>"].id`
@@ -25,11 +39,11 @@ each attribute: `id` and `versionless_id` are data plane URIs, `resource_id` and
 `resource_versionless_id` are ARM resource IDs.
 DESCRIPTION
   value = { for kk, kv in module.keys : kk => {
+    id                      = kv.id
+    name                    = kv.name
     resource_id             = kv.resource_id
     resource_versionless_id = kv.resource_versionless_id
-    id                      = kv.id
     versionless_id          = kv.versionless_id
-    name                    = kv.name
     }
   }
 }
@@ -73,11 +87,11 @@ the exact shape of each attribute: `id` and `versionless_id` are data plane URIs
 `resource_id` and `resource_versionless_id` are ARM resource IDs.
 DESCRIPTION
   value = { for sk, sv in module.secrets : sk => {
+    id                      = sv.id
+    name                    = sv.name
     resource_id             = sv.resource_id
     resource_versionless_id = sv.resource_versionless_id
-    id                      = sv.id
     versionless_id          = sv.versionless_id
-    name                    = sv.name
     }
   }
 }
