@@ -10,8 +10,7 @@ This sub-module can be called directly to add secrets to an existing key vault:
 
 ```terraform
 module "keyvault_secret" {
-  source  = "Azure/avm-res-keyvault-vault/azurerm//modules/secret"
-  version = "0.10.2"
+  source = "Azure/avm-res-keyvault-vault/azurerm//modules/secret"
 
   key_vault_resource_id = azurerm_key_vault.this.id
   name                  = "my-secret"
