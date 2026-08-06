@@ -112,3 +112,25 @@ module "key_vault" {
     create = "60s"
   }
 }
+
+# The created key is referenced through the `keys` output, indexed by the *map key* used in
+# `var.keys` above (`cmk_for_storage_account`), not by the key's `name`
+# (`cmk-for-storage-account`).
+#
+# Use `.id` for the versioned data plane URI that services expect for a customer managed key:
+#   https://<vault-name>.vault.azure.net/keys/<key-name>/<key-version>
+#
+# For example, the `transparent_data_encryption_key_vault_key_id` input of
+# `Azure/avm-res-sql-server/azurerm` takes:
+#
+#   module.key_vault.keys["cmk_for_storage_account"].id
+#
+# That input requires the fully versioned key URL. Note that Azure SQL does support key
+# rotation, but it is enabled by a separate setting on that module rather than by passing
+# a versionless URI, so `.versionless_id` is not the right value here.
+#
+# A working end-to-end configuration also needs a managed identity on the SQL server and a
+# `Key Vault Crypto Service Encryption User` role assignment for it on the vault. That is
+# out of scope for this example — see the avm-res-sql-server module's own TDE example for a
+# complete, tested configuration. The `outputs.tf` file here shows the other identifier
+# forms this module exposes.
