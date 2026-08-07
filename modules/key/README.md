@@ -10,7 +10,8 @@ This sub-module can be called directly to add keys to an existing key vault:
 
 ```terraform
 module "keyvault_key" {
-  source = "Azure/avm-res-keyvault-vault/azurerm//modules/key"
+  source  = "Azure/avm-res-keyvault-vault/azurerm//modules/key"
+  version = "0.#.#" # Replace with your desired version
 
   key_vault_resource_id = azurerm_key_vault.this.id
   name                  = "my-key"
