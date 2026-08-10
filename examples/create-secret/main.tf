@@ -75,11 +75,11 @@ module "key_vault" {
       principal_id               = data.azurerm_client_config.current.object_id
     }
   }
-
   secrets = {
     test_secret = {
       name = "test-secret"
     }
+
   }
   secrets_value = {
     test_secret = "secret-value"
