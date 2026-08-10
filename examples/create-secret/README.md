@@ -94,7 +94,6 @@ module "key_vault" {
     create = "60s"
   }
 }
-
 ```
 
 <!-- markdownlint-disable MD033 -->
