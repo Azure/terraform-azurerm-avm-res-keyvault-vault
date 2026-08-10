@@ -79,7 +79,6 @@ module "key_vault" {
     test_secret = {
       name = "test-secret"
     }
-
   }
   secrets_value = {
     test_secret = "secret-value"
