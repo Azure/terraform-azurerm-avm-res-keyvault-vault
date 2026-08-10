@@ -8,7 +8,7 @@ terraform {
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = ">= 4.42"
+      version = ">= 4.81"
     }
     http = {
       source  = "hashicorp/http"
@@ -75,6 +75,7 @@ module "key_vault" {
       principal_id               = data.azurerm_client_config.current.object_id
     }
   }
+
   secrets = {
     test_secret = {
       name = "test-secret"
@@ -87,4 +88,3 @@ module "key_vault" {
     create = "60s"
   }
 }
-

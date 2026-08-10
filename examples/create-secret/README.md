@@ -15,7 +15,7 @@ terraform {
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = ">= 4.42"
+      version = ">= 4.81"
     }
     http = {
       source  = "hashicorp/http"
@@ -104,7 +104,7 @@ The following requirements are needed by this module:
 
 - <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) (>= 1.9, < 2.0)
 
-- <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) (>= 4.42)
+- <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) (>= 4.81)
 
 - <a name="requirement_http"></a> [http](#requirement\_http) (~> 3.4)
 
