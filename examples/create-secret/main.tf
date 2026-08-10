@@ -8,7 +8,7 @@ terraform {
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = ">= 3.117"
+      version = ">= 4.81"
     }
     http = {
       source  = "hashicorp/http"
@@ -87,4 +87,3 @@ module "key_vault" {
     create = "60s"
   }
 }
-
