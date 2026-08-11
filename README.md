@@ -416,7 +416,7 @@ Description: A map of secrets to create on the Key Vault. The map key is deliber
 
 Supply role assignments in the same way as for `var.role_assignments`.
 
-> Note: the `value` of the secret is supplied via the `var.secrets_value` variable. Make sure to use the same map key.
+> Note: the `value` of the secret is supplied via the `var.secrets_value` variable, or `var.secrets_value_wo` for write-only secrets. Make sure to use the same map key.
 
 Type:
 

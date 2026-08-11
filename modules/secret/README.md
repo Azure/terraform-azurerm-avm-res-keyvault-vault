@@ -148,7 +148,7 @@ Default: `null`
 
 ### <a name="input_value_wo_version"></a> [value\_wo\_version](#input\_value\_wo\_version)
 
-Description: The version of the secret writable only. Must be set if `value_wo` is not set. Changing this updates the secret value.
+Description: The version of the secret writable only. Must be set if `value_wo` is set. Changing this updates the secret value.
 
 Type: `number`
 
