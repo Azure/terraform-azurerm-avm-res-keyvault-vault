@@ -37,7 +37,7 @@ variable "value_wo" {
 
 variable "value_wo_version" {
   type        = number
-  description = "The version of the secret writable only. Must be set if `value_wo` is not set. Changing this updates the secret value."
+  description = "The version of the secret writable only. Must be set if `value_wo` is set. Changing this updates the secret value."
   default     = null
 }
 
