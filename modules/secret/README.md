@@ -36,7 +36,7 @@ module "keyvault_secret" {
 
 The following requirements are needed by this module:
 
-- <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) (>= 1.9, < 2.0)
+- <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) (>= 1.11, < 2.0)
 
 - <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) (>= 4.81, < 5.0)
 
@@ -61,12 +61,6 @@ Type: `string`
 ### <a name="input_name"></a> [name](#input\_name)
 
 Description: The name of the secret.
-
-Type: `string`
-
-### <a name="input_value"></a> [value](#input\_value)
-
-Description: The value for the secret.
 
 Type: `string`
 
@@ -133,6 +127,30 @@ Default: `{}`
 Description: The tags to assign to the secret.
 
 Type: `map(string)`
+
+Default: `null`
+
+### <a name="input_value"></a> [value](#input\_value)
+
+Description: The value for the secret. Must be set if `value_wo` is not set.
+
+Type: `string`
+
+Default: `null`
+
+### <a name="input_value_wo"></a> [value\_wo](#input\_value\_wo)
+
+Description: The value for the secret writable only. Must be set if `value` is not set.
+
+Type: `string`
+
+Default: `null`
+
+### <a name="input_value_wo_version"></a> [value\_wo\_version](#input\_value\_wo\_version)
+
+Description: The version of the secret writable only. Must be set if `value_wo` is set. Changing this updates the secret value.
+
+Type: `number`
 
 Default: `null`
 

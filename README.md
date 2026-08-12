@@ -9,7 +9,7 @@ Module to deploy key vaults, keys and secrets in Azure.
 
 The following requirements are needed by this module:
 
-- <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) (>= 1.9, < 2.0)
+- <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) (>= 1.11, < 2.0)
 
 - <a name="requirement_azapi"></a> [azapi](#requirement\_azapi) (~> 2.4)
 
@@ -416,7 +416,7 @@ Description: A map of secrets to create on the Key Vault. The map key is deliber
 
 Supply role assignments in the same way as for `var.role_assignments`.
 
-> Note: the `value` of the secret is supplied via the `var.secrets_value` variable. Make sure to use the same map key.
+> Note: the `value` of the secret is supplied via the `var.secrets_value` variable, or via `var.secrets_value_wo` and `var.secrets_value_wo_version` for a write-only value. Make sure to use the same map key.
 
 Type:
 
@@ -452,6 +452,30 @@ The map value is the secret value.
 This is a separate variable to `var.secrets` because it is sensitive and therefore cannot be used in a `for_each` loop.
 
 Type: `map(string)`
+
+Default: `{}`
+
+### <a name="input_secrets_value_wo"></a> [secrets\_value\_wo](#input\_secrets\_value\_wo)
+
+Description: A map of secret keys to writable-only secret values.  
+The map key is the supplied input to `var.secrets`.  
+The map value is the writable-only secret value for that key.
+
+Use `var.secrets_value_wo_version` with the same key to control updates when the writable-only value changes.
+
+Type: `map(string)`
+
+Default: `null`
+
+### <a name="input_secrets_value_wo_version"></a> [secrets\_value\_wo\_version](#input\_secrets\_value\_wo\_version)
+
+Description: A map of secret keys to writable-only secret value versions.  
+The map key is the supplied input to `var.secrets`.  
+The map value is the version identifier for that secret value.
+
+Use the same key as `var.secrets_value_wo`; increment the version when the corresponding writable-only value changes to trigger a secret update.
+
+Type: `map(number)`
 
 Default: `null`
 

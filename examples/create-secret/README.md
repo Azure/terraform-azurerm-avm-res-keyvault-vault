@@ -10,7 +10,7 @@ provider "azurerm" {
 }
 
 terraform {
-  required_version = ">= 1.9, < 2.0"
+  required_version = ">= 1.11, < 2.0"
 
   required_providers {
     azurerm = {
@@ -86,9 +86,18 @@ module "key_vault" {
     test_secret = {
       name = "test-secret"
     }
+    test_secret_wo = {
+      name = "test-secret-wo"
+    }
   }
   secrets_value = {
     test_secret = "secret-value"
+  }
+  secrets_value_wo = {
+    test_secret_wo = "secret-value-wo"
+  }
+  secrets_value_wo_version = {
+    test_secret_wo = 1
   }
   wait_for_rbac_before_secret_operations = {
     create = "60s"
@@ -101,7 +110,7 @@ module "key_vault" {
 
 The following requirements are needed by this module:
 
-- <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) (>= 1.9, < 2.0)
+- <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) (>= 1.11, < 2.0)
 
 - <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) (>= 4.81)
 

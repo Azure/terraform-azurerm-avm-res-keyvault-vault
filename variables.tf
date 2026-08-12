@@ -426,14 +426,14 @@ A map of secrets to create on the Key Vault. The map key is deliberately arbitra
 
 Supply role assignments in the same way as for `var.role_assignments`.
 
-> Note: the `value` of the secret is supplied via the `var.secrets_value` variable. Make sure to use the same map key.
+> Note: the `value` of the secret is supplied via the `var.secrets_value` variable, or via `var.secrets_value_wo` and `var.secrets_value_wo_version` for a write-only value. Make sure to use the same map key.
 DESCRIPTION
   nullable    = false
 }
 
 variable "secrets_value" {
   type        = map(string)
-  default     = null
+  default     = {}
   description = <<DESCRIPTION
 A map of secret keys to values.
 The map key is the supplied input to `var.secrets`.
@@ -442,6 +442,32 @@ The map value is the secret value.
 This is a separate variable to `var.secrets` because it is sensitive and therefore cannot be used in a `for_each` loop.
 DESCRIPTION
   sensitive   = true
+}
+
+variable "secrets_value_wo" {
+  type        = map(string)
+  default     = null
+  description = <<DESCRIPTION
+A map of secret keys to writable-only secret values.
+The map key is the supplied input to `var.secrets`.
+The map value is the writable-only secret value for that key.
+
+Use `var.secrets_value_wo_version` with the same key to control updates when the writable-only value changes.
+DESCRIPTION
+  sensitive   = true
+  ephemeral   = true
+}
+
+variable "secrets_value_wo_version" {
+  type        = map(number)
+  default     = null
+  description = <<DESCRIPTION
+A map of secret keys to writable-only secret value versions.
+The map key is the supplied input to `var.secrets`.
+The map value is the version identifier for that secret value.
+
+Use the same key as `var.secrets_value_wo`; increment the version when the corresponding writable-only value changes to trigger a secret update.
+DESCRIPTION
 }
 
 variable "sku_name" {
