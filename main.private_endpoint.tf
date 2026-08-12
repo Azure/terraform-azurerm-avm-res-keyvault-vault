@@ -77,3 +77,27 @@ resource "azurerm_private_endpoint_application_security_group_association" "this
   application_security_group_id = each.value.asg_resource_id
   private_endpoint_id           = azurerm_private_endpoint.this[each.value.pe_key].id
 }
+
+# The lock for the PE resource when we are managing the private_dns_zone_group block:
+resource "azurerm_management_lock" "private_endpoints" {
+  for_each = { for k, v in var.private_endpoints : k => v if v.lock != null && var.private_endpoints_manage_dns_zone_group }
+
+  lock_level = each.value.lock.kind
+  name       = coalesce(each.value.lock.name, "lock-${azurerm_private_endpoint.this[each.key].name}")
+  scope      = azurerm_private_endpoint.this[each.key].id
+
+  # Terraform destroys a lock before the resources it depends on, so naming the
+  # association here keeps the lock from blocking its own removal.
+  depends_on = [azurerm_private_endpoint_application_security_group_association.this]
+}
+
+# The lock for the PE resource when we are managing **not** the private_dns_zone_group block, such as when using Azure Policy:
+resource "azurerm_management_lock" "private_endpoints_unmanaged_dns_zone_groups" {
+  for_each = { for k, v in var.private_endpoints : k => v if v.lock != null && !var.private_endpoints_manage_dns_zone_group }
+
+  lock_level = each.value.lock.kind
+  name       = coalesce(each.value.lock.name, "lock-${azurerm_private_endpoint.this_unmanaged_dns_zone_groups[each.key].name}")
+  scope      = azurerm_private_endpoint.this_unmanaged_dns_zone_groups[each.key].id
+
+  depends_on = [azurerm_private_endpoint_application_security_group_association.this]
+}
