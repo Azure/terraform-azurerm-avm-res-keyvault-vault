@@ -258,7 +258,12 @@ variable "lock" {
     name = optional(string, null)
   })
   default     = null
-  description = "The lock level to apply to the Key Vault. Default is `None`. Possible values are `None`, `CanNotDelete`, and `ReadOnly`."
+  description = <<DESCRIPTION
+Controls the Resource Lock configuration for the Key Vault. Omit it, or set it to `null`, to create no lock.
+
+- `kind` - (Required) The type of lock. Possible values are `CanNotDelete` and `ReadOnly`.
+- `name` - (Optional) The name of the lock. One is generated from the Key Vault name if not set. Changing this forces the creation of a new resource.
+DESCRIPTION
 
   validation {
     condition     = var.lock != null ? contains(["CanNotDelete", "ReadOnly"], var.lock.kind) : true
@@ -332,7 +337,9 @@ A map of private endpoints to create on the Key Vault. The map key is deliberate
 
 - `name` - (Optional) The name of the private endpoint. One will be generated if not set.
 - `role_assignments` - (Optional) A map of role assignments to create on the private endpoint. The map key is deliberately arbitrary to avoid issues where map keys maybe unknown at plan time. See `var.role_assignments` for more information.
-- `lock` - (Optional) The lock level to apply to the private endpoint. Default is `None`. Possible values are `None`, `CanNotDelete`, and `ReadOnly`.
+- `lock` - (Optional) The lock to apply to the private endpoint. Omit it, or set it to `null`, to create no lock.
+  - `kind` - (Required) The type of lock. Possible values are `CanNotDelete` and `ReadOnly`.
+  - `name` - (Optional) The name of the lock. One is generated from the private endpoint name if not set. Changing this forces the creation of a new resource.
 - `tags` - (Optional) A mapping of tags to assign to the private endpoint.
 - `subnet_resource_id` - The resource ID of the subnet to deploy the private endpoint in.
 - `private_dns_zone_group_name` - (Optional) The name of the private DNS zone group. One will be generated if not set.
@@ -347,6 +354,11 @@ A map of private endpoints to create on the Key Vault. The map key is deliberate
   - `private_ip_address` - The private IP address of the IP configuration.
 DESCRIPTION
   nullable    = false
+
+  validation {
+    condition     = alltrue([for _, v in var.private_endpoints : v.lock == null ? true : contains(["CanNotDelete", "ReadOnly"], v.lock.kind)])
+    error_message = "Lock kind must be either `\"CanNotDelete\"` or `\"ReadOnly\"`."
+  }
 }
 
 variable "private_endpoints_manage_dns_zone_group" {
