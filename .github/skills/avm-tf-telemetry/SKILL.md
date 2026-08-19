@@ -7,6 +7,8 @@ description: Use this skill whenever an Azure Verified Module (AVM) for Terrafor
 
 Every AVM Terraform module that deploys resources collects anonymous deployment/usage telemetry, on by default, with a single opt-out variable. The wiring lives in `main.telemetry.tf` and is maintained by the Mapotf transforms bundled with `Avm.Authoring`.
 
+New resource-deploying modules are AzAPI-based: their primary resource and primary implementation MUST use AzAPI. Telemetry's AzAPI client and request headers complement that requirement; they do not make an AzureRM-based module acceptable.
+
 Fetch <https://azure.github.io/Azure-Verified-Modules/llms.txt> and confirm the current versions of these sources:
 - [SFR3](https://raw.githubusercontent.com/Azure/Azure-Verified-Modules/refs/heads/main/docs/content/specs-defs/includes/shared/shared/functional/SFR3.md) — Deployment/Usage Telemetry
 - [SFR4](https://raw.githubusercontent.com/Azure/Azure-Verified-Modules/refs/heads/main/docs/content/specs-defs/includes/shared/shared/functional/SFR4.md) — Telemetry Enablement Flexibility
@@ -152,6 +154,8 @@ module "kv" {
 ```
 
 This is called out in SFR4: "the telemetry parameter value **MUST** be passed through to these modules".
+
+The `/azurerm` suffix above is the Registry namespace of an existing legacy module, not permission to implement a new module's resources with AzureRM. New Registry namespaces use `/azure`, while provider selection remains governed by TFFR3.
 
 ## The Data Collection notice
 

@@ -81,9 +81,9 @@ mock_provider "modtm" {}
 mock_provider "random" {}
 ```
 
-### AzureRM Module Variant
+### Legacy or Exception AzureRM Provider
 
-For legacy AzureRM-based modules, mock `azurerm` instead of (or in addition to) `azapi`:
+For a pre-existing legacy AzureRM module, mock `azurerm` while maintaining or migrating it. In a new module, mock `azurerm` only in addition to `azapi` when an individual resource has a documented TFFR3 exception. Do not use this pattern to create or validate a new AzureRM-based module:
 
 ```hcl
 mock_provider "azurerm" {}

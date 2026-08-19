@@ -7,6 +7,8 @@ description: Use for AVM Terraform ARM subresources implemented as local submodu
 
 TFRMNFR1 requires each ARM subresource to be implemented as a full local submodule under `modules/<singular-name>/`. Read TFRMNFR1 together with TFRMFR1, TFRMNFR2, TFFR6-TFFR8, TFNFR38, and TFNFR39 through <https://azure.github.io/Azure-Verified-Modules/llms.txt>.
 
+Every new submodule that deploys an Azure resource MUST use AzAPI for its primary resource. AzureRM may appear only for an individual resource with no AzAPI equivalent under the complete TFFR3 exception; it cannot be used as the submodule's primary implementation.
+
 ## Cardinality
 
 The parent owns `for_each` or `count`; the child primary resource owns one instance:
@@ -75,7 +77,7 @@ modules/part/
     integration/
 ```
 
-Additional files use canonical prefixes such as `main.role_assignments.tf`. The submodule declares every provider it consumes in its own `terraform.tf`.
+Additional files use canonical prefixes such as `main.role_assignments.tf`. The submodule declares every provider it consumes in its own `terraform.tf`; AzAPI is required, while AzureRM is declared only when the submodule owns a documented TFFR3 exception resource.
 
 ## Parent ID
 

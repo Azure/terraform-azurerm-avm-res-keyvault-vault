@@ -31,6 +31,8 @@ The proposal **MUST** include:
 - module description
 - module owner(s), if known (must be a Microsoft FTE — see `avm-tf-process`)
 
+Lifecycle approval does not relax TFFR3: a new resource-deploying module must be AzAPI-based. A narrow exception for one resource with no AzAPI equivalent does not make an AzureRM-based module acceptable.
+
 The AVM core team reviews the proposal. If accepted → Available. If rejected → the issue is closed and the lifecycle ends.
 
 ### 2. Available

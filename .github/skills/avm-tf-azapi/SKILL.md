@@ -9,6 +9,8 @@ Read the current TFFR3-TFFR8, TFNFR38, TFRMFR1, TFRMNFR1, and TFRMNFR2 pages thr
 
 ## Provider requirements
 
+Every new AVM Terraform module that deploys Azure resources MUST be built on AzAPI. The primary resource and primary implementation MUST use `Azure/azapi`; AzureRM MUST NOT be chosen because its schema is easier, its resource is more familiar, or migration would take less effort.
+
 TFFR3 requires:
 
 ```hcl
@@ -24,13 +26,15 @@ terraform {
 
 `~> 2.12` means `>= 2.12, < 3.0`. The 2.12 floor is required for `ignore_body_changes`.
 
-AzureRM must not be used unless the required capability is unavailable from `azapi_resource`, `azapi_data_plane_resource`, `azapi_resource_action`, and `azapi_update_resource`. An exception must:
+AzureRM must not be used unless one individual resource's required functionality is unavailable from `azapi_resource`, `azapi_data_plane_resource`, `azapi_resource_action`, and `azapi_update_resource`. This is a resource-level exception, not an alternative module architecture: the module remains AzAPI-based and its primary resource remains AzAPI. An exception must:
 
 - pin `hashicorp/azurerm` to `~> 4.0`;
 - use AzAPI for every capability that has an AzAPI equivalent;
 - document each exception and its upstream AzAPI tracking issue in the generated README inputs;
 - add the prescribed `provider_azurerm_disallowed` TFLint exclusion; and
 - migrate to AzAPI when the missing capability ships.
+
+Do not start a new module from an AzureRM implementation and treat migration as future work. A permitted AzureRM edge resource never makes an AzureRM-based primary implementation acceptable.
 
 ## Complete resource pattern
 

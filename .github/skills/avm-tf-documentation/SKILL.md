@@ -7,6 +7,8 @@ description: Use for AVM Terraform generated README content, _header.md, _footer
 
 AVM Terraform `README.md` files are generated. Never edit them directly.
 
+Documentation for every new resource-deploying module MUST describe an AzAPI-based implementation. It must never present AzureRM as the primary provider or a convenience alternative; AzureRM can be documented only for an individual resource that satisfies the complete TFFR3 exception.
+
 ## Source files
 
 For the root module, every submodule, and every documented example:
@@ -24,7 +26,7 @@ Submodules are full AVM modules and need their own `_header.md`, `_footer.md`, a
 - Put interface semantics in variable descriptions so generated input tables stay useful.
 - Document every variable field, especially `resource_types`, `retry`, `timeouts`, and `ignore_body_changes`.
 - For `ignore_body_changes`, state that paths are body-relative dot notation, ignored configuration is not sent to Azure, and changes take effect only after apply.
-- Document any permitted AzureRM exception, including each resource, why AzAPI cannot provide it, and the upstream tracking issue.
+- Document any permitted AzureRM exception, including each resource, why AzAPI cannot provide it, and the upstream tracking issue. State that the module remains AzAPI-based; an exception for one resource does not permit an AzureRM primary implementation.
 - Prefer working examples over duplicated implementation prose.
 - Keep headings and links stable for Terraform Registry rendering.
 - Do not explain internal review decisions or migration history in the README unless consumers need that information.

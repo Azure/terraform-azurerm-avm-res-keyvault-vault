@@ -27,6 +27,8 @@ Each module and submodule also includes `_header.md` and `_footer.md`; `README.m
 
 ## Provider requirements
 
+Every new module that deploys Azure resources MUST use AzAPI for its primary resource and primary implementation. AzureRM is not an alternative baseline and MUST NOT be selected for convenience. It may appear only for an individual resource with no AzAPI equivalent under the complete TFFR3 exception, which does not make an AzureRM-based module acceptable.
+
 TFNFR25 requires a minimum and maximum Terraform CLI constraint, while TFFR3 requires the AzAPI provider range. Use the governance-managed baseline; a compliant current shape is:
 
 ```hcl

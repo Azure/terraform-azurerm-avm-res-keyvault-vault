@@ -7,6 +7,8 @@ description: Use for AVM Terraform diagnostic settings, role assignments, locks,
 
 Read the current RMFR4, RMFR5, TFFR6, TFFR7, TFFR8, and TFNFR38 pages through <https://azure.github.io/Azure-Verified-Modules/llms.txt>.
 
+Every new module MUST use AzAPI for its primary resource and for each standard-interface resource with an AzAPI equivalent. AzureRM may be used only for an individual resource that satisfies the complete TFFR3 exception; it is never a convenience implementation or a primary-provider choice.
+
 ## Canonical utility module
 
 For every RMFR4 or RMFR5 interface migration, fetch both current sources from `Azure/Azure-Verified-Modules`:

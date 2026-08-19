@@ -58,7 +58,7 @@ Use `-Path` to target another module directory and `-Ecosystem terraform` when e
 
 Always verify these rules from their current pages before changing a module:
 
-- **TFFR3:** use `Azure/azapi >= 2.12, < 3.0`. AzureRM is prohibited unless the capability has no AzAPI equivalent; the exception requires `azurerm ~> 4.0`, README documentation, an upstream tracking link, and the prescribed TFLint exclusion.
+- **TFFR3:** every new module that deploys Azure resources is AzAPI-based. Its primary resource and primary implementation MUST use `Azure/azapi >= 2.12, < 3.0`; never choose AzureRM for convenience or as the module's primary provider. AzureRM is permitted only for an individual resource whose functionality has no AzAPI equivalent, and the exception requires `azurerm ~> 4.0`, README documentation, an upstream tracking link, and the prescribed TFLint exclusion. That narrow exception does not make an AzureRM-based module acceptable.
 - **TFFR4:** every AzAPI resource declares `response_export_values`, including when it is `[]`.
 - **TFFR5:** every AzAPI resource declares `replace_triggers_refs`, including when it is `[]`.
 - **TFFR6:** every AzAPI `type` comes from the single `resource_types` object. Keys use the deterministic ARM-type-to-snake-case conversion. Parent submodule slots mirror the child shape without repeating the child's API-version defaults.

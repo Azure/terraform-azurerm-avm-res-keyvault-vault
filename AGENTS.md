@@ -17,19 +17,27 @@ The authoritative source for every AVM rule (Bicep, Terraform, shared) is the sp
 
 When a spec ID is mentioned (e.g. `TFFR3`, `RMFR4`, `SNFR1`), fetch `llms.txt` once, look up the raw markdown URL for that ID, and read the current text. Do not cite a spec from memory.
 
+## Terraform Provider Requirement
+
+Every new AVM Terraform module that deploys Azure resources MUST use `Azure/azapi` for its primary resource and primary implementation. AzureRM MUST NOT be selected as a convenience, as an easier schema, or as the module's primary provider.
+
+AzureRM is permitted only for an individual resource whose functionality has no equivalent in `azapi_resource`, `azapi_data_plane_resource`, `azapi_resource_action`, or `azapi_update_resource`, and only when every TFFR3 exception requirement is met. A permitted resource-level exception does not make an AzureRM-based module acceptable.
+
 ## Module Discovery
 
 - **Terraform Registry**: Search for "avm" + resource name, filter by "Partner" tag
 - **Terraform Resource Modules Index**: `https://azure.github.io/Azure-Verified-Modules/indexes/terraform/tf-resource-modules/`
 - **Terraform Pattern Modules Index**: `https://azure.github.io/Azure-Verified-Modules/indexes/terraform/tf-pattern-modules/`
 
-## Module Naming Conventions
+## New Module Naming Conventions
 
-- **Resource Modules**: `Azure/avm-res-{service}-{resource}/azurerm`
-- **Pattern Modules**: `Azure/avm-ptn-{pattern}/azurerm`
-- **Utility Modules**: `Azure/avm-utl-{utility}/azurerm`
+- **Resource Modules**: `Azure/avm-res-{service}-{resource}/azure`
+- **Pattern Modules**: `Azure/avm-ptn-{pattern}/azure`
+- **Utility Modules**: `Azure/avm-utl-{utility}/azure`
 - Use kebab-case for services and resources
 - Follow Azure service names (e.g., `storage-storageaccount`, `network-virtualnetwork`)
+
+Existing modules can retain legacy `terraform-azurerm-avm-*` repository names and `/azurerm` Registry namespaces. Those names are publication identifiers and do not permit new modules to use AzureRM for their primary implementation.
 
 ## Module Usage
 
@@ -43,6 +51,6 @@ When using AVM modules:
 
 ## Module Sources
 
-- **Registry**: `https://registry.terraform.io/modules/Azure/{module}/azurerm/latest`
-- **GitHub**: `https://github.com/Azure/terraform-azurerm-avm-{type}-{service}-{resource}`
+- **Registry for new modules**: `https://registry.terraform.io/modules/Azure/{module}/azure/latest`
+- **GitHub for new modules**: `https://github.com/Azure/terraform-azure-avm-{type}-{service}-{resource}`
 - **Versions API**: `https://registry.terraform.io/v1/modules/Azure/{module}/[azurerm|azure]/versions`
