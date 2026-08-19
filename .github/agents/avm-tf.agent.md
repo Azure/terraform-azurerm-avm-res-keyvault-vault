@@ -86,7 +86,11 @@ Prefer static `lifecycle.ignore_changes` when the paths are compile-time static.
 
 ## Standard interfaces
 
-Where the Azure resource supports them, expose the standard interfaces for diagnostic settings, role assignments, locks, managed identities, private endpoints, customer-managed keys, and tags. Compose `Azure/avm-utl-interfaces/azure` at `~> 0.6`; do not copy and drift the schemas.
+Where the Azure resource supports them, expose the standard interfaces for diagnostic settings, role assignments, locks, managed identities, private endpoints, customer-managed keys, and tags.
+
+For every RMFR4 or RMFR5 interface migration, fetch `https://raw.githubusercontent.com/Azure/Azure-Verified-Modules/refs/heads/main/docs/content/specs-defs/specs/terraform/interfaces.md` and the matching `https://raw.githubusercontent.com/Azure/Azure-Verified-Modules/refs/heads/main/docs/static/includes/interfaces/tf/int.<interface>.schema.tf` from `Azure/Azure-Verified-Modules`. Treat the entire canonical variable declaration as atomic: copy it in full, replace only documented placeholders, and preserve attribute ordering, types, defaults, nullability, descriptions, validations, and error messages exactly. Lint notices are migration hints, not complete implementation instructions.
+
+The resource module declares the exact consumer-facing schema. Compose `Azure/avm-utl-interfaces/azure` at `~> 0.6` for implementation and composition; do not reconstruct either contract from memory.
 
 Diagnostic settings use the v2 utility interface:
 
