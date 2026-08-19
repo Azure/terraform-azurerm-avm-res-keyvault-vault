@@ -36,6 +36,8 @@ Review synchronized changes before continuing. Do not restore files from the ret
 
 ## 3. Implement from current specifications
 
+Build every new resource-deploying module on AzAPI. The primary resource and primary implementation MUST use AzAPI; AzureRM MUST NOT be chosen for convenience or as an initial implementation to migrate later. A single resource may use AzureRM only when it has no AzAPI equivalent and every TFFR3 exception requirement is met. The module remains AzAPI-based.
+
 Fetch `llms.txt`, then read each applicable raw spec page. At minimum, review:
 
 - module classification and composition rules;

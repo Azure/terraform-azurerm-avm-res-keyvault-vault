@@ -30,6 +30,8 @@ Always name the tier when tests are expected. Bare `avm test` validates Terrafor
 
 Place tests in `tests/unit`. Mock every provider declared by the module:
 
+Every new resource-deploying module therefore mocks `azapi`. Mock `azurerm` only when testing an individual, documented TFFR3 exception resource; an AzureRM-only mock set is not valid evidence for a new module.
+
 ```hcl
 mock_provider "azapi" {}
 mock_provider "modtm" {}
