@@ -27,7 +27,7 @@ Each module and submodule also includes `_header.md` and `_footer.md`; `README.m
 
 ## Provider requirements
 
-Every new module that deploys Azure resources MUST use AzAPI for its primary resource and primary implementation. AzureRM is not an alternative baseline and MUST NOT be selected for convenience. It may appear only for an individual resource with no AzAPI equivalent under the complete TFFR3 exception, which does not make an AzureRM-based module acceptable.
+Every new module repository that deploys Azure resources MUST use AzAPI for every control-plane and supported direct Azure operation. Do not declare or configure `hashicorp/azurerm`, and do not create any `azurerm_*` resource or data source for convenience or ordinary supporting infrastructure in implementation, submodules, examples, E2E configurations, Terraform tests, fixtures, setup or teardown Terraform, migration examples, documentation examples, or generated snippets.
 
 TFNFR25 requires a minimum and maximum Terraform CLI constraint, while TFFR3 requires the AzAPI provider range. Use the governance-managed baseline; a compliant current shape is:
 
@@ -43,6 +43,8 @@ terraform {
   }
 }
 ```
+
+Apply this `Azure/azapi` requirement to every standalone Terraform root that directly creates, reads, or acts on Azure resources. Supporting resources outside the module under test use AzAPI. Each permitted `azurerm_*` resource or data-source block must independently implement one specific unsupported data-plane/non-ARM operation, document the exact block and why AzAPI cannot implement it with an upstream AzAPI issue or pull request, and be replaced when support ships. One valid block does not authorize another.
 
 Do not raise `required_version` only because non-empty `ignore_body_changes` needs Terraform 1.11. Emit `null` when that interface is unused so earlier supported Terraform versions remain compatible.
 

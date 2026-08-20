@@ -58,7 +58,10 @@ Use `-Path` to target another module directory and `-Ecosystem terraform` when e
 
 Always verify these rules from their current pages before changing a module:
 
-- **TFFR3:** every new module that deploys Azure resources is AzAPI-based. Its primary resource and primary implementation MUST use `Azure/azapi >= 2.12, < 3.0`; never choose AzureRM for convenience or as the module's primary provider. AzureRM is permitted only for an individual resource whose functionality has no AzAPI equivalent, and the exception requires `azurerm ~> 4.0`, README documentation, an upstream tracking link, and the prescribed TFLint exclusion. That narrow exception does not make an AzureRM-based module acceptable.
+- **Managed authoring provider prohibition:** in a newly authored AVM module repository, do not declare or configure `hashicorp/azurerm` and do not generate an `azurerm_*` resource or data source for control-plane operations, convenience, or ordinary supporting infrastructure. This applies to the root module, submodules, examples, E2E configurations, Terraform tests, fixtures, setup or teardown Terraform, migration examples, documentation examples, and generated snippets.
+- **Narrow AzureRM exception:** `hashicorp/azurerm ~> 4.0` is permitted only when required for a data-plane or other non-ARM operation that genuinely cannot be implemented with `azapi_data_plane_resource`, `azapi_resource`, `azapi_resource_action`, or `azapi_update_resource`. Each `azurerm_*` resource or data-source block independently scopes to one specific unsupported operation, adds the prescribed `provider_azurerm_disallowed` TFLint exclusion, documents the exact block and AzAPI gap with an upstream AzAPI issue or pull request, and is replaced when support ships. One valid block does not authorize another.
+- **Direct Azure dependencies:** when an example, test, fixture, or E2E setup needs an Azure resource not supplied by the module under test, use an `Azure/azapi` resource, data source, or action. Every standalone Terraform root that performs a direct Azure operation includes `Azure/azapi >= 2.12, < 3.0` in `required_providers`. It may include AzureRM only to configure or exercise independently justified data-plane/non-ARM exception blocks; all supporting control-plane resources remain AzAPI.
+- **TFFR3:** every new module that deploys Azure resources is AzAPI-based. Its primary resource and all directly authored Azure resources MUST use `Azure/azapi >= 2.12, < 3.0`.
 - **TFFR4:** every AzAPI resource declares `response_export_values`, including when it is `[]`.
 - **TFFR5:** every AzAPI resource declares `replace_triggers_refs`, including when it is `[]`.
 - **TFFR6:** every AzAPI `type` comes from the single `resource_types` object. Keys use the deterministic ARM-type-to-snake-case conversion. Parent submodule slots mirror the child shape without repeating the child's API-version defaults.
@@ -104,6 +107,7 @@ The AzAPI mechanics `resource_types`, `retry`, `timeouts`, and `ignore_body_chan
 - Edit `_header.md` and `_footer.md`; never hand-edit generated `README.md`.
 - Keep the single `terraform {}` block in `terraform.tf`.
 - Do not add provider configuration blocks to a reusable module.
+- Do not emit AzureRM provider requirements, provider blocks, resources, or data sources into authored or generated Terraform or documentation snippets except for the documented unsupported data-plane/non-ARM operation.
 - Do not hand-edit managed telemetry or generated files when `avm sync` or `avm transform` owns them.
 - Keep scripts and hooks in PowerShell. Supported hooks include `tests/unit/setup.ps1`, `tests/integration/setup.ps1`, and example `pre.ps1`, `post.ps1`, and `tflint-pre.ps1`. Shell-hook counterparts are configuration errors.
 
@@ -131,3 +135,5 @@ Do not report completion when a required command was skipped, failed, or returne
 - `avm-tf-submodules`: TFRMNFR1 child-resource composition.
 - `avm-tf-telemetry`: AVM telemetry implementation.
 - `avm-tf-testing`: unit, integration, E2E, hooks, and CI.
+
+The migration skill may read AzureRM source code and preserve references to legacy `azurerm_*` state addresses. Treat those as migration inputs only; generated target code and supporting examples or tests follow the same AzAPI-first rule and narrow unsupported data-plane/non-ARM exception.
