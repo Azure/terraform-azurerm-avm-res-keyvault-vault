@@ -125,6 +125,47 @@ steps:
       echo "UNKNOWN" > "${TYPE_FILE}"
     fi
     rm -f "${RAW}"
+- name: Fetch release status
+  env:
+    GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    GH_AW_GITHUB_REPOSITORY: ${{ github.repository }}
+    DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+  run: |
+    set -o pipefail
+    OUT=/tmp/gh-aw/agent/release-status.json
+    # Comparing the newest release tag against the default branch yields exactly
+    # the commits that are merged but not yet released. Membership in that set is
+    # the whole released/unreleased question, decided here rather than inferred.
+    LATEST=$(mktemp)
+    if ! gh api "repos/${GH_AW_GITHUB_REPOSITORY}/releases/latest" > "${LATEST}" 2>/dev/null; then
+      printf '%s\n' '{"loaded":true,"has_release":false,"latest_tag":null,"latest_published_at":null,"ahead_by":0,"unreleased_shas":[],"unreleased_pr_numbers":[]}' > "${OUT}"
+      rm -f "${LATEST}"
+      exit 0
+    fi
+    TAG=$(jq -r '.tag_name // empty' "${LATEST}" | tr -d '\r' | head -n 1)
+    PUB=$(jq -r '.published_at // empty' "${LATEST}" | tr -d '\r' | head -n 1)
+    rm -f "${LATEST}"
+    if [ -z "${TAG}" ]; then
+      printf '%s\n' '{"loaded":true,"has_release":false,"latest_tag":null,"latest_published_at":null,"ahead_by":0,"unreleased_shas":[],"unreleased_pr_numbers":[]}' > "${OUT}"
+      exit 0
+    fi
+    CMP=$(mktemp)
+    if gh api "repos/${GH_AW_GITHUB_REPOSITORY}/compare/${TAG}...${DEFAULT_BRANCH}" > "${CMP}" 2>/dev/null &&
+       jq -e 'type == "object" and has("commits")' "${CMP}" > /dev/null 2>&1; then
+      jq --arg tag "${TAG}" --arg pub "${PUB}" '{
+        loaded: true,
+        has_release: true,
+        latest_tag: $tag,
+        latest_published_at: $pub,
+        ahead_by: (.ahead_by // 0),
+        unreleased_shas: [.commits[]?.sha],
+        unreleased_pr_numbers: ([.commits[]?.commit.message | scan("#([0-9]+)") | .[0] | tonumber] | unique)
+      }' "${CMP}" > "${OUT}" ||
+        printf '%s\n' "{\"loaded\":false,\"has_release\":true,\"latest_tag\":\"${TAG}\"}" > "${OUT}"
+    else
+      printf '%s\n' "{\"loaded\":false,\"has_release\":true,\"latest_tag\":\"${TAG}\"}" > "${OUT}"
+    fi
+    rm -f "${CMP}"
 - name: Fetch issue close and reopen history
   env:
     GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -1150,6 +1191,18 @@ The `name` values below are illustrative. Match on the *concept*, then emit the 
 | The issue needs more details before triage can proceed | the "Needs: More Evidence" label |
 | The issue needs maintainer follow-up or review | the "Needs: Triage" label |
 
+### Release-state labels
+
+AVM tracks where a fix has got to with three labels. Apply the one that matches the evidence, and only that one:
+
+| State you established | Label to match |
+|---|---|
+| A fix for this issue exists in an **open, unmerged** PR | the "Status: In PR" label |
+| A fix is **merged to the default branch but not in any release** — its PR number or merge commit appears in `release-status.json` | the "Status: Awaiting Release To Be Cut" label |
+| A fix is **merged and carried by a published release** | the "Status: Fixed" label, alongside closing the issue |
+
+AVM defines "Status: Awaiting Release To Be Cut" as *"This is fixed in the main branch but not in the latest release, will be fixed with next release cut"*. It is the state that keeps an issue open and visible to whoever cuts the next release, which is why an unreleased fix is labelled rather than closed.
+
 ### Critical Label Rules
 
 - **`repo-labels.json` is the only authoritative source of label names. Copy the `name` field byte-for-byte.** Label names in this repository embed literal emoji shortcodes such as `:heavy_plus_sign:`. Never render a shortcode into a Unicode emoji, never re-order or re-space a name, and never reconstruct a name from memory or from the table above. `Type: Feature Request ➕` is *not* the same label as `Type: Feature Request :heavy_plus_sign:` and will be rejected.
@@ -1265,15 +1318,34 @@ Do not add the marker to more than one PR per run. Do not add it when the PR onl
 
 ### Close an Issue That Is Already Fixed
 
-Close the issue as `completed` only when the fix is **confirmed**, the Human Reopen Override is not active, the **Incomplete or Failed Evidence Load or Screening** veto above is not active, and one of the following is true:
+**AVM closes a module issue only once the fix is published, not when it merges.** The AVM Terraform issue-triage guide is explicit: *"Only close the issue, once the next version of the module was fully developed, tested and published."* A user consuming the module from the registry still has the bug until a release carries the fix, so merging is not resolution.
 
-- The fixing PR is merged into the default branch.
-- The fixing commit is present on the default branch and there is strong direct evidence that it resolves the issue.
-- A published release explicitly contains the validated fix.
+Do not judge release state from a PR body, a changelog, an earlier comment, or the age of the fix. It is computed for you.
 
-Before closing, post the Step 6 triage comment identifying the PR, commit, and release when available. If released, recommend the first fixed version. If merged but unreleased, state that the fix is on the default branch and will be available in a future release. Then use `close-issue` with `state_reason: completed`, naming the fixing PR in the body. Do not set `duplicate_of` on a fix-confirmed closure — that reason is only for duplicates.
+`/tmp/gh-aw/agent/release-status.json` holds the answer:
 
-Do **not** close for an open or draft PR, an unmerged branch, a merely likely match, a partial fix, conflicting evidence, or a fix whose default-branch inclusion cannot be verified. When uncertain, leave the issue open and explain what a maintainer should verify.
+| field | meaning |
+|---|---|
+| `loaded` | `false` means the lookup failed — treat every fix as unreleased |
+| `has_release` | `false` means the module has never been released |
+| `latest_tag` / `latest_published_at` | the newest release |
+| `unreleased_shas` | merge commits on the default branch that no release contains |
+| `unreleased_pr_numbers` | the PR numbers those commits reference |
+
+**A merged fix is released when its PR number is absent from `unreleased_pr_numbers` and its merge commit is absent from `unreleased_shas`.** Present in either list means merged but not yet released.
+
+Close the issue as `completed` only when the fix is **confirmed**, the Human Reopen Override is not active, the **Incomplete or Failed Evidence Load or Screening** veto is not active, **and the fix is released** by the test above.
+
+When the fix is confirmed but **not yet released**, do all of this and nothing more:
+
+- **Leave the issue open.** Never use `close-issue` on an unreleased fix, however conclusive the evidence.
+- Apply `Status: Awaiting Release To Be Cut :scissors:` with `add-labels` — AVM defines it as *"This is fixed in the main branch but not in the latest release, will be fixed with next release cut"*, which is exactly this state. Emit it only if that name is present in `repo-labels.json`.
+- In the triage comment, name the fixing PR, state that the fix is on the default branch, and name `latest_tag` as the most recent release that does **not** contain it.
+- Do not ask a maintainer to cut a release in the comment. The label is the signal AVM already uses for this; a second request in prose is noise.
+
+Before closing a released fix, post the Step 6 triage comment identifying the PR, the commit, and the release that first carried it, and recommend that version. Then use `close-issue` with `state_reason: completed`, naming the fixing PR in the body. Do not set `duplicate_of` on a fix-confirmed closure — that reason is only for duplicates.
+
+Do **not** close for an open or draft PR, an unmerged branch, a merely likely match, a partial fix, conflicting evidence, a fix whose default-branch inclusion cannot be verified, or a fix that is merged but unreleased. When uncertain, leave the issue open and explain what a maintainer should verify.
 
 ---
 
@@ -1364,7 +1436,8 @@ The bullet points should include:
 - **PR linked:** If you appended `Fixes #<issue-number>` to a confirmed-fix PR, identify the PR and state that it is now linked. Do not claim an ambiguous candidate was linked.
 - **Related or partial PRs:** Always report any PR you classified as **likely related fix** or **related-only** in Step 4, with a link and a one-line reason, even though you deliberately did not link or close against it. Do not omit these just because no write action was taken on them — surfacing them is the point, so a maintainer can judge candidates you intentionally left out of the automated decision. Every candidate named as lexically plausible in the rendered screening-status line must appear here unless you reported it as a confirmed fix; if you judged one irrelevant, say so and why, rather than leaving it unmentioned.
 - **PR-evidence and screening status:** This line is rendered for you, and it belongs **inside the collapsed accordion**, not in the visible bullets — it is machine evidence for auditing a run, not a finding a maintainer needs to read. Handling rules are under the accordion bullet below.
-- **Closure:** If closing an issue that is conclusively fixed, state the evidence supporting closure and whether the fix is released or only present on the default branch. Include a note advising the author to reopen with evidence if the problem persists.
+- **Closure:** Required on any run that emits `close-issue`, with no exception — a closure whose comment never mentions being closed reads to the reporter as an unexplained state change. State the evidence, name the release that carries the fix (or the canonical issue, for a duplicate), and end with a sentence inviting the reporter to reopen if the closure is wrong. That sentence is load-bearing: a human reopening is the only thing that triggers the Human Reopen Override, which is the one veto protecting a reporter from a wrong closure. Two of the first six real closures shipped without this bullet, so before emitting `close-issue`, confirm the comment carries it.
+- **Awaiting release:** If a confirmed fix is merged but not yet released, say so here instead of under Closure — name the fixing PR, state that it is on the default branch, name `latest_tag` as the newest release that does not contain it, and note that the issue stays open until a release carries the fix.
 - **Human reopen override:** If this workflow previously closed the issue and a person later reopened it, state that the issue will remain open for human review even if the agent found a duplicate or an existing fix.
 - **What this triage looked at (collapsed accordion):** At the very bottom of the comment, include a collapsed `<details>` block containing, in order: the verbatim contents of `/tmp/gh-aw/agent/triage-audit-block.md`; the verbatim contents of `/tmp/gh-aw/agent/triage-screening-status.md`; one line accounting for any `.must_compare` candidates you judged not related; the deterministic PR-evidence sources that fired (e.g. timeline cross-reference, exact issue-number match in a title/body/comment, commit-message reference, commit-body `Refs #N`); and the key sources you inspected. This is the run's audit trail — keeping it here is what lets the visible summary stay short.
 
