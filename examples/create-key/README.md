@@ -75,6 +75,7 @@ resource "azurerm_resource_group" "this" {
 # Get current IP address for use in KV firewall rules
 data "http" "ip" {
   url = "https://api.ipify.org/"
+
   retry {
     attempts     = 5
     max_delay_ms = 1000
