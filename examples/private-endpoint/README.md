@@ -32,6 +32,8 @@ data "azurerm_client_config" "this" {}
 module "regions" {
   source  = "Azure/avm-utl-regions/azurerm"
   version = "0.12.0"
+
+  enable_telemetry = false
 }
 
 # This allows us to randomize the region for the resource group.
@@ -81,7 +83,7 @@ module "keyvault" {
   name                = module.naming.key_vault.name_unique
   resource_group_name = azurerm_resource_group.this.name
   tenant_id           = data.azurerm_client_config.this.tenant_id
-  enable_telemetry    = var.enable_telemetry
+  enable_telemetry    = false
   private_endpoints = {
     primary = {
       private_dns_zone_resource_ids = [azurerm_private_dns_zone.this.id]
