@@ -1,0 +1,7 @@
+{
+  "$schema": "https://raw.githubusercontent.com/Azure/azure-verified-modules-tools/main/src/Avm.Authoring/Resources/Schemas/v1/avm-module-metadata.schema.json",
+  "moduleDisplayName": "Key Vault Key",
+  "moduleDescription": "Module to deploy key vault keys.",
+  "canonicalType": "Microsoft.KeyVault/vaults/keys",
+  "telemetryIdPrefix": "46d3xtrf.res.e3fd8de"
+}
