@@ -47,6 +47,66 @@ run "asg_association_with_managed_dns_zone_group" {
   }
 }
 
+run "private_endpoint_interface_fields_are_applied" {
+  command = plan
+
+  variables {
+    private_endpoints = {
+      pe1 = {
+        subnet_resource_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resource_group_name/providers/Microsoft.Network/virtualNetworks/vnet/subnets/subnet"
+        subresource_name   = "custom-subresource"
+        ip_configurations = {
+          primary = {
+            name               = "primary"
+            private_ip_address = "10.0.0.4"
+            member_name        = "custom-member"
+          }
+        }
+      }
+    }
+  }
+
+  assert {
+    error_message = "The configured subresource name should be passed to the private service connection"
+    condition     = one(one(azurerm_private_endpoint.this["pe1"].private_service_connection).subresource_names) == "custom-subresource"
+  }
+  assert {
+    error_message = "The configured member name should be passed to the IP configuration"
+    condition     = one(azurerm_private_endpoint.this["pe1"].ip_configuration).member_name == "custom-member"
+  }
+}
+
+run "private_endpoint_interface_fields_are_applied_with_unmanaged_dns" {
+  command = plan
+
+  variables {
+    private_endpoints_manage_dns_zone_group = false
+
+    private_endpoints = {
+      pe1 = {
+        subnet_resource_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resource_group_name/providers/Microsoft.Network/virtualNetworks/vnet/subnets/subnet"
+        subresource_name   = "custom-subresource"
+        ip_configurations = {
+          primary = {
+            name               = "primary"
+            private_ip_address = "10.0.0.4"
+            member_name        = "custom-member"
+          }
+        }
+      }
+    }
+  }
+
+  assert {
+    error_message = "The configured subresource name should be passed to the unmanaged-DNS private service connection"
+    condition     = one(one(azurerm_private_endpoint.this_unmanaged_dns_zone_groups["pe1"].private_service_connection).subresource_names) == "custom-subresource"
+  }
+  assert {
+    error_message = "The configured member name should be passed to the unmanaged-DNS IP configuration"
+    condition     = one(azurerm_private_endpoint.this_unmanaged_dns_zone_groups["pe1"].ip_configuration).member_name == "custom-member"
+  }
+}
+
 run "asg_association_with_unmanaged_dns_zone_group" {
   command = plan
 

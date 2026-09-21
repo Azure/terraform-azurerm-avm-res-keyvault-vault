@@ -13,7 +13,7 @@ resource "azurerm_private_endpoint" "this" {
     is_manual_connection           = false
     name                           = each.value.private_service_connection_name != null ? each.value.private_service_connection_name : "pse-${var.name}"
     private_connection_resource_id = azurerm_key_vault.this.id
-    subresource_names              = ["vault"]
+    subresource_names              = [coalesce(each.value.subresource_name, "vault")]
   }
 
   dynamic "ip_configuration" {
@@ -22,8 +22,8 @@ resource "azurerm_private_endpoint" "this" {
     content {
       name               = ip_configuration.value.name
       private_ip_address = ip_configuration.value.private_ip_address
-      member_name        = "default"
-      subresource_name   = "vault"
+      member_name        = coalesce(ip_configuration.value.member_name, "default")
+      subresource_name   = coalesce(each.value.subresource_name, "vault")
     }
   }
 
@@ -52,7 +52,7 @@ resource "azurerm_private_endpoint" "this_unmanaged_dns_zone_groups" {
     is_manual_connection           = false
     name                           = each.value.private_service_connection_name != null ? each.value.private_service_connection_name : "pse-${var.name}"
     private_connection_resource_id = azurerm_key_vault.this.id
-    subresource_names              = ["vault"]
+    subresource_names              = [coalesce(each.value.subresource_name, "vault")]
   }
 
   dynamic "ip_configuration" {
@@ -61,8 +61,8 @@ resource "azurerm_private_endpoint" "this_unmanaged_dns_zone_groups" {
     content {
       name               = ip_configuration.value.name
       private_ip_address = ip_configuration.value.private_ip_address
-      member_name        = "default"
-      subresource_name   = "vault"
+      member_name        = coalesce(ip_configuration.value.member_name, "default")
+      subresource_name   = coalesce(each.value.subresource_name, "vault")
     }
   }
 
@@ -85,6 +85,7 @@ resource "azurerm_management_lock" "private_endpoints" {
   lock_level = each.value.lock.kind
   name       = coalesce(each.value.lock.name, "lock-${azurerm_private_endpoint.this[each.key].name}")
   scope      = azurerm_private_endpoint.this[each.key].id
+  notes      = each.value.lock.notes
 
   # Terraform destroys a lock before the resources it depends on, so naming the
   # association here keeps the lock from blocking its own removal.
@@ -98,6 +99,7 @@ resource "azurerm_management_lock" "private_endpoints_unmanaged_dns_zone_groups"
   lock_level = each.value.lock.kind
   name       = coalesce(each.value.lock.name, "lock-${azurerm_private_endpoint.this_unmanaged_dns_zone_groups[each.key].name}")
   scope      = azurerm_private_endpoint.this_unmanaged_dns_zone_groups[each.key].id
+  notes      = each.value.lock.notes
 
   depends_on = [azurerm_private_endpoint_application_security_group_association.this]
 }

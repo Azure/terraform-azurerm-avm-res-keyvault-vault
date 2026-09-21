@@ -23,7 +23,8 @@ run "lock_with_managed_dns_zone_group" {
       pe1 = {
         subnet_resource_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resource_group_name/providers/Microsoft.Network/virtualNetworks/vnet/subnets/subnet"
         lock = {
-          kind = "CanNotDelete"
+          kind  = "CanNotDelete"
+          notes = "Managed endpoint lock"
         }
       }
     }
@@ -45,6 +46,10 @@ run "lock_with_managed_dns_zone_group" {
     error_message = "Lock name should default to the generated private endpoint name"
     condition     = azurerm_management_lock.private_endpoints["pe1"].name == "lock-pe-keyvault"
   }
+  assert {
+    error_message = "Lock notes should be passed to the managed private endpoint lock"
+    condition     = azurerm_management_lock.private_endpoints["pe1"].notes == "Managed endpoint lock"
+  }
 }
 
 run "lock_with_unmanaged_dns_zone_group" {
@@ -57,7 +62,8 @@ run "lock_with_unmanaged_dns_zone_group" {
       pe1 = {
         subnet_resource_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resource_group_name/providers/Microsoft.Network/virtualNetworks/vnet/subnets/subnet"
         lock = {
-          kind = "ReadOnly"
+          kind  = "ReadOnly"
+          notes = "Unmanaged endpoint lock"
         }
       }
     }
@@ -78,6 +84,10 @@ run "lock_with_unmanaged_dns_zone_group" {
   assert {
     error_message = "Lock name should default to the generated private endpoint name"
     condition     = azurerm_management_lock.private_endpoints_unmanaged_dns_zone_groups["pe1"].name == "lock-pe-keyvault"
+  }
+  assert {
+    error_message = "Lock notes should be passed to the unmanaged private endpoint lock"
+    condition     = azurerm_management_lock.private_endpoints_unmanaged_dns_zone_groups["pe1"].notes == "Unmanaged endpoint lock"
   }
 }
 
