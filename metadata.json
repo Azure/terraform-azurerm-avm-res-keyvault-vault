@@ -3,7 +3,7 @@
   "moduleDisplayName": "Key Vault",
   "moduleDescription": "AVM Resource Module for Key Vault",
   "canonicalType": "Microsoft.KeyVault/vaults",
-  "owners": [],
+  "owners": [bbokdam-msft],
   "telemetryIdPrefix": "46d3xtrf.res.2d572b9",
   "alternativeNames": [
     "KV"
