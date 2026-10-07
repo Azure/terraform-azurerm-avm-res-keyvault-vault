@@ -4,22 +4,15 @@ mock_provider "modtm" {}
 mock_provider "random" {}
 mock_provider "time" {}
 
-override_resource {
-  target = azurerm_key_vault.this
-  values = {
-    id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/test/providers/Microsoft.KeyVault/vaults/test"
-  }
-}
-
 run "root_key_without_release_policy" {
   command = plan
 
   variables {
-    enable_telemetry    = false
-    resource_group_name = "test"
-    name                = "test"
-    location            = "eastus"
-    tenant_id           = "00000000-0000-0000-0000-000000000000"
+    enable_telemetry = false
+    parent_id        = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/test"
+    name             = "test"
+    location         = "eastus"
+    tenant_id        = "00000000-0000-0000-0000-000000000000"
     keys = {
       ordinary = {
         name     = "ordinary"
@@ -39,11 +32,11 @@ run "root_key_with_release_policy" {
   command = plan
 
   variables {
-    enable_telemetry    = false
-    resource_group_name = "test"
-    name                = "test"
-    location            = "eastus"
-    tenant_id           = "00000000-0000-0000-0000-000000000000"
+    enable_telemetry = false
+    parent_id        = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/test"
+    name             = "test"
+    location         = "eastus"
+    tenant_id        = "00000000-0000-0000-0000-000000000000"
     keys = {
       confidential = {
         name     = "confidential"
@@ -67,11 +60,11 @@ run "root_rejects_software_key_release_policy" {
   command = plan
 
   variables {
-    enable_telemetry    = false
-    resource_group_name = "test"
-    name                = "test"
-    location            = "eastus"
-    tenant_id           = "00000000-0000-0000-0000-000000000000"
+    enable_telemetry = false
+    parent_id        = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/test"
+    name             = "test"
+    location         = "eastus"
+    tenant_id        = "00000000-0000-0000-0000-000000000000"
     keys = {
       invalid = {
         name     = "invalid"
@@ -91,12 +84,12 @@ run "root_rejects_release_policy_on_standard_vault" {
   command = plan
 
   variables {
-    enable_telemetry    = false
-    resource_group_name = "test"
-    name                = "test"
-    location            = "eastus"
-    tenant_id           = "00000000-0000-0000-0000-000000000000"
-    sku_name            = "standard"
+    enable_telemetry = false
+    parent_id        = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/test"
+    name             = "test"
+    location         = "eastus"
+    tenant_id        = "00000000-0000-0000-0000-000000000000"
+    sku_name         = "standard"
     keys = {
       invalid = {
         name     = "invalid"
