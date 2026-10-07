@@ -52,8 +52,8 @@ module "keyvault" {
 
   location = azurerm_resource_group.this.location
   # source              = "Azure/avm-res-keyvault-vault/azurerm"
-  name                = module.naming.key_vault.name_unique
-  resource_group_name = azurerm_resource_group.this.name
-  tenant_id           = data.azurerm_client_config.this.tenant_id
-  enable_telemetry    = var.enable_telemetry
+  name             = module.naming.key_vault.name_unique
+  parent_id        = azurerm_resource_group.this.id
+  tenant_id        = data.azurerm_client_config.this.tenant_id
+  enable_telemetry = var.enable_telemetry
 }

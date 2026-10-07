@@ -5,11 +5,11 @@ mock_provider "random" {}
 mock_provider "time" {}
 
 variables {
-  enable_telemetry    = false
-  resource_group_name = "test"
-  name                = "test"
-  location            = "eastus"
-  tenant_id           = "00000000-0000-0000-0000-000000000000"
+  enable_telemetry = false
+  parent_id        = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/test"
+  name             = "test"
+  location         = "eastus"
+  tenant_id        = "00000000-0000-0000-0000-000000000000"
 }
 
 run "secrets_plain_value" {
