@@ -134,7 +134,9 @@ resource "azapi_resource" "lock" {
 
 # Azure keeps enforcing a deleted lock for a few seconds, and the AzureRM provider waited for the lock
 # to be gone before it continued. This pause does the same: it is destroyed after the lock and before
-# the key vault and the resources under it, so they are not deleted while the lock still applies.
+# the key vault and the resources under it, so they are not deleted while the lock still applies. The
+# private endpoints are included because connecting or disconnecting one writes to the key vault, which
+# a ReadOnly lock blocks.
 resource "time_sleep" "lock_removal" {
   count = var.lock != null ? 1 : 0
 
@@ -142,6 +144,9 @@ resource "time_sleep" "lock_removal" {
 
   depends_on = [
     azapi_resource.diagnostic_settings,
+    azapi_resource.private_dns_zone_groups,
+    azapi_resource.private_endpoints,
+    azapi_resource.private_endpoints_unmanaged_dns_zone_groups,
     azapi_resource.role_assignments,
     azapi_resource.this,
   ]

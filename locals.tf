@@ -40,19 +40,56 @@ locals {
     })
   }
   subscription_id = provider::azapi::parse_resource_id("Microsoft.Resources/resourceGroups", var.parent_id).subscription_id
-  # The private endpoints accept a resource group name, defaulting to the vault's own resource group.
-  resource_group_name = provider::azapi::parse_resource_id("Microsoft.Resources/resourceGroups", var.parent_id).name
 }
 
-# Private endpoint application security group associations
 locals {
-  private_endpoint_application_security_group_associations = { for assoc in flatten([
-    for pe_k, pe_v in var.private_endpoints : [
-      for asg_k, asg_v in pe_v.application_security_group_associations : {
-        asg_key         = asg_k
-        pe_key          = pe_k
-        asg_resource_id = asg_v
+  # Every private endpoint, whichever of the two resources in main.private_endpoint.tf manages it.
+  private_endpoint_resources = merge(azapi_resource.private_endpoints, azapi_resource.private_endpoints_unmanaged_dns_zone_groups)
+  # The configuration of each private endpoint. It reproduces what the AzureRM provider sent, so that
+  # upgrading moves the existing private endpoints without changing them.
+  private_endpoints = {
+    for key, endpoint in var.private_endpoints : key => {
+      body = {
+        properties = merge(
+          {
+            # Empty lists are sent rather than omitted, so that removing the last application security
+            # group or IP configuration removes it from Azure.
+            applicationSecurityGroups = [
+              for asg_resource_id in values(endpoint.application_security_group_associations) : { id = asg_resource_id }
+            ]
+            ipConfigurations = [
+              for ip_configuration in values(endpoint.ip_configurations) : {
+                name = ip_configuration.name
+                properties = {
+                  groupId          = coalesce(endpoint.subresource_name, "vault")
+                  memberName       = coalesce(ip_configuration.member_name, "default")
+                  privateIPAddress = ip_configuration.private_ip_address
+                }
+              }
+            ]
+            privateLinkServiceConnections = [
+              {
+                name = coalesce(endpoint.private_service_connection_name, "pse-${var.name}")
+                properties = {
+                  groupIds             = [coalesce(endpoint.subresource_name, "vault")]
+                  privateLinkServiceId = azapi_resource.this.id
+                }
+              }
+            ]
+            subnet = {
+              id = endpoint.subnet_resource_id
+            }
+          },
+          # Azure stores an unset custom network interface name as an empty string, so the property is
+          # sent only when it is set. Sending null would report a difference on every plan.
+          endpoint.network_interface_name == null ? {} : { customNetworkInterfaceName = endpoint.network_interface_name },
+        )
       }
-    ]
-  ]) : "${assoc.pe_key}-${assoc.asg_key}" => assoc }
+      location = coalesce(endpoint.location, var.location)
+      name     = coalesce(endpoint.name, "pe-${var.name}")
+      # `resource_group_name` is a resource group in the key vault's subscription, as it was with the
+      # AzureRM provider.
+      parent_id = endpoint.resource_group_name == null ? var.parent_id : "/subscriptions/${local.subscription_id}/resourceGroups/${endpoint.resource_group_name}"
+    }
+  }
 }

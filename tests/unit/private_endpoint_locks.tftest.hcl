@@ -33,23 +33,27 @@ run "lock_with_managed_dns_zone_group" {
 
   assert {
     error_message = "Lock should be created for the managed private endpoint"
-    condition     = keys(azurerm_management_lock.private_endpoints) == ["pe1"]
+    condition     = keys(azapi_resource.private_endpoint_locks) == ["pe1"]
   }
   assert {
     error_message = "No lock should be created for the unmanaged private endpoint"
-    condition     = length(azurerm_management_lock.private_endpoints_unmanaged_dns_zone_groups) == 0
+    condition     = length(azapi_resource.private_endpoint_locks_unmanaged_dns_zone_groups) == 0
   }
   assert {
     error_message = "Lock level should come from the lock kind"
-    condition     = azurerm_management_lock.private_endpoints["pe1"].lock_level == "CanNotDelete"
+    condition     = azapi_resource.private_endpoint_locks["pe1"].body.properties.level == "CanNotDelete"
   }
   assert {
     error_message = "Lock name should default to the generated private endpoint name"
-    condition     = azurerm_management_lock.private_endpoints["pe1"].name == "lock-pe-keyvault"
+    condition     = azapi_resource.private_endpoint_locks["pe1"].name == "lock-pe-keyvault"
   }
   assert {
     error_message = "Lock notes should be passed to the managed private endpoint lock"
-    condition     = azurerm_management_lock.private_endpoints["pe1"].notes == "Managed endpoint lock"
+    condition     = azapi_resource.private_endpoint_locks["pe1"].body.properties.notes == "Managed endpoint lock"
+  }
+  assert {
+    error_message = "A lock should be removed, and Azure given time to stop enforcing it, before the private endpoint is deleted"
+    condition     = length(time_sleep.private_endpoint_lock_removal) == 1
   }
 }
 
@@ -72,23 +76,44 @@ run "lock_with_unmanaged_dns_zone_group" {
 
   assert {
     error_message = "Lock should be created for the unmanaged private endpoint"
-    condition     = keys(azurerm_management_lock.private_endpoints_unmanaged_dns_zone_groups) == ["pe1"]
+    condition     = keys(azapi_resource.private_endpoint_locks_unmanaged_dns_zone_groups) == ["pe1"]
   }
   assert {
     error_message = "No lock should be created for the managed private endpoint"
-    condition     = length(azurerm_management_lock.private_endpoints) == 0
+    condition     = length(azapi_resource.private_endpoint_locks) == 0
   }
   assert {
     error_message = "Lock level should come from the lock kind"
-    condition     = azurerm_management_lock.private_endpoints_unmanaged_dns_zone_groups["pe1"].lock_level == "ReadOnly"
+    condition     = azapi_resource.private_endpoint_locks_unmanaged_dns_zone_groups["pe1"].body.properties.level == "ReadOnly"
   }
   assert {
     error_message = "Lock name should default to the generated private endpoint name"
-    condition     = azurerm_management_lock.private_endpoints_unmanaged_dns_zone_groups["pe1"].name == "lock-pe-keyvault"
+    condition     = azapi_resource.private_endpoint_locks_unmanaged_dns_zone_groups["pe1"].name == "lock-pe-keyvault"
   }
   assert {
     error_message = "Lock notes should be passed to the unmanaged private endpoint lock"
-    condition     = azurerm_management_lock.private_endpoints_unmanaged_dns_zone_groups["pe1"].notes == "Unmanaged endpoint lock"
+    condition     = azapi_resource.private_endpoint_locks_unmanaged_dns_zone_groups["pe1"].body.properties.notes == "Unmanaged endpoint lock"
+  }
+}
+
+# The AzureRM provider left notes unset when none were configured, so they are not sent.
+run "lock_without_notes_sends_none" {
+  command = plan
+
+  variables {
+    private_endpoints = {
+      pe1 = {
+        subnet_resource_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resource_group_name/providers/Microsoft.Network/virtualNetworks/vnet/subnets/subnet"
+        lock = {
+          kind = "CanNotDelete"
+        }
+      }
+    }
+  }
+
+  assert {
+    error_message = "Lock notes should not be sent when none are configured"
+    condition     = !contains(keys(azapi_resource.private_endpoint_locks["pe1"].body.properties), "notes")
   }
 }
 
@@ -117,11 +142,11 @@ run "lock_name_override_and_custom_endpoint_name" {
 
   assert {
     error_message = "An explicit lock name should win over the generated one"
-    condition     = azurerm_management_lock.private_endpoints["named"].name == "my-lock"
+    condition     = azapi_resource.private_endpoint_locks["named"].name == "my-lock"
   }
   assert {
     error_message = "A generated lock name should follow the private endpoint name"
-    condition     = azurerm_management_lock.private_endpoints["derived"].name == "lock-pe-derived"
+    condition     = azapi_resource.private_endpoint_locks["derived"].name == "lock-pe-derived"
   }
 }
 
@@ -145,11 +170,11 @@ run "endpoints_without_a_lock_get_none" {
 
   assert {
     error_message = "Only the endpoint that asked for a lock should get one"
-    condition     = keys(azurerm_management_lock.private_endpoints) == ["locked"]
+    condition     = keys(azapi_resource.private_endpoint_locks) == ["locked"]
   }
   assert {
     error_message = "Both private endpoints should still be created"
-    condition     = length(azurerm_private_endpoint.this) == 2
+    condition     = length(azapi_resource.private_endpoints) == 2
   }
 }
 
@@ -158,11 +183,15 @@ run "no_private_endpoints_means_no_locks" {
 
   assert {
     error_message = "No locks should be created without private endpoints"
-    condition     = length(azurerm_management_lock.private_endpoints) == 0
+    condition     = length(azapi_resource.private_endpoint_locks) == 0
   }
   assert {
     error_message = "No locks should be created without private endpoints"
-    condition     = length(azurerm_management_lock.private_endpoints_unmanaged_dns_zone_groups) == 0
+    condition     = length(azapi_resource.private_endpoint_locks_unmanaged_dns_zone_groups) == 0
+  }
+  assert {
+    error_message = "No lock removal pause should be created without private endpoint locks"
+    condition     = length(time_sleep.private_endpoint_lock_removal) == 0
   }
 }
 
