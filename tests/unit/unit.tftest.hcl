@@ -1,5 +1,15 @@
 mock_provider "azurerm" {}
 mock_provider "modtm" {}
+mock_provider "azapi" {}
+mock_provider "random" {}
+mock_provider "time" {}
+
+override_resource {
+  target = azurerm_key_vault.this
+  values = {
+    id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/test/providers/Microsoft.KeyVault/vaults/test"
+  }
+}
 
 variables {
   enable_telemetry    = false
@@ -7,6 +17,44 @@ variables {
   name                = "test"
   location            = "eastus"
   tenant_id           = "00000000-0000-0000-0000-000000000000"
+}
+
+run "role_assignment_descriptions" {
+  command = plan
+
+  variables {
+    role_assignments = {
+      described = {
+        role_definition_id_or_name = "Key Vault Secrets User"
+        principal_id               = "11111111-1111-1111-1111-111111111111"
+        description                = "Read secrets for the application"
+      }
+      omitted = {
+        role_definition_id_or_name = "Key Vault Reader"
+        principal_id               = "22222222-2222-2222-2222-222222222222"
+      }
+      explicit_null = {
+        role_definition_id_or_name = "Key Vault Crypto User"
+        principal_id               = "33333333-3333-3333-3333-333333333333"
+        description                = null
+      }
+    }
+  }
+
+  assert {
+    condition     = azurerm_role_assignment.this["described"].description == var.role_assignments["described"].description
+    error_message = "The role assignment must preserve the supplied description."
+  }
+
+  assert {
+    condition     = azurerm_role_assignment.this["omitted"].description == null
+    error_message = "An omitted role assignment description must remain null."
+  }
+
+  assert {
+    condition     = azurerm_role_assignment.this["explicit_null"].description == null
+    error_message = "An explicit null role assignment description must remain null."
+  }
 }
 
 run "name_regex_length_long" {
