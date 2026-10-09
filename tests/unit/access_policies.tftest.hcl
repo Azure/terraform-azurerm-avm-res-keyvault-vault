@@ -1,3 +1,4 @@
+mock_provider "azapi" {}
 mock_provider "azurerm" {
   override_resource {
     target = azurerm_key_vault.this
