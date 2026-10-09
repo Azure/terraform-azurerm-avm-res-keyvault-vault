@@ -2,7 +2,7 @@ module "secrets" {
   source   = "./modules/secret"
   for_each = var.secrets
 
-  key_vault_resource_id = azurerm_key_vault.this.id
+  key_vault_resource_id = azapi_resource.this.id
   name                  = each.value.name
   content_type          = each.value.content_type
   expiration_date       = each.value.expiration_date
@@ -30,6 +30,6 @@ resource "time_sleep" "wait_for_rbac_before_secret_operations" {
   }
 
   depends_on = [
-    azurerm_role_assignment.this
+    azapi_resource.role_assignments
   ]
 }

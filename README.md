@@ -4,6 +4,64 @@
 
 Module to deploy key vaults, keys and secrets in Azure.
 
+## Upgrading from a version that used the AzureRM provider for the key vault
+
+Versions up to 0.11.x managed the key vault itself with the AzureRM provider. This version manages
+the key vault, its access policies, lock, role assignments and diagnostic settings with AzAPI, and
+includes `moved` blocks so the key vault, its lock, role assignments and diagnostic settings move to
+their AzAPI addresses without being recreated.
+
+Keys, secrets, certificate contacts and private endpoints still use the AzureRM provider and are
+migrated in a later release.
+
+1. Replace `resource_group_name` with `parent_id`, the resource ID of the resource group:
+
+   ```hcl
+   parent_id = "/subscriptions/<subscription-id>/resourceGroups/<resource-group-name>"
+   ```
+
+1. Run `terraform init -upgrade`, then `terraform plan`.
+1. Expect in-place updates while AzAPI takes over the existing resources. None of the resources the
+   plan adds creates anything in Azure: a `time_sleep` resource when a lock is configured, and the
+   interfaces utility module's telemetry resources when `enable_telemetry` is true. Nothing should be
+   destroyed or replaced; do not apply a plan that destroys or replaces any of these resources.
+1. Apply the plan. A second plan reports no changes.
+
+Access policies need no action. Azure models them as an operation on the vault rather than as
+addressable child resources, so from this version they are sent in the vault's own body and the old
+`azurerm_key_vault_access_policy` resources are dropped from the state without being deleted. The
+plan reports them as "will no longer be managed by Terraform, but will not be destroyed", and the
+vault keeps the policies themselves.
+
+When `legacy_access_policies_enabled` is false the module does not manage access policies at all. It
+re-reads whatever is on the vault and sends it back unchanged, so policies set by another
+configuration are left in place.
+
+Two cases need extra steps:
+
+- **`ReadOnly` lock.** The upgrade updates the key vault in place, which a `ReadOnly` lock blocks.
+  Before upgrading, apply your configuration with `lock = null` using the old version, then upgrade
+  and restore the lock.
+
+- **Cross-tenant role assignments** (those that set `delegated_managed_identity_resource_id`, for
+  example with Azure Lighthouse). The AzureRM provider stored their ID with a `|<tenant-id>` suffix
+  that the `moved` block cannot convert. Before planning, remove each one from the state, then import
+  it at its new address with an `import` block in your root module:
+
+  ```pwsh
+  terraform state rm 'module.<module-name>.azurerm_role_assignment.this["<key>"]'
+  ```
+
+  ```hcl
+  import {
+    to = module.<module-name>.azapi_resource.role_assignments["<key>"]
+    id = "<role assignment resource ID, without the |<tenant-id> suffix>"
+  }
+  ```
+
+The `uri` output is now read from the key vault's `properties.vaultUri` rather than the AzureRM
+`vault_uri` attribute, and returns the same value.
+
 <!-- markdownlint-disable MD033 -->
 ## Requirements
 
@@ -25,23 +83,25 @@ The following requirements are needed by this module:
 
 The following resources are used by this module:
 
-- [azurerm_key_vault.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault) (resource)
-- [azurerm_key_vault_access_policy.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_access_policy) (resource)
+- [azapi_resource.diagnostic_settings](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource) (resource)
+- [azapi_resource.lock](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource) (resource)
+- [azapi_resource.role_assignments](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource) (resource)
+- [azapi_resource.this](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource) (resource)
 - [azurerm_key_vault_certificate_contacts.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_certificate_contacts) (resource)
 - [azurerm_management_lock.private_endpoints](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/management_lock) (resource)
 - [azurerm_management_lock.private_endpoints_unmanaged_dns_zone_groups](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/management_lock) (resource)
-- [azurerm_management_lock.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/management_lock) (resource)
-- [azurerm_monitor_diagnostic_setting.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/monitor_diagnostic_setting) (resource)
 - [azurerm_private_endpoint.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_endpoint) (resource)
 - [azurerm_private_endpoint.this_unmanaged_dns_zone_groups](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_endpoint) (resource)
 - [azurerm_private_endpoint_application_security_group_association.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_endpoint_application_security_group_association) (resource)
-- [azurerm_role_assignment.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/role_assignment) (resource)
 - [modtm_telemetry.telemetry](https://registry.terraform.io/providers/azure/modtm/latest/docs/resources/telemetry) (resource)
 - [random_uuid.telemetry](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/uuid) (resource)
+- [time_sleep.lock_removal](https://registry.terraform.io/providers/hashicorp/time/latest/docs/resources/sleep) (resource)
 - [time_sleep.wait_for_rbac_before_contact_operations](https://registry.terraform.io/providers/hashicorp/time/latest/docs/resources/sleep) (resource)
 - [time_sleep.wait_for_rbac_before_key_operations](https://registry.terraform.io/providers/hashicorp/time/latest/docs/resources/sleep) (resource)
 - [time_sleep.wait_for_rbac_before_secret_operations](https://registry.terraform.io/providers/hashicorp/time/latest/docs/resources/sleep) (resource)
 - [azapi_client_config.telemetry](https://registry.terraform.io/providers/Azure/azapi/latest/docs/data-sources/client_config) (data source)
+- [azapi_resource_list.diagnostic_categories](https://registry.terraform.io/providers/Azure/azapi/latest/docs/data-sources/resource_list) (data source)
+- [azapi_resource_list.role_definitions](https://registry.terraform.io/providers/Azure/azapi/latest/docs/data-sources/resource_list) (data source)
 - [modtm_module_source.telemetry](https://registry.terraform.io/providers/azure/modtm/latest/docs/data-sources/module_source) (data source)
 
 <!-- markdownlint-disable MD013 -->
@@ -61,9 +121,11 @@ Description: The name of the Key Vault.
 
 Type: `string`
 
-### <a name="input_resource_group_name"></a> [resource\_group\_name](#input\_resource\_group\_name)
+### <a name="input_parent_id"></a> [parent\_id](#input\_parent\_id)
 
-Description: The resource group where the resources will be deployed.
+Description: The fully-qualified ARM resource ID of the existing resource group into which the key vault will be deployed, for example `/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example-rg`. Changing this forces a new resource to be created.
+
+This module does not create the resource group.
 
 Type: `string`
 
@@ -160,6 +222,32 @@ Description: Specifies whether Azure Resource Manager is permitted to retrieve s
 Type: `bool`
 
 Default: `false`
+
+### <a name="input_ignore_body_changes"></a> [ignore\_body\_changes](#input\_ignore\_body\_changes)
+
+Description: Paths in each resource's `body` whose changes the AzAPI provider ignores. Prefer Terraform's `lifecycle.ignore_changes` when the paths are static; use this variable when the paths must be derived from variables or other non-static values.
+
+Paths use dot notation, for example `properties.sku.name`. Individual list items cannot be targeted — ignore the whole list property instead. Configuration changes at an ignored path are **not** sent to Azure until that path is removed from the list.
+
+Supplying a non-empty value requires Terraform 1.11 or later, because `ignore_body_changes` is a write-only argument. Changes take effect only after an apply, because the value is held in provider-private state.
+
+- `authorization_locks` - Ignored body paths for the management lock.
+- `authorization_role_assignments` - Ignored body paths for the role assignments.
+- `insights_diagnostic_settings` - Ignored body paths for the diagnostic settings.
+- `keyvault_vaults` - Ignored body paths for the key vault.
+
+Type:
+
+```hcl
+object({
+    authorization_locks            = optional(list(string), [])
+    authorization_role_assignments = optional(list(string), [])
+    insights_diagnostic_settings   = optional(list(string), [])
+    keyvault_vaults                = optional(list(string), [])
+  })
+```
+
+Default: `{}`
 
 ### <a name="input_keys"></a> [keys](#input\_keys)
 
@@ -397,6 +485,50 @@ Type: `bool`
 
 Default: `true`
 
+### <a name="input_resource_types"></a> [resource\_types](#input\_resource\_types)
+
+Description: AzAPI resource types and API versions used by the module, in `<provider>/<resource>@<api-version>` form. Each key defaults to a tested value; supply only the keys you want to override, for example to target a sovereign cloud that serves older API versions.
+
+- `authorization_locks` - The management lock.
+- `authorization_role_assignments` - The role assignments.
+- `insights_diagnostic_settings` - The diagnostic settings. The default is a preview version because the stable version does not support log category groups.
+- `keyvault_vaults` - The key vault.
+
+Type:
+
+```hcl
+object({
+    authorization_locks            = optional(string, "Microsoft.Authorization/locks@2020-05-01")
+    authorization_role_assignments = optional(string, "Microsoft.Authorization/roleAssignments@2022-04-01")
+    insights_diagnostic_settings   = optional(string, "Microsoft.Insights/diagnosticSettings@2021-05-01-preview")
+    keyvault_vaults                = optional(string, "Microsoft.KeyVault/vaults@2026-02-01")
+  })
+```
+
+Default: `{}`
+
+### <a name="input_retry"></a> [retry](#input\_retry)
+
+Description: Retry configuration applied to every `azapi` resource managed by the module. Defaults to `null` (no custom retry).
+
+- `error_message_regex`  - (Optional) A list of regex patterns matching error messages that trigger a retry.
+- `interval_seconds`     - (Optional) Initial interval between retries in seconds.
+- `max_interval_seconds` - (Optional) Maximum interval between retries in seconds.
+
+See <https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource#retry> for full semantics.
+
+Type:
+
+```hcl
+object({
+    error_message_regex  = optional(list(string))
+    interval_seconds     = optional(number)
+    max_interval_seconds = optional(number)
+  })
+```
+
+Default: `null`
+
 ### <a name="input_role_assignments"></a> [role\_assignments](#input\_role\_assignments)
 
 Description: A map of role assignments to create on the Key Vault. The map key is deliberately arbitrary to avoid issues where map keys maybe unknown at plan time.
@@ -523,6 +655,28 @@ Default: `null`
 Description: Map of tags to assign to the Key Vault resource.
 
 Type: `map(string)`
+
+Default: `null`
+
+### <a name="input_timeouts"></a> [timeouts](#input\_timeouts)
+
+Description: Default per-operation timeouts applied to every `azapi` resource managed by the module. Defaults to `null` (provider defaults). Each value is a Go duration string (e.g. `30m`, `1h`).
+
+- `create` - (Optional) Timeout for create operations.
+- `read`   - (Optional) Timeout for read operations.
+- `update` - (Optional) Timeout for update operations.
+- `delete` - (Optional) Timeout for delete operations.
+
+Type:
+
+```hcl
+object({
+    create = optional(string)
+    read   = optional(string)
+    update = optional(string)
+    delete = optional(string)
+  })
+```
 
 Default: `null`
 
@@ -660,6 +814,12 @@ Description: The URI of the vault for performing operations on keys and secrets
 ## Modules
 
 The following Modules are called:
+
+### <a name="module_avm_interfaces"></a> [avm\_interfaces](#module\_avm\_interfaces)
+
+Source: Azure/avm-utl-interfaces/azure
+
+Version: 0.7.0
 
 ### <a name="module_keys"></a> [keys](#module\_keys)
 

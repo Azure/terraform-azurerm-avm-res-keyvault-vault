@@ -1,22 +1,38 @@
+mock_provider "azapi" {
+  # The module resolves role definition names to IDs by listing the definitions in the resource
+  # group, and fails the plan when a name does not resolve.
+  mock_data "azapi_resource_list" {
+    defaults = {
+      output = {
+        results = [
+          {
+            id        = "/subscriptions/00000000-0000-0000-0000-000000000000/providers/Microsoft.Authorization/roleDefinitions/11111111-1111-1111-1111-111111111111"
+            role_name = "Key Vault Secrets User"
+          },
+          {
+            id        = "/subscriptions/00000000-0000-0000-0000-000000000000/providers/Microsoft.Authorization/roleDefinitions/22222222-2222-2222-2222-222222222222"
+            role_name = "Key Vault Reader"
+          },
+          {
+            id        = "/subscriptions/00000000-0000-0000-0000-000000000000/providers/Microsoft.Authorization/roleDefinitions/33333333-3333-3333-3333-333333333333"
+            role_name = "Key Vault Crypto User"
+          },
+        ]
+      }
+    }
+  }
+}
 mock_provider "azurerm" {}
 mock_provider "modtm" {}
-mock_provider "azapi" {}
 mock_provider "random" {}
 mock_provider "time" {}
 
-override_resource {
-  target = azurerm_key_vault.this
-  values = {
-    id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/test/providers/Microsoft.KeyVault/vaults/test"
-  }
-}
-
 variables {
-  enable_telemetry    = false
-  resource_group_name = "test"
-  name                = "test"
-  location            = "eastus"
-  tenant_id           = "00000000-0000-0000-0000-000000000000"
+  enable_telemetry = false
+  parent_id        = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/test"
+  name             = "test"
+  location         = "eastus"
+  tenant_id        = "00000000-0000-0000-0000-000000000000"
 }
 
 run "role_assignment_descriptions" {
@@ -42,17 +58,17 @@ run "role_assignment_descriptions" {
   }
 
   assert {
-    condition     = azurerm_role_assignment.this["described"].description == var.role_assignments["described"].description
+    condition     = azapi_resource.role_assignments["described"].body.properties.description == var.role_assignments["described"].description
     error_message = "The role assignment must preserve the supplied description."
   }
 
   assert {
-    condition     = azurerm_role_assignment.this["omitted"].description == null
+    condition     = azapi_resource.role_assignments["omitted"].body.properties.description == null
     error_message = "An omitted role assignment description must remain null."
   }
 
   assert {
-    condition     = azurerm_role_assignment.this["explicit_null"].description == null
+    condition     = azapi_resource.role_assignments["explicit_null"].body.properties.description == null
     error_message = "An explicit null role assignment description must remain null."
   }
 }

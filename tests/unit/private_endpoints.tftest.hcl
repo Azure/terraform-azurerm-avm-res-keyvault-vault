@@ -5,11 +5,11 @@ mock_provider "random" {}
 mock_provider "time" {}
 
 variables {
-  enable_telemetry    = false
-  tenant_id           = "00000000-0000-0000-0000-000000000000"
-  name                = "keyvault"
-  location            = "eastus"
-  resource_group_name = "resource_group_name"
+  enable_telemetry = false
+  tenant_id        = "00000000-0000-0000-0000-000000000000"
+  name             = "keyvault"
+  location         = "eastus"
+  parent_id        = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resource_group_name"
 
   private_endpoints = {
     pe1 = {
