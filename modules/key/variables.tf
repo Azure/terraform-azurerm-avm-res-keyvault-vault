@@ -60,6 +60,20 @@ variable "opts" {
   description = "The options to apply to the key. Possible values are `decrypt`, `encrypt`, `sign`, `wrapKey`, `unwrapKey`, and `verify`."
 }
 
+variable "release_policy" {
+  type = object({
+    json      = string
+    immutable = optional(bool, false)
+  })
+  default     = null
+  description = <<DESCRIPTION
+The release policy for a secure key release. Requires an `EC-HSM` or `RSA-HSM` key in a Premium Key Vault. The provider automatically makes a key with a release policy exportable.
+
+- `json` - The release policy as JSON text; use `jsonencode` to construct it.
+- `immutable` - Whether the release policy is immutable. Defaults to `false`. Changing an immutable policy can replace the key.
+DESCRIPTION
+}
+
 variable "role_assignments" {
   type = map(object({
     role_definition_id_or_name             = string

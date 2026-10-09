@@ -111,6 +111,24 @@ Type: `list(string)`
 
 Default: `[]`
 
+### <a name="input_release_policy"></a> [release\_policy](#input\_release\_policy)
+
+Description: The release policy for a secure key release. Requires an `EC-HSM` or `RSA-HSM` key in a Premium Key Vault. The provider automatically makes a key with a release policy exportable.
+
+- `json` - The release policy as JSON text; use `jsonencode` to construct it.
+- `immutable` - Whether the release policy is immutable. Defaults to `false`. Changing an immutable policy can replace the key.
+
+Type:
+
+```hcl
+object({
+    json      = string
+    immutable = optional(bool, false)
+  })
+```
+
+Default: `null`
+
 ### <a name="input_role_assignments"></a> [role\_assignments](#input\_role\_assignments)
 
 Description: A map of role assignments to create on the key. The map key is deliberately arbitrary to avoid issues where map keys maybe unknown at plan time.

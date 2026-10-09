@@ -173,6 +173,9 @@ Description: A map of keys to create on the Key Vault. The map key is deliberate
 - `not_before_date` - The not before date of the key.
 - `expiration_date` - The expiration date of the key.
 - `tags` - A mapping of tags to assign to the key.
+- `release_policy` - A secure key release policy for an `EC-HSM` or `RSA-HSM` key in a Premium Key Vault. The provider automatically makes the key exportable. Omit to leave existing keys unchanged.
+  - `json` - The release policy as JSON text; use `jsonencode` to construct it.
+  - `immutable` - Whether the policy is immutable. Defaults to `false`. Changing an immutable policy can replace the key.
 - `rotation_policy` - The rotation policy of the key.
   - `automatic` - The automatic rotation policy of the key.
     - `time_after_creation` - The time after creation of the key before it is automatically rotated.
@@ -206,6 +209,11 @@ map(object({
       delegated_managed_identity_resource_id = optional(string, null)
       principal_type                         = optional(string, null)
     })), {})
+
+    release_policy = optional(object({
+      json      = string
+      immutable = optional(bool, false)
+    }), null)
 
     rotation_policy = optional(object({
       automatic = optional(object({

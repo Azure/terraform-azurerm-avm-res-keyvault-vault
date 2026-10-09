@@ -9,6 +9,7 @@ module "keys" {
   expiration_date       = each.value.expiration_date
   not_before_date       = each.value.not_before_date
   opts                  = each.value.key_opts
+  release_policy        = each.value.release_policy
   role_assignments      = each.value.role_assignments
   rotation_policy       = each.value.rotation_policy
   size                  = each.value.key_size
