@@ -39,6 +39,11 @@ output "public_key_pem" {
   value       = azurerm_key_vault_key.this.public_key_pem
 }
 
+output "release_policy_configured" {
+  description = "Whether the key has a release policy configured."
+  value       = length(azurerm_key_vault_key.this.release_policy) > 0
+}
+
 output "resource_id" {
   description = <<DESCRIPTION
 The versioned Azure Resource Manager (ARM) resource ID of the key, in the form

@@ -28,6 +28,11 @@ run "root_key_without_release_policy" {
       }
     }
   }
+
+  assert {
+    condition     = module.keys["ordinary"].release_policy_configured == false
+    error_message = "Omitting a release policy at the root must leave the key without a release policy."
+  }
 }
 
 run "root_key_with_release_policy" {
@@ -50,6 +55,11 @@ run "root_key_with_release_policy" {
         }
       }
     }
+  }
+
+  assert {
+    condition     = module.keys["confidential"].release_policy_configured == true
+    error_message = "The configured root release policy must reach the key submodule."
   }
 }
 

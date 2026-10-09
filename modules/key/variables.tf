@@ -67,10 +67,10 @@ variable "release_policy" {
   })
   default     = null
   description = <<DESCRIPTION
-The release policy for a secure key release. Requires an `EC-HSM` or `RSA-HSM` key in a Premium Key Vault. The provider automatically makes a key with a release policy exportable.
+The release policy for a secure key release. Requires an `EC-HSM` or `RSA-HSM` key in a Premium Key Vault. The provider automatically makes a key with a release policy exportable. Adding, changing, or removing a release policy on an existing key replaces the key because the provider marks the block `ForceNew`; key replacement destroys the existing key and creates new key material.
 
 - `json` - The release policy as JSON text; use `jsonencode` to construct it.
-- `immutable` - Whether the release policy is immutable. Defaults to `false`. Changing an immutable policy can replace the key.
+- `immutable` - Whether the release policy is immutable. Defaults to `false`.
 DESCRIPTION
 }
 

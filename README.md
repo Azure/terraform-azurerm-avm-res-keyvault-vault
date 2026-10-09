@@ -173,9 +173,9 @@ Description: A map of keys to create on the Key Vault. The map key is deliberate
 - `not_before_date` - The not before date of the key.
 - `expiration_date` - The expiration date of the key.
 - `tags` - A mapping of tags to assign to the key.
-- `release_policy` - A secure key release policy for an `EC-HSM` or `RSA-HSM` key in a Premium Key Vault. The provider automatically makes the key exportable. Omit to leave existing keys unchanged.
+- `release_policy` - A secure key release policy for an `EC-HSM` or `RSA-HSM` key in a Premium Key Vault. The provider automatically makes the key exportable. Adding, changing, or removing a release policy on an existing key replaces the key because the provider marks the block `ForceNew`; key replacement destroys the existing key and creates new key material. Omitting it for a key that never had a policy leaves that key unchanged.
   - `json` - The release policy as JSON text; use `jsonencode` to construct it.
-  - `immutable` - Whether the policy is immutable. Defaults to `false`. Changing an immutable policy can replace the key.
+  - `immutable` - Whether the policy is immutable. Defaults to `false`.
 - `rotation_policy` - The rotation policy of the key.
   - `automatic` - The automatic rotation policy of the key.
     - `time_after_creation` - The time after creation of the key before it is automatically rotated.
@@ -618,6 +618,9 @@ Raw RSA public key components, empty for EC keys. These are a pair:
 Raw EC public key components, empty for RSA keys. These are a pair:
 - x: The EC X component of the key.
 - y: The EC Y component of the key.
+
+Release policy:
+- release\_policy\_configured: Whether the key has a release policy configured.
 
 For example, to pass a key to a service that expects a key vault key URI:
 `module.key_vault.keys["<var.keys map key>"].id`
