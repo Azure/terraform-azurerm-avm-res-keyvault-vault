@@ -111,6 +111,24 @@ Type: `list(string)`
 
 Default: `[]`
 
+### <a name="input_release_policy"></a> [release\_policy](#input\_release\_policy)
+
+Description: The release policy for a secure key release. Requires an `EC-HSM` or `RSA-HSM` key in a Premium Key Vault. The provider automatically makes a key with a release policy exportable. Adding, changing, or removing a release policy on an existing key replaces the key because the provider marks the block `ForceNew`; key replacement destroys the existing key and creates new key material.
+
+- `json` - The release policy as JSON text; use `jsonencode` to construct it.
+- `immutable` - Whether the release policy is immutable. Defaults to `false`.
+
+Type:
+
+```hcl
+object({
+    json      = string
+    immutable = optional(bool, false)
+  })
+```
+
+Default: `null`
+
 ### <a name="input_role_assignments"></a> [role\_assignments](#input\_role\_assignments)
 
 Description: A map of role assignments to create on the key. The map key is deliberately arbitrary to avoid issues where map keys maybe unknown at plan time.
@@ -218,6 +236,10 @@ Description: The OpenSSH encoded public key of the Key Vault Key. Empty for `P-2
 ### <a name="output_public_key_pem"></a> [public\_key\_pem](#output\_public\_key\_pem)
 
 Description: The PEM encoded public key of the Key Vault Key. Empty for `P-256K` keys, which the provider does not derive a public key for.
+
+### <a name="output_release_policy_configured"></a> [release\_policy\_configured](#output\_release\_policy\_configured)
+
+Description: Whether the key has a release policy configured.
 
 ### <a name="output_resource_id"></a> [resource\_id](#output\_resource\_id)
 
