@@ -149,6 +149,11 @@ variable "keys" {
       principal_type                         = optional(string, null)
     })), {})
 
+    release_policy = optional(object({
+      json      = string
+      immutable = optional(bool, false)
+    }), null)
+
     rotation_policy = optional(object({
       automatic = optional(object({
         time_after_creation = optional(string, null)
@@ -170,6 +175,9 @@ A map of keys to create on the Key Vault. The map key is deliberately arbitrary 
 - `not_before_date` - The not before date of the key.
 - `expiration_date` - The expiration date of the key.
 - `tags` - A mapping of tags to assign to the key.
+- `release_policy` - A secure key release policy for an `EC-HSM` or `RSA-HSM` key in a Premium Key Vault. The provider automatically makes the key exportable. Adding, changing, or removing a release policy on an existing key replaces the key because the provider marks the block `ForceNew`; key replacement destroys the existing key and creates new key material. Omitting it for a key that never had a policy leaves that key unchanged.
+  - `json` - The release policy as JSON text; use `jsonencode` to construct it.
+  - `immutable` - Whether the policy is immutable. Defaults to `false`.
 - `rotation_policy` - The rotation policy of the key.
   - `automatic` - The automatic rotation policy of the key.
     - `time_after_creation` - The time after creation of the key before it is automatically rotated.
@@ -188,6 +196,10 @@ DESCRIPTION
   validation {
     error_message = "HSM-backed keys (`EC-HSM` and `RSA-HSM`) require `var.sku_name` to be set to `premium`, or a Managed HSM."
     condition     = var.sku_name == "premium" || !anytrue([for key in var.keys : endswith(key.key_type, "-HSM")])
+  }
+  validation {
+    error_message = "Keys with a release policy must have `key_type` set to `EC-HSM` or `RSA-HSM`."
+    condition     = alltrue([for key in var.keys : key.release_policy == null || contains(["EC-HSM", "RSA-HSM"], key.key_type)])
   }
 }
 

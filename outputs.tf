@@ -25,6 +25,9 @@ Raw EC public key components, empty for RSA keys. These are a pair:
 - x: The EC X component of the key.
 - y: The EC Y component of the key.
 
+Release policy:
+- release_policy_configured: Whether the key has a release policy configured.
+
 For example, to pass a key to a service that expects a key vault key URI:
 `module.key_vault.keys["<var.keys map key>"].id`
 DESCRIPTION
