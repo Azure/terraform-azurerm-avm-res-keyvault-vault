@@ -28,6 +28,9 @@ Raw EC public key components, empty for RSA keys. These are a pair:
 Release policy:
 - release_policy_configured: Whether the key has a release policy configured.
 
+Tags:
+- tags: The tags assigned to the key after resolving inheritance or its explicit override.
+
 For example, to pass a key to a service that expects a key vault key URI:
 `module.key_vault.keys["<var.keys map key>"].id`
 DESCRIPTION
@@ -78,6 +81,7 @@ The secret value contains the following attributes:
 - versionless_id: The versionless data plane URI of the secret, in the form `https://<vault-name>.vault.azure.net/secrets/<secret-name>`.
 - resource_id: The versioned ARM resource ID of the secret, in the form `/subscriptions/<subscription-id>/resourceGroups/<resource-group-name>/providers/Microsoft.KeyVault/vaults/<vault-name>/secrets/<secret-name>/versions/<secret-version>`.
 - resource_versionless_id: The versionless ARM resource ID of the secret, in the form `/subscriptions/<subscription-id>/resourceGroups/<resource-group-name>/providers/Microsoft.KeyVault/vaults/<vault-name>/secrets/<secret-name>`.
+- tags: The tags assigned to the secret after resolving inheritance or its explicit override.
 DESCRIPTION
   value       = module.secrets
 }

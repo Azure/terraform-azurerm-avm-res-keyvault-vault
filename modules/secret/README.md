@@ -186,6 +186,10 @@ Description: The versionless Azure Resource Manager (ARM) resource ID of the sec
 This is an ARM resource ID, not a data plane URI. Because it does not pin a secret  
 version, consumers that support it will pick up new secret versions automatically.
 
+### <a name="output_tags"></a> [tags](#output\_tags)
+
+Description: The tags assigned to the Key Vault Secret.
+
 ### <a name="output_versionless_id"></a> [versionless\_id](#output\_versionless\_id)
 
 Description: The versionless data plane URI of the secret, in the form

@@ -207,7 +207,7 @@ A map of keys to create on the Key Vault. The map key is deliberately arbitrary 
 - `curve` - The curve of the key. Required for `EC` and `EC-HSM` keys.  Possible values are `P-256`, `P-256K`, `P-384`, and `P-521`. The API will default to `P-256` if nothing is specified.
 - `not_before_date` - The not before date of the key.
 - `expiration_date` - The expiration date of the key.
-- `tags` - A mapping of tags to assign to the key.
+- `tags` - A mapping of tags to assign to the key. Omitted or null tags inherit the module-level tags. A supplied map replaces them completely; an empty map disables inheritance.
 - `release_policy` - A secure key release policy for an `EC-HSM` or `RSA-HSM` key in a Premium Key Vault. The provider automatically makes the key exportable. Adding, changing, or removing a release policy on an existing key replaces the key because the provider marks the block `ForceNew`; key replacement destroys the existing key and creates new key material. Omitting it for a key that never had a policy leaves that key unchanged.
   - `json` - The release policy as JSON text; use `jsonencode` to construct it.
   - `immutable` - Whether the policy is immutable. Defaults to `false`.
@@ -564,7 +564,7 @@ A map of secrets to create on the Key Vault. The map key is deliberately arbitra
 
 - `name` - The name of the secret.
 - `content_type` - The content type of the secret.
-- `tags` - A mapping of tags to assign to the secret.
+- `tags` - A mapping of tags to assign to the secret. Omitted or null tags inherit the module-level tags. A supplied map replaces them completely; an empty map disables inheritance.
 - `not_before_date` - The not before date of the secret.
 - `expiration_date` - The expiration date of the secret.
 
@@ -645,7 +645,7 @@ DESCRIPTION
 variable "tags" {
   type        = map(string)
   default     = null
-  description = "Map of tags to assign to the Key Vault resource."
+  description = "Map of tags to assign to the Key Vault resource and, by default, its keys and secrets. Explicit key or secret tags replace this map completely."
 }
 
 variable "timeouts" {

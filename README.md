@@ -4,6 +4,22 @@
 
 Module to deploy key vaults, keys and secrets in Azure.
 
+## Tags on keys and secrets
+
+Keys and secrets inherit the module-level `tags` when their own `tags` attribute is omitted or
+`null`. An explicit child tag map replaces the module-level tags completely. Set `tags = {}` on
+a key or secret to leave it untagged. This applies to both ordinary and write-only secret values.
+
+For example, with module-level `tags = { environment = "production", owner = "platform" }`:
+
+- A key or secret with no `tags` inherits both tags.
+- A child with `tags = { owner = "application" }` receives only that tag.
+- A child with `tags = {}` inherits no tags.
+
+On upgrade, existing keys and secrets that omit their tags will receive the module-level tags
+on the next apply. Supply an explicit map to preserve a child's existing tag set. This change
+does not change resource addresses or secret values.
+
 ## Upgrading from a version that used the AzureRM provider for the key vault
 
 Versions up to 0.11.x managed the key vault itself with the AzureRM provider. This version manages
@@ -260,7 +276,7 @@ Description: A map of keys to create on the Key Vault. The map key is deliberate
 - `curve` - The curve of the key. Required for `EC` and `EC-HSM` keys.  Possible values are `P-256`, `P-256K`, `P-384`, and `P-521`. The API will default to `P-256` if nothing is specified.
 - `not_before_date` - The not before date of the key.
 - `expiration_date` - The expiration date of the key.
-- `tags` - A mapping of tags to assign to the key.
+- `tags` - A mapping of tags to assign to the key. Omitted or null tags inherit the module-level tags. A supplied map replaces them completely; an empty map disables inheritance.
 - `release_policy` - A secure key release policy for an `EC-HSM` or `RSA-HSM` key in a Premium Key Vault. The provider automatically makes the key exportable. Adding, changing, or removing a release policy on an existing key replaces the key because the provider marks the block `ForceNew`; key replacement destroys the existing key and creates new key material. Omitting it for a key that never had a policy leaves that key unchanged.
   - `json` - The release policy as JSON text; use `jsonencode` to construct it.
   - `immutable` - Whether the policy is immutable. Defaults to `false`.
@@ -573,7 +589,7 @@ Description: A map of secrets to create on the Key Vault. The map key is deliber
 
 - `name` - The name of the secret.
 - `content_type` - The content type of the secret.
-- `tags` - A mapping of tags to assign to the secret.
+- `tags` - A mapping of tags to assign to the secret. Omitted or null tags inherit the module-level tags. A supplied map replaces them completely; an empty map disables inheritance.
 - `not_before_date` - The not before date of the secret.
 - `expiration_date` - The expiration date of the secret.
 
@@ -660,7 +676,7 @@ Default: `null`
 
 ### <a name="input_tags"></a> [tags](#input\_tags)
 
-Description: Map of tags to assign to the Key Vault resource.
+Description: Map of tags to assign to the Key Vault resource and, by default, its keys and secrets. Explicit key or secret tags replace this map completely.
 
 Type: `map(string)`
 
@@ -776,6 +792,9 @@ Raw EC public key components, empty for RSA keys. These are a pair:
 Release policy:
 - release\_policy\_configured: Whether the key has a release policy configured.
 
+Tags:
+- tags: The tags assigned to the key after resolving inheritance or its explicit override.
+
 For example, to pass a key to a service that expects a key vault key URI:
 `module.key_vault.keys["<var.keys map key>"].id`
 
@@ -810,6 +829,7 @@ The secret value contains the following attributes:
 - versionless\_id: The versionless data plane URI of the secret, in the form `https://<vault-name>.vault.azure.net/secrets/<secret-name>`.
 - resource\_id: The versioned ARM resource ID of the secret, in the form `/subscriptions/<subscription-id>/resourceGroups/<resource-group-name>/providers/Microsoft.KeyVault/vaults/<vault-name>/secrets/<secret-name>/versions/<secret-version>`.
 - resource\_versionless\_id: The versionless ARM resource ID of the secret, in the form `/subscriptions/<subscription-id>/resourceGroups/<resource-group-name>/providers/Microsoft.KeyVault/vaults/<vault-name>/secrets/<secret-name>`.
+- tags: The tags assigned to the secret after resolving inheritance or its explicit override.
 
 ### <a name="output_secrets_resource_ids"></a> [secrets\_resource\_ids](#output\_secrets\_resource\_ids)
 
