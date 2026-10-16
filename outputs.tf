@@ -57,8 +57,63 @@ output "name" {
 }
 
 output "private_endpoints" {
-  description = "A map of private endpoints. The map key is the supplied input to var.private_endpoints. The map value is the entire azurerm_private_endpoint resource."
-  value       = var.private_endpoints_manage_dns_zone_group ? azurerm_private_endpoint.this : azurerm_private_endpoint.this_unmanaged_dns_zone_groups
+  description = <<DESCRIPTION
+A map of private endpoints. The map key is the key of the `var.private_endpoints` map entry. The
+attributes below keep the names and shapes the AzureRM provider used, so references such as
+`private_service_connection[0].private_ip_address` continue to work:
+
+- `id` - The resource ID of the private endpoint.
+- `name` - The name of the private endpoint.
+- `location` - The Azure location of the private endpoint.
+- `subnet_id` - The resource ID of the subnet the private endpoint is in.
+- `tags` - The tags of the private endpoint.
+- `custom_dns_configs` - A list of objects with `fqdn` and `ip_addresses`. Azure reports these only
+  for a private endpoint that is not linked to a private DNS zone.
+- `network_interface` - A list with the private endpoint's network interface, as an object with `id`
+  and `name`.
+- `private_dns_zone_group` - A list with the private DNS zone group this module manages, as an object
+  with `id`, `name` and `private_dns_zone_ids`. Empty when the module does not manage it.
+- `private_service_connection` - A list with the private service connection, as an object with
+  `name`, `is_manual_connection`, `private_connection_resource_id`, `subresource_names` and
+  `private_ip_address`.
+DESCRIPTION
+  value = {
+    for key, endpoint in local.private_endpoint_resources : key => {
+      custom_dns_configs = [
+        for config in try(endpoint.output.properties.customDnsConfigs, []) : {
+          fqdn         = config.fqdn
+          ip_addresses = config.ipAddresses
+        }
+      ]
+      id       = endpoint.id
+      location = endpoint.location
+      name     = endpoint.name
+      network_interface = [
+        for nic in try(endpoint.output.properties.networkInterfaces, []) : {
+          id   = nic.id
+          name = provider::azapi::parse_resource_id("Microsoft.Network/networkInterfaces", nic.id).name
+        }
+      ]
+      private_dns_zone_group = [
+        for group in try([azapi_resource.private_dns_zone_groups[key]], []) : {
+          id                   = group.id
+          name                 = group.name
+          private_dns_zone_ids = tolist(var.private_endpoints[key].private_dns_zone_resource_ids)
+        }
+      ]
+      private_service_connection = [
+        {
+          is_manual_connection           = false
+          name                           = local.private_endpoints[key].body.properties.privateLinkServiceConnections[0].name
+          private_connection_resource_id = azapi_resource.this.id
+          private_ip_address             = data.azapi_resource.private_endpoint_network_interfaces[key].output.private_ip_address
+          subresource_names              = local.private_endpoints[key].body.properties.privateLinkServiceConnections[0].properties.groupIds
+        }
+      ]
+      subnet_id = var.private_endpoints[key].subnet_resource_id
+      tags      = endpoint.tags
+    }
+  }
 }
 
 output "resource_id" {

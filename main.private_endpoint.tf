@@ -1,105 +1,222 @@
-# The PE resource when we are managing the private_dns_zone_group block:
-resource "azurerm_private_endpoint" "this" {
-  for_each = { for k, v in var.private_endpoints : k => v if var.private_endpoints_manage_dns_zone_group }
+# The private endpoints are split across two resources because each one is the destination of a `moved`
+# block from its AzureRM counterpart, and Terraform allows only one source per destination. The two are
+# configured identically: the private DNS zone group is a separate child resource in AzAPI, so the
+# private endpoint itself no longer differs between the modes.
 
-  location                      = each.value.location != null ? each.value.location : var.location
-  name                          = each.value.name != null ? each.value.name : "pe-${var.name}"
-  resource_group_name           = each.value.resource_group_name != null ? each.value.resource_group_name : local.resource_group_name
-  subnet_id                     = each.value.subnet_resource_id
-  custom_network_interface_name = each.value.network_interface_name
-  tags                          = each.value.tags
+# The private endpoints when the module manages their private DNS zone groups.
+resource "azapi_resource" "private_endpoints" {
+  for_each = { for key, endpoint in local.private_endpoints : key => endpoint if var.private_endpoints_manage_dns_zone_group }
 
-  private_service_connection {
-    is_manual_connection           = false
-    name                           = each.value.private_service_connection_name != null ? each.value.private_service_connection_name : "pse-${var.name}"
-    private_connection_resource_id = azapi_resource.this.id
-    subresource_names              = [coalesce(each.value.subresource_name, "vault")]
-  }
+  location               = each.value.location
+  name                   = each.value.name
+  parent_id              = each.value.parent_id
+  type                   = var.resource_types.network_private_endpoints
+  body                   = each.value.body
+  ignore_body_changes    = length(var.ignore_body_changes.network_private_endpoints) > 0 ? var.ignore_body_changes.network_private_endpoints : null
+  response_export_values = ["properties.customDnsConfigs", "properties.networkInterfaces"]
+  retry                  = var.retry
+  # Each private endpoint takes its own tags, as the standard private endpoint interface defines.
+  # TFFR9 requires a consumer-settable tags expression, and the rule accepts any from ruleset v1.1.0;
+  # the v1.0.0 ruleset that Avm.Authoring pins still requires `var.tags` exactly.
+  # tflint-ignore: avm_azapi_resource_tags_required
+  tags = var.private_endpoints[each.key].tags
 
-  dynamic "ip_configuration" {
-    for_each = each.value.ip_configurations
-
-    content {
-      name               = ip_configuration.value.name
-      private_ip_address = ip_configuration.value.private_ip_address
-      member_name        = coalesce(ip_configuration.value.member_name, "default")
-      subresource_name   = coalesce(each.value.subresource_name, "vault")
-    }
-  }
-
-  dynamic "private_dns_zone_group" {
-    for_each = length(each.value.private_dns_zone_resource_ids) > 0 ? ["this"] : []
+  dynamic "timeouts" {
+    for_each = var.timeouts == null ? [] : [var.timeouts]
 
     content {
-      name                 = each.value.private_dns_zone_group_name
-      private_dns_zone_ids = each.value.private_dns_zone_resource_ids
+      create = timeouts.value.create
+      delete = timeouts.value.delete
+      read   = timeouts.value.read
+      update = timeouts.value.update
     }
   }
 }
 
-# The PE resource when we are managing **not** the private_dns_zone_group block, such as when using Azure Policy:
-resource "azurerm_private_endpoint" "this_unmanaged_dns_zone_groups" {
-  for_each = { for k, v in var.private_endpoints : k => v if !var.private_endpoints_manage_dns_zone_group }
+moved {
+  from = azurerm_private_endpoint.this
+  to   = azapi_resource.private_endpoints
+}
 
-  location                      = each.value.location != null ? each.value.location : var.location
-  name                          = each.value.name != null ? each.value.name : "pe-${var.name}"
-  resource_group_name           = each.value.resource_group_name != null ? each.value.resource_group_name : local.resource_group_name
-  subnet_id                     = each.value.subnet_resource_id
-  custom_network_interface_name = each.value.network_interface_name
-  tags                          = each.value.tags
+# The private endpoints when their private DNS zone groups are managed elsewhere, for example by Azure
+# Policy.
+resource "azapi_resource" "private_endpoints_unmanaged_dns_zone_groups" {
+  for_each = { for key, endpoint in local.private_endpoints : key => endpoint if !var.private_endpoints_manage_dns_zone_group }
 
-  private_service_connection {
-    is_manual_connection           = false
-    name                           = each.value.private_service_connection_name != null ? each.value.private_service_connection_name : "pse-${var.name}"
-    private_connection_resource_id = azapi_resource.this.id
-    subresource_names              = [coalesce(each.value.subresource_name, "vault")]
-  }
+  location               = each.value.location
+  name                   = each.value.name
+  parent_id              = each.value.parent_id
+  type                   = var.resource_types.network_private_endpoints
+  body                   = each.value.body
+  ignore_body_changes    = length(var.ignore_body_changes.network_private_endpoints) > 0 ? var.ignore_body_changes.network_private_endpoints : null
+  response_export_values = ["properties.customDnsConfigs", "properties.networkInterfaces"]
+  retry                  = var.retry
+  # See the matching comment on azapi_resource.private_endpoints.
+  # tflint-ignore: avm_azapi_resource_tags_required
+  tags = var.private_endpoints[each.key].tags
 
-  dynamic "ip_configuration" {
-    for_each = each.value.ip_configurations
+  dynamic "timeouts" {
+    for_each = var.timeouts == null ? [] : [var.timeouts]
 
     content {
-      name               = ip_configuration.value.name
-      private_ip_address = ip_configuration.value.private_ip_address
-      member_name        = coalesce(ip_configuration.value.member_name, "default")
-      subresource_name   = coalesce(each.value.subresource_name, "vault")
+      create = timeouts.value.create
+      delete = timeouts.value.delete
+      read   = timeouts.value.read
+      update = timeouts.value.update
     }
   }
+}
+
+moved {
+  from = azurerm_private_endpoint.this_unmanaged_dns_zone_groups
+  to   = azapi_resource.private_endpoints_unmanaged_dns_zone_groups
+}
+
+# Application security groups are part of the private endpoint's body from this version. The
+# association resources the AzureRM provider used are dropped from the state without being deleted, so
+# the private endpoints keep their application security groups.
+removed {
+  from = azurerm_private_endpoint_application_security_group_association.this
 
   lifecycle {
-    ignore_changes = [private_dns_zone_group]
+    destroy = false
   }
 }
 
-resource "azurerm_private_endpoint_application_security_group_association" "this" {
-  for_each = local.private_endpoint_application_security_group_associations
+resource "azapi_resource" "private_dns_zone_groups" {
+  for_each = { for key, endpoint in var.private_endpoints : key => endpoint if var.private_endpoints_manage_dns_zone_group && length(endpoint.private_dns_zone_resource_ids) > 0 }
 
-  application_security_group_id = each.value.asg_resource_id
-  private_endpoint_id           = var.private_endpoints_manage_dns_zone_group ? azurerm_private_endpoint.this[each.value.pe_key].id : azurerm_private_endpoint.this_unmanaged_dns_zone_groups[each.value.pe_key].id
+  name      = each.value.private_dns_zone_group_name
+  parent_id = azapi_resource.private_endpoints[each.key].id
+  type      = var.resource_types.network_private_endpoints_private_dns_zone_groups
+  body = {
+    properties = {
+      # Each configuration is named after its zone, as the AzureRM provider named them.
+      privateDnsZoneConfigs = [
+        for private_dns_zone_resource_id in each.value.private_dns_zone_resource_ids : {
+          name = provider::azapi::parse_resource_id("Microsoft.Network/privateDnsZones", private_dns_zone_resource_id).name
+          properties = {
+            privateDnsZoneId = private_dns_zone_resource_id
+          }
+        }
+      ]
+    }
+  }
+  ignore_body_changes    = length(var.ignore_body_changes.network_private_endpoints_private_dns_zone_groups) > 0 ? var.ignore_body_changes.network_private_endpoints_private_dns_zone_groups : null
+  response_export_values = []
+  retry                  = var.retry
+
+  dynamic "timeouts" {
+    for_each = var.timeouts == null ? [] : [var.timeouts]
+
+    content {
+      create = timeouts.value.create
+      delete = timeouts.value.delete
+      read   = timeouts.value.read
+      update = timeouts.value.update
+    }
+  }
 }
 
-# The lock for the PE resource when we are managing the private_dns_zone_group block:
-resource "azurerm_management_lock" "private_endpoints" {
-  for_each = { for k, v in var.private_endpoints : k => v if v.lock != null && var.private_endpoints_manage_dns_zone_group }
+# The AzureRM provider read each private endpoint's private IP address from its network interface. The
+# private endpoint reports the address itself only when it is not linked to a private DNS zone, so the
+# network interface is read here as well.
+data "azapi_resource" "private_endpoint_network_interfaces" {
+  for_each = local.private_endpoint_resources
 
-  lock_level = each.value.lock.kind
-  name       = coalesce(each.value.lock.name, "lock-${azurerm_private_endpoint.this[each.key].name}")
-  scope      = azurerm_private_endpoint.this[each.key].id
-  notes      = each.value.lock.notes
-
-  # Terraform destroys a lock before the resources it depends on, so naming the
-  # association here keeps the lock from blocking its own removal.
-  depends_on = [azurerm_private_endpoint_application_security_group_association.this]
+  resource_id = each.value.output.properties.networkInterfaces[0].id
+  type        = "Microsoft.Network/networkInterfaces@2025-05-01"
+  response_export_values = {
+    private_ip_address = "properties.ipConfigurations[0].properties.privateIPAddress"
+  }
 }
 
-# The lock for the PE resource when we are managing **not** the private_dns_zone_group block, such as when using Azure Policy:
-resource "azurerm_management_lock" "private_endpoints_unmanaged_dns_zone_groups" {
-  for_each = { for k, v in var.private_endpoints : k => v if v.lock != null && !var.private_endpoints_manage_dns_zone_group }
+# The locks for the private endpoints when the module manages their private DNS zone groups.
+resource "azapi_resource" "private_endpoint_locks" {
+  for_each = { for key, endpoint in var.private_endpoints : key => endpoint if endpoint.lock != null && var.private_endpoints_manage_dns_zone_group }
 
-  lock_level = each.value.lock.kind
-  name       = coalesce(each.value.lock.name, "lock-${azurerm_private_endpoint.this_unmanaged_dns_zone_groups[each.key].name}")
-  scope      = azurerm_private_endpoint.this_unmanaged_dns_zone_groups[each.key].id
-  notes      = each.value.lock.notes
+  name      = coalesce(each.value.lock.name, "lock-${azapi_resource.private_endpoints[each.key].name}")
+  parent_id = azapi_resource.private_endpoints[each.key].id
+  type      = var.resource_types.authorization_locks
+  body = {
+    # Notes are sent only when they are set, which is how the AzureRM provider left the locks it created.
+    properties = merge(
+      { level = each.value.lock.kind },
+      each.value.lock.notes == null ? {} : { notes = each.value.lock.notes },
+    )
+  }
+  ignore_body_changes    = length(var.ignore_body_changes.authorization_locks) > 0 ? var.ignore_body_changes.authorization_locks : null
+  response_export_values = []
+  retry                  = var.retry
 
-  depends_on = [azurerm_private_endpoint_application_security_group_association.this]
+  dynamic "timeouts" {
+    for_each = var.timeouts == null ? [] : [var.timeouts]
+
+    content {
+      create = timeouts.value.create
+      delete = timeouts.value.delete
+      read   = timeouts.value.read
+      update = timeouts.value.update
+    }
+  }
+
+  # Create the locks last and remove them first. A ReadOnly lock blocks changes to the private endpoint
+  # and its DNS zone group.
+  depends_on = [time_sleep.private_endpoint_lock_removal]
+}
+
+moved {
+  from = azurerm_management_lock.private_endpoints
+  to   = azapi_resource.private_endpoint_locks
+}
+
+# The locks for the private endpoints when their private DNS zone groups are managed elsewhere.
+resource "azapi_resource" "private_endpoint_locks_unmanaged_dns_zone_groups" {
+  for_each = { for key, endpoint in var.private_endpoints : key => endpoint if endpoint.lock != null && !var.private_endpoints_manage_dns_zone_group }
+
+  name      = coalesce(each.value.lock.name, "lock-${azapi_resource.private_endpoints_unmanaged_dns_zone_groups[each.key].name}")
+  parent_id = azapi_resource.private_endpoints_unmanaged_dns_zone_groups[each.key].id
+  type      = var.resource_types.authorization_locks
+  body = {
+    properties = merge(
+      { level = each.value.lock.kind },
+      each.value.lock.notes == null ? {} : { notes = each.value.lock.notes },
+    )
+  }
+  ignore_body_changes    = length(var.ignore_body_changes.authorization_locks) > 0 ? var.ignore_body_changes.authorization_locks : null
+  response_export_values = []
+  retry                  = var.retry
+
+  dynamic "timeouts" {
+    for_each = var.timeouts == null ? [] : [var.timeouts]
+
+    content {
+      create = timeouts.value.create
+      delete = timeouts.value.delete
+      read   = timeouts.value.read
+      update = timeouts.value.update
+    }
+  }
+
+  depends_on = [time_sleep.private_endpoint_lock_removal]
+}
+
+moved {
+  from = azurerm_management_lock.private_endpoints_unmanaged_dns_zone_groups
+  to   = azapi_resource.private_endpoint_locks_unmanaged_dns_zone_groups
+}
+
+# Azure keeps enforcing a deleted lock for a few seconds, and the AzureRM provider waited for each lock
+# to be gone before it continued. This pause does the same: it is destroyed after the locks and before
+# the private endpoints and their DNS zone groups, so they are not deleted while a lock still applies.
+resource "time_sleep" "private_endpoint_lock_removal" {
+  count = anytrue([for endpoint in var.private_endpoints : endpoint.lock != null]) ? 1 : 0
+
+  destroy_duration = "30s"
+
+  depends_on = [
+    azapi_resource.private_dns_zone_groups,
+    azapi_resource.private_endpoints,
+    azapi_resource.private_endpoints_unmanaged_dns_zone_groups,
+  ]
 }

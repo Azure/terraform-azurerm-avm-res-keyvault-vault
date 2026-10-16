@@ -6,13 +6,13 @@ Module to deploy key vaults, keys and secrets in Azure.
 
 ## Upgrading from a version that used the AzureRM provider for the key vault
 
-Versions up to 0.11.x managed the key vault itself with the AzureRM provider. This version manages
-the key vault, its access policies, lock, role assignments and diagnostic settings with AzAPI, and
-includes `moved` blocks so the key vault, its lock, role assignments and diagnostic settings move to
-their AzAPI addresses without being recreated.
+Versions up to 0.12.x managed the key vault itself with the AzureRM provider. This version manages
+the key vault, its access policies, lock, role assignments, diagnostic settings and private endpoints
+with AzAPI, and includes `moved` blocks so the key vault, its lock, role assignments, diagnostic
+settings, private endpoints and their locks move to their AzAPI addresses without being recreated.
 
-Keys, secrets, certificate contacts and private endpoints still use the AzureRM provider and are
-migrated in a later release.
+Keys, secrets and certificate contacts still use the AzureRM provider and are migrated in a later
+release.
 
 1. Replace `resource_group_name` with `parent_id`, the resource ID of the resource group:
 
@@ -20,28 +20,50 @@ migrated in a later release.
    parent_id = "/subscriptions/<subscription-id>/resourceGroups/<resource-group-name>"
    ```
 
+1. If the module manages private DNS zone groups, add the `import` block described below.
 1. Run `terraform init -upgrade`, then `terraform plan`.
 1. Expect in-place updates while AzAPI takes over the existing resources. None of the resources the
-   plan adds creates anything in Azure: a `time_sleep` resource when a lock is configured, and the
-   interfaces utility module's telemetry resources when `enable_telemetry` is true. Nothing should be
-   destroyed or replaced; do not apply a plan that destroys or replaces any of these resources.
+   plan adds creates anything in Azure: `time_sleep` resources when a lock is configured on the key
+   vault or a private endpoint, and the interfaces utility module's telemetry resources when
+   `enable_telemetry` is true. Nothing should be destroyed or replaced; do not apply a plan that
+   destroys or replaces any of these resources.
 1. Apply the plan. A second plan reports no changes.
 
-Access policies need no action. Azure models them as an operation on the vault rather than as
-addressable child resources, so from this version they are sent in the vault's own body and the old
-`azurerm_key_vault_access_policy` resources are dropped from the state without being deleted. The
-plan reports them as "will no longer be managed by Terraform, but will not be destroyed", and the
-vault keeps the policies themselves.
+Access policies and application security groups need no action. Azure models both as part of their
+parent rather than as addressable child resources, so from this version they are sent in the body of
+the key vault and the private endpoint respectively. The old `azurerm_key_vault_access_policy` and
+`azurerm_private_endpoint_application_security_group_association` resources are dropped from the
+state without being deleted: the plan reports them as "will no longer be managed by Terraform, but
+will not be destroyed", and Azure keeps the policies and associations themselves.
 
 When `legacy_access_policies_enabled` is false the module does not manage access policies at all. It
 re-reads whatever is on the vault and sends it back unchanged, so policies set by another
 configuration are left in place.
 
-Two cases need extra steps:
+Three cases need extra steps:
 
-- **`ReadOnly` lock.** The upgrade updates the key vault in place, which a `ReadOnly` lock blocks.
-  Before upgrading, apply your configuration with `lock = null` using the old version, then upgrade
-  and restore the lock.
+- **Private DNS zone groups managed by the module** (`private_endpoints_manage_dns_zone_group` is
+  true, the default, and a private endpoint sets `private_dns_zone_resource_ids`). The AzureRM
+  provider kept the zone group inside the private endpoint, so there is no separate address for a
+  `moved` block to start from, and AzAPI does not take over an existing resource it did not create.
+  Import each zone group once with an `import` block in your root module:
+
+  ```hcl
+  import {
+    to = module.<module-name>.azapi_resource.private_dns_zone_groups["<key>"]
+    id = "/subscriptions/<subscription-id>/resourceGroups/<resource-group-name>/providers/Microsoft.Network/privateEndpoints/<private-endpoint-name>/privateDnsZoneGroups/<zone-group-name>?api-version=2025-05-01"
+  }
+  ```
+
+  `<key>` is the key of the `private_endpoints` entry, `<private-endpoint-name>` is its `name`
+  (`pe-<key vault name>` by default), and `<zone-group-name>` is its `private_dns_zone_group_name`
+  (`default` by default). The import leaves the zone group and its DNS records unchanged. Without it,
+  the apply stops with `Resource already exists` after upgrading everything else, and nothing in Azure
+  is removed; add the block and apply again. Remove the block once the upgrade is applied.
+
+- **`ReadOnly` lock.** The upgrade updates the key vault and its private endpoints in place, which a
+  `ReadOnly` lock on either blocks. Before upgrading, apply your configuration without those locks
+  using the old version, then upgrade and restore the locks.
 
 - **Cross-tenant role assignments** (those that set `delegated_managed_identity_resource_id`, for
   example with Azure Lighthouse). The AzureRM provider stored their ID with a `|<tenant-id>` suffix
@@ -61,6 +83,11 @@ Two cases need extra steps:
 
 The `uri` output is now read from the key vault's `properties.vaultUri` rather than the AzureRM
 `vault_uri` attribute, and returns the same value.
+
+The `private_endpoints` output no longer returns the entire AzureRM resource. It returns the
+attributes listed in its description, under the names and shapes the AzureRM provider used, so
+references such as `id`, `name` and `private_service_connection[0].private_ip_address` return the same
+values as before.
 
 <!-- markdownlint-disable MD033 -->
 ## Requirements
@@ -85,21 +112,23 @@ The following resources are used by this module:
 
 - [azapi_resource.diagnostic_settings](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource) (resource)
 - [azapi_resource.lock](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource) (resource)
+- [azapi_resource.private_dns_zone_groups](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource) (resource)
+- [azapi_resource.private_endpoint_locks](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource) (resource)
+- [azapi_resource.private_endpoint_locks_unmanaged_dns_zone_groups](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource) (resource)
+- [azapi_resource.private_endpoints](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource) (resource)
+- [azapi_resource.private_endpoints_unmanaged_dns_zone_groups](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource) (resource)
 - [azapi_resource.role_assignments](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource) (resource)
 - [azapi_resource.this](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource) (resource)
 - [azurerm_key_vault_certificate_contacts.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_certificate_contacts) (resource)
-- [azurerm_management_lock.private_endpoints](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/management_lock) (resource)
-- [azurerm_management_lock.private_endpoints_unmanaged_dns_zone_groups](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/management_lock) (resource)
-- [azurerm_private_endpoint.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_endpoint) (resource)
-- [azurerm_private_endpoint.this_unmanaged_dns_zone_groups](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_endpoint) (resource)
-- [azurerm_private_endpoint_application_security_group_association.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_endpoint_application_security_group_association) (resource)
 - [modtm_telemetry.telemetry](https://registry.terraform.io/providers/azure/modtm/latest/docs/resources/telemetry) (resource)
 - [random_uuid.telemetry](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/uuid) (resource)
 - [time_sleep.lock_removal](https://registry.terraform.io/providers/hashicorp/time/latest/docs/resources/sleep) (resource)
+- [time_sleep.private_endpoint_lock_removal](https://registry.terraform.io/providers/hashicorp/time/latest/docs/resources/sleep) (resource)
 - [time_sleep.wait_for_rbac_before_contact_operations](https://registry.terraform.io/providers/hashicorp/time/latest/docs/resources/sleep) (resource)
 - [time_sleep.wait_for_rbac_before_key_operations](https://registry.terraform.io/providers/hashicorp/time/latest/docs/resources/sleep) (resource)
 - [time_sleep.wait_for_rbac_before_secret_operations](https://registry.terraform.io/providers/hashicorp/time/latest/docs/resources/sleep) (resource)
 - [azapi_client_config.telemetry](https://registry.terraform.io/providers/Azure/azapi/latest/docs/data-sources/client_config) (data source)
+- [azapi_resource.private_endpoint_network_interfaces](https://registry.terraform.io/providers/Azure/azapi/latest/docs/data-sources/resource) (data source)
 - [azapi_resource_list.diagnostic_categories](https://registry.terraform.io/providers/Azure/azapi/latest/docs/data-sources/resource_list) (data source)
 - [azapi_resource_list.role_definitions](https://registry.terraform.io/providers/Azure/azapi/latest/docs/data-sources/resource_list) (data source)
 - [modtm_module_source.telemetry](https://registry.terraform.io/providers/azure/modtm/latest/docs/data-sources/module_source) (data source)
@@ -231,19 +260,23 @@ Paths use dot notation, for example `properties.sku.name`. Individual list items
 
 Supplying a non-empty value requires Terraform 1.11 or later, because `ignore_body_changes` is a write-only argument. Changes take effect only after an apply, because the value is held in provider-private state.
 
-- `authorization_locks` - Ignored body paths for the management lock.
+- `authorization_locks` - Ignored body paths for the management locks on the key vault and the private endpoints.
 - `authorization_role_assignments` - Ignored body paths for the role assignments.
 - `insights_diagnostic_settings` - Ignored body paths for the diagnostic settings.
 - `keyvault_vaults` - Ignored body paths for the key vault.
+- `network_private_endpoints` - Ignored body paths for the private endpoints.
+- `network_private_endpoints_private_dns_zone_groups` - Ignored body paths for the private DNS zone groups.
 
 Type:
 
 ```hcl
 object({
-    authorization_locks            = optional(list(string), [])
-    authorization_role_assignments = optional(list(string), [])
-    insights_diagnostic_settings   = optional(list(string), [])
-    keyvault_vaults                = optional(list(string), [])
+    authorization_locks                               = optional(list(string), [])
+    authorization_role_assignments                    = optional(list(string), [])
+    insights_diagnostic_settings                      = optional(list(string), [])
+    keyvault_vaults                                   = optional(list(string), [])
+    network_private_endpoints                         = optional(list(string), [])
+    network_private_endpoints_private_dns_zone_groups = optional(list(string), [])
   })
 ```
 
@@ -497,19 +530,23 @@ Default: `true`
 
 Description: AzAPI resource types and API versions used by the module, in `<provider>/<resource>@<api-version>` form. Each key defaults to a tested value; supply only the keys you want to override, for example to target a sovereign cloud that serves older API versions.
 
-- `authorization_locks` - The management lock.
+- `authorization_locks` - The management locks on the key vault and the private endpoints.
 - `authorization_role_assignments` - The role assignments.
 - `insights_diagnostic_settings` - The diagnostic settings. The default is a preview version because the stable version does not support log category groups.
 - `keyvault_vaults` - The key vault.
+- `network_private_endpoints` - The private endpoints.
+- `network_private_endpoints_private_dns_zone_groups` - The private DNS zone groups of the private endpoints.
 
 Type:
 
 ```hcl
 object({
-    authorization_locks            = optional(string, "Microsoft.Authorization/locks@2020-05-01")
-    authorization_role_assignments = optional(string, "Microsoft.Authorization/roleAssignments@2022-04-01")
-    insights_diagnostic_settings   = optional(string, "Microsoft.Insights/diagnosticSettings@2021-05-01-preview")
-    keyvault_vaults                = optional(string, "Microsoft.KeyVault/vaults@2026-02-01")
+    authorization_locks                               = optional(string, "Microsoft.Authorization/locks@2020-05-01")
+    authorization_role_assignments                    = optional(string, "Microsoft.Authorization/roleAssignments@2022-04-01")
+    insights_diagnostic_settings                      = optional(string, "Microsoft.Insights/diagnosticSettings@2021-05-01-preview")
+    keyvault_vaults                                   = optional(string, "Microsoft.KeyVault/vaults@2026-02-01")
+    network_private_endpoints                         = optional(string, "Microsoft.Network/privateEndpoints@2025-05-01")
+    network_private_endpoints_private_dns_zone_groups = optional(string, "Microsoft.Network/privateEndpoints/privateDnsZoneGroups@2025-05-01")
   })
 ```
 
@@ -792,7 +829,24 @@ Description: The name of the key vault.
 
 ### <a name="output_private_endpoints"></a> [private\_endpoints](#output\_private\_endpoints)
 
-Description: A map of private endpoints. The map key is the supplied input to var.private\_endpoints. The map value is the entire azurerm\_private\_endpoint resource.
+Description: A map of private endpoints. The map key is the key of the `var.private_endpoints` map entry. The  
+attributes below keep the names and shapes the AzureRM provider used, so references such as
+`private_service_connection[0].private_ip_address` continue to work:
+
+- `id` - The resource ID of the private endpoint.
+- `name` - The name of the private endpoint.
+- `location` - The Azure location of the private endpoint.
+- `subnet_id` - The resource ID of the subnet the private endpoint is in.
+- `tags` - The tags of the private endpoint.
+- `custom_dns_configs` - A list of objects with `fqdn` and `ip_addresses`. Azure reports these only  
+  for a private endpoint that is not linked to a private DNS zone.
+- `network_interface` - A list with the private endpoint's network interface, as an object with `id`  
+  and `name`.
+- `private_dns_zone_group` - A list with the private DNS zone group this module manages, as an object  
+  with `id`, `name` and `private_dns_zone_ids`. Empty when the module does not manage it.
+- `private_service_connection` - A list with the private service connection, as an object with
+  `name`, `is_manual_connection`, `private_connection_resource_id`, `subresource_names` and
+  `private_ip_address`.
 
 ### <a name="output_resource_id"></a> [resource\_id](#output\_resource\_id)
 
