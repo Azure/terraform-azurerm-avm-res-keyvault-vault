@@ -2,6 +2,22 @@
 
 Module to deploy key vaults, keys and secrets in Azure.
 
+## Tags on keys and secrets
+
+Keys and secrets inherit the module-level `tags` when their own `tags` attribute is omitted or
+`null`. An explicit child tag map replaces the module-level tags completely. Set `tags = {}` on
+a key or secret to leave it untagged. This applies to both ordinary and write-only secret values.
+
+For example, with module-level `tags = { environment = "production", owner = "platform" }`:
+
+- A key or secret with no `tags` inherits both tags.
+- A child with `tags = { owner = "application" }` receives only that tag.
+- A child with `tags = {}` inherits no tags.
+
+On upgrade, existing keys and secrets that omit their tags will receive the module-level tags
+on the next apply. Supply an explicit map to preserve a child's existing tag set. This change
+does not change resource addresses or secret values.
+
 ## Upgrading from a version that used the AzureRM provider for the key vault
 
 Versions up to 0.11.x managed the key vault itself with the AzureRM provider. This version manages

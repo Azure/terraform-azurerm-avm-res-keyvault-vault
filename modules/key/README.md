@@ -257,6 +257,10 @@ Description: The versionless Azure Resource Manager (ARM) resource ID of the key
 This is an ARM resource ID, not a data plane URI. Because it does not pin a key version,  
 services that support it will pick up new key versions automatically.
 
+### <a name="output_tags"></a> [tags](#output\_tags)
+
+Description: The tags assigned to the Key Vault Key.
+
 ### <a name="output_versionless_id"></a> [versionless\_id](#output\_versionless\_id)
 
 Description: The versionless data plane URI of the key, in the form
