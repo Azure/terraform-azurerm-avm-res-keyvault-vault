@@ -3,8 +3,10 @@ module "secrets" {
   for_each = var.secrets
 
   key_vault_resource_id = azapi_resource.this.id
+  location              = var.location
   name                  = each.value.name
   content_type          = each.value.content_type
+  enable_telemetry      = var.enable_telemetry
   expiration_date       = each.value.expiration_date
   not_before_date       = each.value.not_before_date
   role_assignments      = each.value.role_assignments
