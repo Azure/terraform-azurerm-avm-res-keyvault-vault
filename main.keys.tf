@@ -3,9 +3,11 @@ module "keys" {
   for_each = var.keys
 
   key_vault_resource_id = azapi_resource.this.id
+  location              = var.location
   name                  = each.value.name
   type                  = each.value.key_type
   curve                 = each.value.curve
+  enable_telemetry      = var.enable_telemetry
   expiration_date       = each.value.expiration_date
   not_before_date       = each.value.not_before_date
   opts                  = each.value.key_opts

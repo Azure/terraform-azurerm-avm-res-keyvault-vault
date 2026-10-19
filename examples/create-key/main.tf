@@ -6,6 +6,10 @@ terraform {
   required_version = ">= 1.9, < 2.0"
 
   required_providers {
+    azapi = {
+      source  = "Azure/azapi"
+      version = "~> 2.12"
+    }
     azurerm = {
       source  = "hashicorp/azurerm"
       version = ">= 4.81, < 5.0"
@@ -23,8 +27,12 @@ terraform {
 
 module "regions" {
   source  = "Azure/avm-utl-regions/azurerm"
-  version = "0.12.0"
+  version = "0.13.0"
+  providers = {
+    azapi = azapi
+  }
 
+  location         = var.location
   enable_telemetry = var.enable_telemetry
 }
 
@@ -36,8 +44,8 @@ resource "random_integer" "region_index" {
 
 # This ensures we have unique CAF compliant names for our resources.
 module "naming" {
-  source  = "Azure/naming/azurerm"
-  version = "0.4.4"
+  source  = "Azure/avm-utl-naming/azure"
+  version = "0.2.0"
 }
 
 resource "azurerm_resource_group" "this" {
@@ -60,6 +68,9 @@ data "azurerm_client_config" "current" {}
 
 module "key_vault" {
   source = "../../"
+  providers = {
+    azapi = azapi
+  }
 
   location = azurerm_resource_group.this.location
   # source             = "Azure/avm-res-keyvault-vault/azurerm"
