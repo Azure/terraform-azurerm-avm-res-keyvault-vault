@@ -7,3 +7,10 @@ For more information see https://aka.ms/avm/telemetryinfo.
 If it is set to false, then no telemetry will be collected.
 DESCRIPTION
 }
+
+variable "location" {
+  type        = string
+  default     = "eastus"
+  description = "The Azure region for this module's resources or telemetry deployment."
+  nullable    = false
+}
