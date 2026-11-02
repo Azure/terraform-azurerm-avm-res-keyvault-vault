@@ -1,7 +1,15 @@
 mock_provider "azurerm" {}
-mock_provider "azapi" {}
-mock_provider "modtm" {}
+
+mock_provider "azapi" {
+  mock_data "azapi_client_config" {
+    defaults = {
+      subscription_resource_id = "/subscriptions/00000000-0000-0000-0000-000000000000"
+    }
+  }
+}
+
 mock_provider "random" {}
+
 mock_provider "time" {}
 
 run "root_key_without_release_policy" {
@@ -117,6 +125,7 @@ run "key_without_release_policy" {
     name                  = "ordinary"
     type                  = "RSA"
     size                  = 2048
+    location              = "eastus"
   }
 
   assert {
@@ -141,6 +150,7 @@ run "key_with_release_policy" {
       json      = jsonencode({ version = "1.0.0", anyOf = [{ authority = "https://example.com" }] })
       immutable = true
     }
+    location = "eastus"
   }
 
   assert {
@@ -164,6 +174,7 @@ run "key_release_policy_defaults_to_mutable" {
     release_policy = {
       json = jsonencode({ version = "1.0.0" })
     }
+    location = "eastus"
   }
 
   assert {
