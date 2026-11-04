@@ -8,12 +8,16 @@ Module to deploy key vault keys.
 
 This sub-module can be called directly to add keys to an existing key vault:
 
+Telemetry is enabled by default and requires `location`. Existing direct callers upgrading from
+versions that did not have this input must provide it or set `enable_telemetry = false`.
+
 ```terraform
 module "keyvault_key" {
   source  = "Azure/avm-res-keyvault-vault/azurerm//modules/key"
   version = "0.#.#" # Replace with your desired version
 
   key_vault_resource_id = azurerm_key_vault.this.id
+  location              = azurerm_key_vault.this.location
   name                  = "my-key"
   type                  = "RSA"
 

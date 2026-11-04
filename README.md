@@ -14,6 +14,11 @@ settings, private endpoints and their locks move to their AzAPI addresses withou
 Keys, secrets and certificate contacts still use the AzureRM provider and are migrated in a later
 release.
 
+When calling the key or secret submodule directly, supply `location` for telemetry, which is enabled
+by default. Existing direct submodule callers that do not supply a location must either add one or
+set `enable_telemetry = false`. The root module passes its location and telemetry setting to both
+submodules.
+
 1. Replace `resource_group_name` with `parent_id`, the resource ID of the resource group:
 
    ```hcl
@@ -22,12 +27,13 @@ release.
 
 1. If the module manages private DNS zone groups, add the `import` block described below.
 1. Run `terraform init -upgrade`, then `terraform plan`.
-1. Expect in-place updates while AzAPI takes over the existing resources. None of the resources the
-   plan adds creates anything in Azure: `time_sleep` resources when a lock is configured on the key
-   vault or a private endpoint, and the interfaces utility module's telemetry resources when
-   `enable_telemetry` is true. Nothing should be destroyed or replaced; do not apply a plan that
-   destroys or replaces any of these resources.
-1. Apply the plan. A second plan reports no changes.
+1. Expect in-place updates while AzAPI takes over the existing resources. The plan can also add local
+   `time_sleep` and `terraform_data` resources. When telemetry is enabled, the vault, interfaces
+   module and each key and secret submodule create empty subscription-scope Azure deployments for
+   telemetry. Nothing being migrated should be destroyed or replaced; do not apply a plan that
+   destroys or replaces any of those resources.
+1. Apply the plan and inspect a second plan for unexpected changes to the migrated resources.
+   Telemetry deployments can show an update because they include the current plan timestamp.
 
 Access policies and application security groups need no action. Azure models both as part of their
 parent rather than as addressable child resources, so from this version they are sent in the body of
