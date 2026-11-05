@@ -133,6 +133,7 @@ The following requirements are needed by this module:
 
 The following resources are used by this module:
 
+- [azapi_data_plane_resource.certificate_contacts](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/data_plane_resource) (resource)
 - [azapi_resource.diagnostic_settings](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource) (resource)
 - [azapi_resource.lock](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource) (resource)
 - [azapi_resource.private_dns_zone_groups](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource) (resource)
@@ -143,7 +144,6 @@ The following resources are used by this module:
 - [azapi_resource.role_assignments](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource) (resource)
 - [azapi_resource.telemetry](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource) (resource)
 - [azapi_resource.this](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource) (resource)
-- [azurerm_key_vault_certificate_contacts.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_certificate_contacts) (resource)
 - [terraform_data.telemetry](https://registry.terraform.io/providers/hashicorp/terraform/latest/docs/resources/data) (resource)
 - [time_sleep.lock_removal](https://registry.terraform.io/providers/hashicorp/time/latest/docs/resources/sleep) (resource)
 - [time_sleep.private_endpoint_lock_removal](https://registry.terraform.io/providers/hashicorp/time/latest/docs/resources/sleep) (resource)
@@ -556,6 +556,7 @@ Description: AzAPI resource types and API versions used by the module, in `<prov
 - `authorization_role_assignments` - The role assignments.
 - `insights_diagnostic_settings` - The diagnostic settings. The default is a preview version because the stable version does not support log category groups.
 - `keyvault_vaults` - The key vault.
+- `keyvault_vaults_certificates_contacts` - The certificate contacts. This is a Key Vault data plane type, so the version is a data plane API version.
 - `network_private_endpoints` - The private endpoints.
 - `network_private_endpoints_private_dns_zone_groups` - The private DNS zone groups of the private endpoints.
 
@@ -567,6 +568,7 @@ object({
     authorization_role_assignments                    = optional(string, "Microsoft.Authorization/roleAssignments@2022-04-01")
     insights_diagnostic_settings                      = optional(string, "Microsoft.Insights/diagnosticSettings@2021-05-01-preview")
     keyvault_vaults                                   = optional(string, "Microsoft.KeyVault/vaults@2026-02-01")
+    keyvault_vaults_certificates_contacts             = optional(string, "Microsoft.KeyVault/vaults/certificates/contacts@7.4")
     network_private_endpoints                         = optional(string, "Microsoft.Network/privateEndpoints@2025-05-01")
     network_private_endpoints_private_dns_zone_groups = optional(string, "Microsoft.Network/privateEndpoints/privateDnsZoneGroups@2025-05-01")
   })

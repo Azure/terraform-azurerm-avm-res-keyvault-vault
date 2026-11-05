@@ -3,18 +3,18 @@ module "secrets" {
   for_each = var.secrets
 
   key_vault_resource_id = azapi_resource.this.id
-  ignore_body_changes   = { authorization_role_assignments = var.ignore_body_changes.authorization_role_assignments }
-  resource_types        = { authorization_role_assignments = var.resource_types.authorization_role_assignments }
-  retry                 = var.retry
-  timeouts              = var.timeouts
+  location              = var.location
   name                  = each.value.name
   content_type          = each.value.content_type
   enable_telemetry      = var.enable_telemetry
   expiration_date       = each.value.expiration_date
-  location              = var.location
+  ignore_body_changes   = { authorization_role_assignments = var.ignore_body_changes.authorization_role_assignments }
   not_before_date       = each.value.not_before_date
+  resource_types        = { authorization_role_assignments = var.resource_types.authorization_role_assignments }
+  retry                 = var.retry
   role_assignments      = each.value.role_assignments
   tags                  = each.value.tags
+  timeouts              = var.timeouts
   value                 = try(var.secrets_value[each.key], null)
   value_wo              = try(var.secrets_value_wo[each.key], null)
   value_wo_version      = try(var.secrets_value_wo_version[each.key], null)

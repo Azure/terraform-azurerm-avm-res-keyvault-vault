@@ -24,7 +24,13 @@ mock_provider "azapi" {
       }
     }
   }
+  mock_data "azapi_client_config" {
+    defaults = {
+      subscription_resource_id = "/subscriptions/00000000-0000-0000-0000-000000000000"
+    }
+  }
 }
+
 mock_provider "azurerm" {
   mock_resource "azurerm_key_vault_key" {
     defaults = {
@@ -37,7 +43,9 @@ mock_provider "azurerm" {
     }
   }
 }
+
 mock_provider "random" {}
+
 mock_provider "time" {}
 
 variables {
@@ -113,6 +121,11 @@ run "key_role_assignment_by_name" {
     condition     = azapi_resource.role_assignments["crypto"].body.properties.roleDefinitionId == "/subscriptions/00000000-0000-0000-0000-000000000000/providers/Microsoft.Authorization/roleDefinitions/33333333-3333-3333-3333-333333333333"
     error_message = "Key role assignments MUST resolve the role name to its definition ID."
   }
+  providers = {
+    azapi   = azapi
+    azurerm = azurerm
+    random  = random
+  }
 }
 
 run "secret_role_assignment_by_name" {
@@ -137,5 +150,10 @@ run "secret_role_assignment_by_name" {
   assert {
     condition     = azapi_resource.role_assignments["reader"].body.properties.roleDefinitionId == "/subscriptions/00000000-0000-0000-0000-000000000000/providers/Microsoft.Authorization/roleDefinitions/11111111-1111-1111-1111-111111111111"
     error_message = "Secret role assignments MUST resolve the role name to its definition ID."
+  }
+  providers = {
+    azapi   = azapi
+    azurerm = azurerm
+    random  = random
   }
 }
