@@ -44,7 +44,7 @@ When `legacy_access_policies_enabled` is false the module does not manage access
 re-reads whatever is on the vault and sends it back unchanged, so policies set by another
 configuration are left in place.
 
-Three cases need extra steps:
+These cases need extra steps:
 
 - **Private DNS zone groups managed by the module** (`private_endpoints_manage_dns_zone_group` is
   true, the default, and a private endpoint sets `private_dns_zone_resource_ids`). The AzureRM
@@ -84,6 +84,25 @@ Three cases need extra steps:
     id = "<role assignment resource ID, without the |<tenant-id> suffix>"
   }
   ```
+
+  The role assignments of keys and secrets follow the same steps at
+  `module.<module-name>.module.keys["<keys map key>"]` or `module.<module-name>.module.secrets["<secrets map key>"]`
+  instead of `module.<module-name>`.
+
+- **Certificate contacts** (`contacts` is set). The AzureRM provider managed them as its own resource,
+  which is dropped from the state, and AzAPI does not take over an existing resource it did not create.
+  Import the contacts once with an `import` block in your root module:
+
+  ```hcl
+  import {
+    to = module.<module-name>.azapi_data_plane_resource.certificate_contacts[0]
+    id = "<key vault name>.vault.azure.net/certificates/contacts|Microsoft.KeyVault/vaults/certificates/contacts@7.4"
+  }
+  ```
+
+  The import leaves the contacts unchanged. Without it, the apply stops with `Resource already exists`,
+  and nothing in Azure is removed; add the block and apply again. Remove the block once the upgrade is
+  applied.
 
 The `uri` output is now read from the key vault's `properties.vaultUri` rather than the AzureRM
 `vault_uri` attribute, and returns the same value.

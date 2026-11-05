@@ -50,11 +50,12 @@ The following requirements are needed by this module:
 
 The following resources are used by this module:
 
+- [azapi_resource.role_assignments](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource) (resource)
 - [azapi_resource.telemetry](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource) (resource)
 - [azurerm_key_vault_secret.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_secret) (resource)
-- [azurerm_role_assignment.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/role_assignment) (resource)
 - [terraform_data.telemetry](https://registry.terraform.io/providers/hashicorp/terraform/latest/docs/resources/data) (resource)
 - [azapi_client_config.telemetry](https://registry.terraform.io/providers/Azure/azapi/latest/docs/data-sources/client_config) (data source)
+- [azapi_resource_list.role_definitions](https://registry.terraform.io/providers/Azure/azapi/latest/docs/data-sources/resource_list) (data source)
 
 <!-- markdownlint-disable MD013 -->
 ## Required Inputs
@@ -64,6 +65,12 @@ The following input variables are required:
 ### <a name="input_key_vault_resource_id"></a> [key\_vault\_resource\_id](#input\_key\_vault\_resource\_id)
 
 Description: The ID of the Key Vault where the secret should be created.
+
+Type: `string`
+
+### <a name="input_location"></a> [location](#input\_location)
+
+Description: The Azure region for this module's resources or telemetry deployment.
 
 Type: `string`
 
@@ -103,19 +110,63 @@ Type: `string`
 
 Default: `null`
 
-### <a name="input_location"></a> [location](#input\_location)
+### <a name="input_ignore_body_changes"></a> [ignore\_body\_changes](#input\_ignore\_body\_changes)
 
-Description: The Azure region for this module's resources or telemetry deployment.
+Description: Paths in each resource's `body` whose changes the AzAPI provider ignores. See the root module's `ignore_body_changes` for the semantics.
 
-Type: `string`
+- `authorization_role_assignments` - The role assignments.
 
-Default: `null`
+Type:
+
+```hcl
+object({
+    authorization_role_assignments = optional(list(string), [])
+  })
+```
+
+Default: `{}`
 
 ### <a name="input_not_before_date"></a> [not\_before\_date](#input\_not\_before\_date)
 
 Description: Secret not usable before as a UTC datetime (Y-m-d'T'H:M:S'Z').
 
 Type: `string`
+
+Default: `null`
+
+### <a name="input_resource_types"></a> [resource\_types](#input\_resource\_types)
+
+Description: AzAPI resource types and API versions used by the module, in `<provider>/<resource>@<api-version>` form.
+
+- `authorization_role_assignments` - The role assignments.
+
+Type:
+
+```hcl
+object({
+    authorization_role_assignments = optional(string, "Microsoft.Authorization/roleAssignments@2022-04-01")
+  })
+```
+
+Default: `{}`
+
+### <a name="input_retry"></a> [retry](#input\_retry)
+
+Description: Retry configuration applied to every `azapi` resource managed by the module. Defaults to `null` (no custom retry).
+
+- `error_message_regex`  - (Optional) A list of regex patterns matching error messages that trigger a retry.
+- `interval_seconds`     - (Optional) Initial interval between retries in seconds.
+- `max_interval_seconds` - (Optional) Maximum interval between retries in seconds.
+
+Type:
+
+```hcl
+object({
+    error_message_regex  = optional(list(string))
+    interval_seconds     = optional(number)
+    max_interval_seconds = optional(number)
+  })
+```
 
 Default: `null`
 
@@ -154,6 +205,23 @@ Default: `{}`
 Description: The tags to assign to the secret.
 
 Type: `map(string)`
+
+Default: `null`
+
+### <a name="input_timeouts"></a> [timeouts](#input\_timeouts)
+
+Description: Per-operation timeouts applied to every `azapi` resource managed by the module. Defaults to `null` (provider defaults). Each value is a Go duration string (e.g. `30m`, `1h`).
+
+Type:
+
+```hcl
+object({
+    create = optional(string)
+    read   = optional(string)
+    update = optional(string)
+    delete = optional(string)
+  })
+```
 
 Default: `null`
 
@@ -223,7 +291,13 @@ secret versions automatically. Use `id` when a specific version is required.
 
 ## Modules
 
-No modules.
+The following Modules are called:
+
+### <a name="module_avm_interfaces"></a> [avm\_interfaces](#module\_avm\_interfaces)
+
+Source: Azure/avm-utl-interfaces/azure
+
+Version: 0.9.0
 
 <!-- markdownlint-disable-next-line MD041 -->
 ## Data Collection
