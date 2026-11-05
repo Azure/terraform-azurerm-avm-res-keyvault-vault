@@ -156,13 +156,6 @@ variable "tags" {
   description = "The tags to assign to the key."
 }
 
-variable "enable_telemetry" {
-  type        = bool
-  default     = true
-  description = "Whether telemetry is enabled for the role assignment interfaces. For more information see <https://aka.ms/avm/telemetryinfo>."
-  nullable    = false
-}
-
 variable "ignore_body_changes" {
   type = object({
     authorization_role_assignments = optional(list(string), [])

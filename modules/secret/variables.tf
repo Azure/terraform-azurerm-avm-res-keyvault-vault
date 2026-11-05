@@ -124,13 +124,6 @@ variable "value_wo_version" {
   description = "The version of the secret writable only. Must be set if `value_wo` is set. Changing this updates the secret value."
 }
 
-variable "enable_telemetry" {
-  type        = bool
-  default     = true
-  description = "Whether telemetry is enabled for the role assignment interfaces. For more information see <https://aka.ms/avm/telemetryinfo>."
-  nullable    = false
-}
-
 variable "ignore_body_changes" {
   type = object({
     authorization_role_assignments = optional(list(string), [])
