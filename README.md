@@ -14,6 +14,11 @@ settings, private endpoints and their locks move to their AzAPI addresses withou
 Keys, secrets and certificate contacts still use the AzureRM provider and are migrated in a later
 release.
 
+When calling the key or secret submodule directly, supply `location` for telemetry, which is enabled
+by default. Existing direct submodule callers that do not supply a location must either add one or
+set `enable_telemetry = false`. The root module passes its location and telemetry setting to both
+submodules.
+
 1. Replace `resource_group_name` with `parent_id`, the resource ID of the resource group:
 
    ```hcl
@@ -22,12 +27,13 @@ release.
 
 1. If the module manages private DNS zone groups, add the `import` block described below.
 1. Run `terraform init -upgrade`, then `terraform plan`.
-1. Expect in-place updates while AzAPI takes over the existing resources. None of the resources the
-   plan adds creates anything in Azure: `time_sleep` resources when a lock is configured on the key
-   vault or a private endpoint, and the interfaces utility module's telemetry resources when
-   `enable_telemetry` is true. Nothing should be destroyed or replaced; do not apply a plan that
-   destroys or replaces any of these resources.
-1. Apply the plan. A second plan reports no changes.
+1. Expect in-place updates while AzAPI takes over the existing resources. The plan can also add local
+   `time_sleep` and `terraform_data` resources. When telemetry is enabled, the vault, interfaces
+   module and each key and secret submodule create empty subscription-scope Azure deployments for
+   telemetry. Nothing being migrated should be destroyed or replaced; do not apply a plan that
+   destroys or replaces any of those resources.
+1. Apply the plan and inspect a second plan for unexpected changes to the migrated resources.
+   Telemetry deployments can show an update because they include the current plan timestamp.
 
 Access policies and application security groups need no action. Azure models both as part of their
 parent rather than as addressable child resources, so from this version they are sent in the body of
@@ -119,8 +125,6 @@ The following requirements are needed by this module:
 
 - <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) (>= 4.81, < 5.0)
 
-- <a name="requirement_modtm"></a> [modtm](#requirement\_modtm) (~> 0.3)
-
 - <a name="requirement_random"></a> [random](#requirement\_random) (~> 3.5)
 
 - <a name="requirement_time"></a> [time](#requirement\_time) (~> 0.9)
@@ -137,10 +141,10 @@ The following resources are used by this module:
 - [azapi_resource.private_endpoints](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource) (resource)
 - [azapi_resource.private_endpoints_unmanaged_dns_zone_groups](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource) (resource)
 - [azapi_resource.role_assignments](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource) (resource)
+- [azapi_resource.telemetry](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource) (resource)
 - [azapi_resource.this](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource) (resource)
 - [azurerm_key_vault_certificate_contacts.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_certificate_contacts) (resource)
-- [modtm_telemetry.telemetry](https://registry.terraform.io/providers/azure/modtm/latest/docs/resources/telemetry) (resource)
-- [random_uuid.telemetry](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/uuid) (resource)
+- [terraform_data.telemetry](https://registry.terraform.io/providers/hashicorp/terraform/latest/docs/resources/data) (resource)
 - [time_sleep.lock_removal](https://registry.terraform.io/providers/hashicorp/time/latest/docs/resources/sleep) (resource)
 - [time_sleep.private_endpoint_lock_removal](https://registry.terraform.io/providers/hashicorp/time/latest/docs/resources/sleep) (resource)
 - [time_sleep.wait_for_rbac_before_contact_operations](https://registry.terraform.io/providers/hashicorp/time/latest/docs/resources/sleep) (resource)
@@ -150,7 +154,6 @@ The following resources are used by this module:
 - [azapi_resource.private_endpoint_network_interfaces](https://registry.terraform.io/providers/Azure/azapi/latest/docs/data-sources/resource) (data source)
 - [azapi_resource_list.diagnostic_categories](https://registry.terraform.io/providers/Azure/azapi/latest/docs/data-sources/resource_list) (data source)
 - [azapi_resource_list.role_definitions](https://registry.terraform.io/providers/Azure/azapi/latest/docs/data-sources/resource_list) (data source)
-- [modtm_module_source.telemetry](https://registry.terraform.io/providers/azure/modtm/latest/docs/data-sources/module_source) (data source)
 
 <!-- markdownlint-disable MD013 -->
 ## Required Inputs
@@ -903,7 +906,7 @@ The following Modules are called:
 
 Source: Azure/avm-utl-interfaces/azure
 
-Version: 0.7.0
+Version: 0.9.0
 
 ### <a name="module_keys"></a> [keys](#module\_keys)
 

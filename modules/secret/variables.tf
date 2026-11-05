@@ -26,6 +26,17 @@ variable "content_type" {
   description = "The content type of the secret."
 }
 
+variable "enable_telemetry" {
+  type        = bool
+  default     = true
+  description = <<DESCRIPTION
+This variable controls whether or not telemetry is enabled for the module.
+For more information see <https://aka.ms/avm/telemetryinfo>.
+If it is set to false, then no telemetry will be collected.
+DESCRIPTION
+  nullable    = false
+}
+
 variable "expiration_date" {
   type        = string
   default     = null
@@ -34,6 +45,17 @@ variable "expiration_date" {
   validation {
     error_message = "Value must be a UTC datetime (Y-m-d'T'H:M:S'Z')."
     condition     = var.expiration_date == null || can(regex("^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$", var.expiration_date))
+  }
+}
+
+variable "location" {
+  type        = string
+  default     = null
+  description = "The Azure region for this module's resources or telemetry deployment."
+
+  validation {
+    condition     = !var.enable_telemetry || var.location != null
+    error_message = "The location must not be null when telemetry is enabled."
   }
 }
 

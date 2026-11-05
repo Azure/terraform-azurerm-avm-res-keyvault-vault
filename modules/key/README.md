@@ -8,12 +8,16 @@ Module to deploy key vault keys.
 
 This sub-module can be called directly to add keys to an existing key vault:
 
+Telemetry is enabled by default and requires `location`. Existing direct callers upgrading from
+versions that did not have this input must provide it or set `enable_telemetry = false`.
+
 ```terraform
 module "keyvault_key" {
   source  = "Azure/avm-res-keyvault-vault/azurerm//modules/key"
   version = "0.#.#" # Replace with your desired version
 
   key_vault_resource_id = azurerm_key_vault.this.id
+  location              = azurerm_key_vault.this.location
   name                  = "my-key"
   type                  = "RSA"
 
@@ -43,14 +47,19 @@ The following requirements are needed by this module:
 
 - <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) (>= 1.9, < 2.0)
 
+- <a name="requirement_azapi"></a> [azapi](#requirement\_azapi) (~> 2.12)
+
 - <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) (>= 4.81, < 5.0)
 
 ## Resources
 
 The following resources are used by this module:
 
+- [azapi_resource.telemetry](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource) (resource)
 - [azurerm_key_vault_key.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_key) (resource)
 - [azurerm_role_assignment.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/role_assignment) (resource)
+- [terraform_data.telemetry](https://registry.terraform.io/providers/hashicorp/terraform/latest/docs/resources/data) (resource)
+- [azapi_client_config.telemetry](https://registry.terraform.io/providers/Azure/azapi/latest/docs/data-sources/client_config) (data source)
 
 <!-- markdownlint-disable MD013 -->
 ## Required Inputs
@@ -87,9 +96,27 @@ Type: `string`
 
 Default: `null`
 
+### <a name="input_enable_telemetry"></a> [enable\_telemetry](#input\_enable\_telemetry)
+
+Description: This variable controls whether or not telemetry is enabled for the module.  
+For more information see <https://aka.ms/avm/telemetryinfo>.  
+If it is set to false, then no telemetry will be collected.
+
+Type: `bool`
+
+Default: `true`
+
 ### <a name="input_expiration_date"></a> [expiration\_date](#input\_expiration\_date)
 
 Description: The expiration date of the key as a UTC datetime (Y-m-d'T'H:M:S'Z').
+
+Type: `string`
+
+Default: `null`
+
+### <a name="input_location"></a> [location](#input\_location)
+
+Description: The Azure region for this module's resources or telemetry deployment.
 
 Type: `string`
 
