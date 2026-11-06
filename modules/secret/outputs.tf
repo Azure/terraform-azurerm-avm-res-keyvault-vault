@@ -36,6 +36,11 @@ DESCRIPTION
   value       = azurerm_key_vault_secret.this.resource_versionless_id
 }
 
+output "tags" {
+  description = "The tags assigned to the Key Vault Secret."
+  value       = azurerm_key_vault_secret.this.tags
+}
+
 output "versionless_id" {
   description = <<DESCRIPTION
 The versionless data plane URI of the secret, in the form

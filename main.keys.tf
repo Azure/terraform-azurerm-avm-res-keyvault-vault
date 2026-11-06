@@ -15,7 +15,7 @@ module "keys" {
   role_assignments      = each.value.role_assignments
   rotation_policy       = each.value.rotation_policy
   size                  = each.value.key_size
-  tags                  = each.value.tags
+  tags                  = each.value.tags != null ? each.value.tags : var.tags
 
   # Keys are created through the private endpoints once their DNS records exist.
   depends_on = [
