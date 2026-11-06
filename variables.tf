@@ -138,10 +138,12 @@ variable "enabled_for_template_deployment" {
 
 variable "ignore_body_changes" {
   type = object({
-    authorization_locks            = optional(list(string), [])
-    authorization_role_assignments = optional(list(string), [])
-    insights_diagnostic_settings   = optional(list(string), [])
-    keyvault_vaults                = optional(list(string), [])
+    authorization_locks                               = optional(list(string), [])
+    authorization_role_assignments                    = optional(list(string), [])
+    insights_diagnostic_settings                      = optional(list(string), [])
+    keyvault_vaults                                   = optional(list(string), [])
+    network_private_endpoints                         = optional(list(string), [])
+    network_private_endpoints_private_dns_zone_groups = optional(list(string), [])
   })
   default     = {}
   description = <<DESCRIPTION
@@ -151,10 +153,12 @@ Paths use dot notation, for example `properties.sku.name`. Individual list items
 
 Supplying a non-empty value requires Terraform 1.11 or later, because `ignore_body_changes` is a write-only argument. Changes take effect only after an apply, because the value is held in provider-private state.
 
-- `authorization_locks` - Ignored body paths for the management lock.
+- `authorization_locks` - Ignored body paths for the management locks on the key vault and the private endpoints.
 - `authorization_role_assignments` - Ignored body paths for the role assignments.
 - `insights_diagnostic_settings` - Ignored body paths for the diagnostic settings.
 - `keyvault_vaults` - Ignored body paths for the key vault.
+- `network_private_endpoints` - Ignored body paths for the private endpoints.
+- `network_private_endpoints_private_dns_zone_groups` - Ignored body paths for the private DNS zone groups.
 DESCRIPTION
   nullable    = false
 }
@@ -477,19 +481,23 @@ variable "purge_protection_enabled" {
 
 variable "resource_types" {
   type = object({
-    authorization_locks            = optional(string, "Microsoft.Authorization/locks@2020-05-01")
-    authorization_role_assignments = optional(string, "Microsoft.Authorization/roleAssignments@2022-04-01")
-    insights_diagnostic_settings   = optional(string, "Microsoft.Insights/diagnosticSettings@2021-05-01-preview")
-    keyvault_vaults                = optional(string, "Microsoft.KeyVault/vaults@2026-02-01")
+    authorization_locks                               = optional(string, "Microsoft.Authorization/locks@2020-05-01")
+    authorization_role_assignments                    = optional(string, "Microsoft.Authorization/roleAssignments@2022-04-01")
+    insights_diagnostic_settings                      = optional(string, "Microsoft.Insights/diagnosticSettings@2021-05-01-preview")
+    keyvault_vaults                                   = optional(string, "Microsoft.KeyVault/vaults@2026-02-01")
+    network_private_endpoints                         = optional(string, "Microsoft.Network/privateEndpoints@2025-05-01")
+    network_private_endpoints_private_dns_zone_groups = optional(string, "Microsoft.Network/privateEndpoints/privateDnsZoneGroups@2025-05-01")
   })
   default     = {}
   description = <<DESCRIPTION
 AzAPI resource types and API versions used by the module, in `<provider>/<resource>@<api-version>` form. Each key defaults to a tested value; supply only the keys you want to override, for example to target a sovereign cloud that serves older API versions.
 
-- `authorization_locks` - The management lock.
+- `authorization_locks` - The management locks on the key vault and the private endpoints.
 - `authorization_role_assignments` - The role assignments.
 - `insights_diagnostic_settings` - The diagnostic settings. The default is a preview version because the stable version does not support log category groups.
 - `keyvault_vaults` - The key vault.
+- `network_private_endpoints` - The private endpoints.
+- `network_private_endpoints_private_dns_zone_groups` - The private DNS zone groups of the private endpoints.
 DESCRIPTION
   nullable    = false
 }

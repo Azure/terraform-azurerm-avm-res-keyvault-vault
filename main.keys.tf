@@ -6,7 +6,9 @@ module "keys" {
   name                  = each.value.name
   type                  = each.value.key_type
   curve                 = each.value.curve
+  enable_telemetry      = var.enable_telemetry
   expiration_date       = each.value.expiration_date
+  location              = var.location
   not_before_date       = each.value.not_before_date
   opts                  = each.value.key_opts
   release_policy        = each.value.release_policy
@@ -15,9 +17,11 @@ module "keys" {
   size                  = each.value.key_size
   tags                  = each.value.tags != null ? each.value.tags : var.tags
 
+  # Keys are created through the private endpoints once their DNS records exist.
   depends_on = [
-    azurerm_private_endpoint.this,
-    azurerm_private_endpoint.this_unmanaged_dns_zone_groups,
+    azapi_resource.private_dns_zone_groups,
+    azapi_resource.private_endpoints,
+    azapi_resource.private_endpoints_unmanaged_dns_zone_groups,
     time_sleep.wait_for_rbac_before_key_operations
   ]
 }

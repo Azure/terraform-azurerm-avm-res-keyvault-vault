@@ -5,7 +5,9 @@ module "secrets" {
   key_vault_resource_id = azapi_resource.this.id
   name                  = each.value.name
   content_type          = each.value.content_type
+  enable_telemetry      = var.enable_telemetry
   expiration_date       = each.value.expiration_date
+  location              = var.location
   not_before_date       = each.value.not_before_date
   role_assignments      = each.value.role_assignments
   tags                  = each.value.tags != null ? each.value.tags : var.tags
@@ -13,9 +15,11 @@ module "secrets" {
   value_wo              = try(var.secrets_value_wo[each.key], null)
   value_wo_version      = try(var.secrets_value_wo_version[each.key], null)
 
+  # Secrets are created through the private endpoints once their DNS records exist.
   depends_on = [
-    azurerm_private_endpoint.this,
-    azurerm_private_endpoint.this_unmanaged_dns_zone_groups,
+    azapi_resource.private_dns_zone_groups,
+    azapi_resource.private_endpoints,
+    azapi_resource.private_endpoints_unmanaged_dns_zone_groups,
     time_sleep.wait_for_rbac_before_secret_operations
   ]
 }
