@@ -46,7 +46,7 @@ When `legacy_access_policies_enabled` is false the module does not manage access
 re-reads whatever is on the vault and sends it back unchanged, so policies set by another
 configuration are left in place.
 
-Three cases need extra steps:
+These cases need extra steps:
 
 - **Private DNS zone groups managed by the module** (`private_endpoints_manage_dns_zone_group` is
   true, the default, and a private endpoint sets `private_dns_zone_resource_ids`). The AzureRM
@@ -87,6 +87,25 @@ Three cases need extra steps:
   }
   ```
 
+  The role assignments of keys and secrets follow the same steps at
+  `module.<module-name>.module.keys["<keys map key>"]` or `module.<module-name>.module.secrets["<secrets map key>"]`
+  instead of `module.<module-name>`.
+
+- **Certificate contacts** (`contacts` is set). The AzureRM provider managed them as its own resource,
+  which is dropped from the state, and AzAPI does not take over an existing resource it did not create.
+  Import the contacts once with an `import` block in your root module:
+
+  ```hcl
+  import {
+    to = module.<module-name>.azapi_data_plane_resource.certificate_contacts[0]
+    id = "<key vault name>.vault.azure.net/certificates/contacts|Microsoft.KeyVault/vaults/certificates/contacts@7.4"
+  }
+  ```
+
+  The import leaves the contacts unchanged. Without it, the apply stops with `Resource already exists`,
+  and nothing in Azure is removed; add the block and apply again. Remove the block once the upgrade is
+  applied.
+
 The `uri` output is now read from the key vault's `properties.vaultUri` rather than the AzureRM
 `vault_uri` attribute, and returns the same value.
 
@@ -114,6 +133,7 @@ The following requirements are needed by this module:
 
 The following resources are used by this module:
 
+- [azapi_data_plane_resource.certificate_contacts](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/data_plane_resource) (resource)
 - [azapi_resource.diagnostic_settings](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource) (resource)
 - [azapi_resource.lock](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource) (resource)
 - [azapi_resource.private_dns_zone_groups](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource) (resource)
@@ -124,7 +144,6 @@ The following resources are used by this module:
 - [azapi_resource.role_assignments](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource) (resource)
 - [azapi_resource.telemetry](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource) (resource)
 - [azapi_resource.this](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource) (resource)
-- [azurerm_key_vault_certificate_contacts.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_certificate_contacts) (resource)
 - [terraform_data.telemetry](https://registry.terraform.io/providers/hashicorp/terraform/latest/docs/resources/data) (resource)
 - [time_sleep.lock_removal](https://registry.terraform.io/providers/hashicorp/time/latest/docs/resources/sleep) (resource)
 - [time_sleep.private_endpoint_lock_removal](https://registry.terraform.io/providers/hashicorp/time/latest/docs/resources/sleep) (resource)
@@ -537,6 +556,7 @@ Description: AzAPI resource types and API versions used by the module, in `<prov
 - `authorization_role_assignments` - The role assignments.
 - `insights_diagnostic_settings` - The diagnostic settings. The default is a preview version because the stable version does not support log category groups.
 - `keyvault_vaults` - The key vault.
+- `keyvault_vaults_certificates_contacts` - The certificate contacts. This is a Key Vault data plane type, so the version is a data plane API version.
 - `network_private_endpoints` - The private endpoints.
 - `network_private_endpoints_private_dns_zone_groups` - The private DNS zone groups of the private endpoints.
 
@@ -548,6 +568,7 @@ object({
     authorization_role_assignments                    = optional(string, "Microsoft.Authorization/roleAssignments@2022-04-01")
     insights_diagnostic_settings                      = optional(string, "Microsoft.Insights/diagnosticSettings@2021-05-01-preview")
     keyvault_vaults                                   = optional(string, "Microsoft.KeyVault/vaults@2026-02-01")
+    keyvault_vaults_certificates_contacts             = optional(string, "Microsoft.KeyVault/vaults/certificates/contacts@7.4")
     network_private_endpoints                         = optional(string, "Microsoft.Network/privateEndpoints@2025-05-01")
     network_private_endpoints_private_dns_zone_groups = optional(string, "Microsoft.Network/privateEndpoints/privateDnsZoneGroups@2025-05-01")
   })

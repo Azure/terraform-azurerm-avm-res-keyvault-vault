@@ -34,7 +34,9 @@ resource "azapi_resource" "this" {
         defaultAction = var.network_acls.default_action
         ipRules       = [for rule in var.network_acls.ip_rules : { value = rule }]
         virtualNetworkRules = [
-          for subnet_id in var.network_acls.virtual_network_subnet_ids : { id = subnet_id }
+          # Azure returns the subnet IDs in lower case. The AzureRM provider compared them without regard to
+          # case; sending them in lower case keeps the plan free of case-only differences.
+          for subnet_id in var.network_acls.virtual_network_subnet_ids : { id = lower(subnet_id) }
         ]
       }
       publicNetworkAccess       = var.public_network_access_enabled ? "Enabled" : "Disabled"
@@ -224,8 +226,9 @@ resource "azapi_resource" "diagnostic_settings" {
     properties = {
       eventHubAuthorizationRuleId = each.value.event_hub_authorization_rule_resource_id
       eventHubName                = each.value.event_hub_name
-      # This module has always sent "Dedicated" as null, which leaves the choice to Azure.
-      logAnalyticsDestinationType = each.value.log_analytics_destination_type == "Dedicated" ? null : each.value.log_analytics_destination_type
+      # Sent as given, as the AzureRM-based releases sent it. Sending "Dedicated" as null would let Azure
+      # choose again on upgrade and could move the logs to the AzureDiagnostics table.
+      logAnalyticsDestinationType = each.value.log_analytics_destination_type
       # Azure echoes every category or category group it offers, including the ones that are switched
       # off, so the full set is sent with explicit flags. Sending only the enabled entries leaves the
       # disabled ones in the response and reports a difference on every plan. Groups and individual
@@ -287,22 +290,46 @@ data "azapi_resource_list" "diagnostic_categories" {
   }
 }
 
-resource "azurerm_key_vault_certificate_contacts" "this" {
+resource "azapi_data_plane_resource" "certificate_contacts" {
   count = length(var.contacts) > 0 ? 1 : 0
 
-  key_vault_id = azapi_resource.this.id
+  parent_id = trimsuffix(trimprefix(azapi_resource.this.output.properties.vaultUri, "https://"), "/")
+  type      = var.resource_types.keyvault_vaults_certificates_contacts
+  body = {
+    contacts = [
+      for contact in values(var.contacts) : {
+        email = contact.email
+        name  = contact.name
+        phone = contact.phone
+      }
+    ]
+  }
+  response_export_values = []
+  retry                  = var.retry
 
-  dynamic "contact" {
-    for_each = var.contacts
+  dynamic "timeouts" {
+    for_each = var.timeouts == null ? [] : [var.timeouts]
 
     content {
-      email = contact.value.email
-      name  = contact.value.name
-      phone = contact.value.phone
+      create = timeouts.value.create
+      delete = timeouts.value.delete
+      read   = timeouts.value.read
+      update = timeouts.value.update
     }
   }
 
   depends_on = [time_sleep.wait_for_rbac_before_contact_operations]
+}
+
+# `azapi_data_plane_resource` cannot take over the state of the AzureRM resource. The old resource
+# is dropped from the state without being deleted, and the PUT above replaces the vault's contact
+# list with the same contacts, so upgrading never leaves the vault without contacts.
+removed {
+  from = azurerm_key_vault_certificate_contacts.this
+
+  lifecycle {
+    destroy = false
+  }
 }
 
 resource "time_sleep" "wait_for_rbac_before_contact_operations" {
