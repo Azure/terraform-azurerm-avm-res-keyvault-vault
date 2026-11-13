@@ -28,6 +28,7 @@ resource "azapi_resource" "this" {
       # Azure rejects `false`: the property is write-once and cannot be turned off again.
       enablePurgeProtection   = var.purge_protection_enabled ? true : null
       enableRbacAuthorization = !var.legacy_access_policies_enabled
+      enableSoftDelete        = var.soft_delete_retention_days != null
       networkAcls = var.network_acls == null ? null : {
         bypass        = var.network_acls.bypass
         defaultAction = var.network_acls.default_action
