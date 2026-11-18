@@ -80,6 +80,33 @@ run "role_assignment_descriptions" {
   }
 }
 
+run "soft_delete_omitted_when_retention_unset" {
+  command = plan
+
+  assert {
+    condition     = azapi_resource.this.body.properties.enableSoftDelete == null
+    error_message = "enableSoftDelete must not be sent when soft_delete_retention_days is unset."
+  }
+}
+
+run "soft_delete_enabled_when_retention_set" {
+  command = plan
+
+  variables {
+    soft_delete_retention_days = 30
+  }
+
+  assert {
+    condition     = azapi_resource.this.body.properties.enableSoftDelete == true
+    error_message = "enableSoftDelete must be true when soft_delete_retention_days is set."
+  }
+
+  assert {
+    condition     = azapi_resource.this.body.properties.softDeleteRetentionInDays == 30
+    error_message = "softDeleteRetentionInDays must pass through the supplied retention."
+  }
+}
+
 run "name_regex_length_long" {
   command = plan
 
