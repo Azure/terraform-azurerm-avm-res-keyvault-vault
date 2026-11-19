@@ -10,7 +10,7 @@ module "secrets" {
   location              = var.location
   not_before_date       = each.value.not_before_date
   role_assignments      = each.value.role_assignments
-  tags                  = each.value.tags
+  tags                  = each.value.tags != null ? each.value.tags : var.tags
   value                 = try(var.secrets_value[each.key], null)
   value_wo              = try(var.secrets_value_wo[each.key], null)
   value_wo_version      = try(var.secrets_value_wo_version[each.key], null)
