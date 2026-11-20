@@ -485,6 +485,7 @@ variable "resource_types" {
     authorization_role_assignments                    = optional(string, "Microsoft.Authorization/roleAssignments@2022-04-01")
     insights_diagnostic_settings                      = optional(string, "Microsoft.Insights/diagnosticSettings@2021-05-01-preview")
     keyvault_vaults                                   = optional(string, "Microsoft.KeyVault/vaults@2026-02-01")
+    keyvault_vaults_certificates_contacts             = optional(string, "Microsoft.KeyVault/vaults/certificates/contacts@7.4")
     network_private_endpoints                         = optional(string, "Microsoft.Network/privateEndpoints@2025-05-01")
     network_private_endpoints_private_dns_zone_groups = optional(string, "Microsoft.Network/privateEndpoints/privateDnsZoneGroups@2025-05-01")
   })
@@ -496,6 +497,7 @@ AzAPI resource types and API versions used by the module, in `<provider>/<resour
 - `authorization_role_assignments` - The role assignments.
 - `insights_diagnostic_settings` - The diagnostic settings. The default is a preview version because the stable version does not support log category groups.
 - `keyvault_vaults` - The key vault.
+- `keyvault_vaults_certificates_contacts` - The certificate contacts. This is a Key Vault data plane type, so the version is a data plane API version.
 - `network_private_endpoints` - The private endpoints.
 - `network_private_endpoints_private_dns_zone_groups` - The private DNS zone groups of the private endpoints.
 DESCRIPTION
